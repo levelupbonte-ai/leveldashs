@@ -11,11 +11,11 @@ import { useDashboardSession } from '@/lib/auth/session-context';
 import { hasRole, type OrgRole } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { membersQueryOptions, orgKeys } from '../api/queries';
-import { addMember, removeMember, updateMemberRole } from '../api/service';
+import { invitationsQueryOptions, membersQueryOptions, orgKeys } from '../api/queries';
+import { addMember, cancelInvitation, removeMember, updateMemberRole } from '../api/service';
 
 const ROLES: Record<OrgRole, string> = {
   owner: 'Propriétaire',
@@ -39,7 +39,22 @@ export function TeamManager() {
   const { data: members } = useSuspenseQuery(membersQueryOptions(db, org.id));
   const canManage = isPlatformAdmin || hasRole(org.role, 'admin');
   const isOwner = org.role === 'owner';
-  const refresh = () => queryClient.invalidateQueries({ queryKey: orgKeys.members(org.id) });
+  const { data: invitations = [] } = useQuery({
+    ...invitationsQueryOptions(db, org.id),
+    enabled: canManage
+  });
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: orgKeys.members(org.id) });
+    void queryClient.invalidateQueries({ queryKey: orgKeys.invitations(org.id) });
+  };
+  const cancelMutation = useMutation({
+    mutationFn: (id: string) => cancelInvitation(db, id),
+    onSuccess: () => {
+      toast.success('Invitation annulée');
+      refresh();
+    },
+    onError
+  });
 
   const roleMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: OrgRole }) =>
@@ -65,13 +80,13 @@ export function TeamManager() {
     onSubmit: async ({ value, formApi }) => {
       try {
         const result = await addMember(db, org.id, value.email, value.role);
-        if (result === 'not_found') {
-          toast.error(
-            'Aucun compte avec cet e-mail. Demandez à la personne de créer son compte LevelUp, puis réessayez.'
-          );
-          return;
-        }
-        toast.success(result === 'added' ? 'Membre ajouté' : 'Rôle mis à jour');
+        toast.success(
+          result === 'invited'
+            ? 'Invitation enregistrée : la personne rejoindra l’équipe en créant son compte avec cet e-mail.'
+            : result === 'added'
+              ? 'Membre ajouté'
+              : 'Rôle mis à jour'
+        );
         formApi.reset();
         refresh();
       } catch (e) {
@@ -147,6 +162,27 @@ export function TeamManager() {
               </div>
             );
           })}
+          {invitations.map((inv) => (
+            <div key={inv.id} className='flex items-center gap-3 py-3'>
+              <div className='bg-muted flex size-9 items-center justify-center rounded-full'>
+                <Icons.mail className='size-4' />
+              </div>
+              <div className='min-w-0 flex-1'>
+                <p className='truncate font-medium'>{inv.email}</p>
+                <p className='text-muted-foreground text-xs'>
+                  Invitation en attente · {ROLES[inv.role]}
+                </p>
+              </div>
+              <Button
+                size='icon'
+                variant='ghost'
+                aria-label='Annuler l’invitation'
+                onClick={() => cancelMutation.mutate(inv.id)}
+              >
+                <Icons.close className='size-4' />
+              </Button>
+            </div>
+          ))}
         </CardContent>
       </Card>
 

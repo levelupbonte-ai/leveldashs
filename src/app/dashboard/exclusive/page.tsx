@@ -2,6 +2,7 @@ import PageContainer from '@/components/layout/page-container';
 import { Skeleton } from '@/components/ui/skeleton';
 import { allWebsitesQueryOptions } from '@/features/organizations/api/queries';
 import { AdminWebsites } from '@/features/organizations/components/admin-websites';
+import { NewClientForm } from '@/features/organizations/components/new-client-form';
 import { requireDashboardSession } from '@/lib/auth/session';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
@@ -22,11 +23,14 @@ export default async function AdminPage() {
 
   return (
     <PageContainer pageTitle='Tous les clients' pageDescription='Sites gérés par LevelUp'>
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={<Skeleton className='h-64 w-full' />}>
-          <AdminWebsites />
-        </Suspense>
-      </HydrationBoundary>
+      <div className='space-y-6'>
+        <NewClientForm />
+        <HydrationBoundary state={dehydrate(queryClient)}>
+          <Suspense fallback={<Skeleton className='h-64 w-full' />}>
+            <AdminWebsites />
+          </Suspense>
+        </HydrationBoundary>
+      </div>
     </PageContainer>
   );
 }

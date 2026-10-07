@@ -35,14 +35,14 @@ export async function addMember(
   organizationId: string,
   email: string,
   role: OrgRole
-): Promise<'added' | 'updated' | 'not_found'> {
+): Promise<'added' | 'updated' | 'invited'> {
   const { data, error } = await db.rpc('add_organization_member', {
     p_organization_id: organizationId,
     p_email: email,
     p_role: role
   });
   if (error) throw new Error(error.code === 'PT403' ? 'Droits insuffisants.' : 'Ajout impossible.');
-  return data as 'added' | 'updated' | 'not_found';
+  return data as 'added' | 'updated' | 'invited';
 }
 
 export async function updateMemberRole(
@@ -114,4 +114,74 @@ export async function listAllWebsites(db: SupabaseClient): Promise<AdminWebsiteR
       .filter((f) => f.enabled)
       .map((f) => f.feature_key)
   }));
+}
+
+export async function listFeatures(db: SupabaseClient) {
+  const { data, error } = await db
+    .from('features')
+    .select('key, name, description')
+    .eq('is_active', true)
+    .order('sort_order');
+  if (error) throw new Error('Impossible de charger les fonctions.');
+  return (data ?? []) as { key: string; name: string; description: string | null }[];
+}
+
+export interface NewClientInput {
+  organizationName: string;
+  websiteName: string;
+  primaryDomain?: string;
+  siteType?: string;
+  features: string[];
+  ownerEmail?: string;
+}
+
+/** LevelUp staff: creates the organization, website, features and owner invitation. */
+export async function createClientSite(db: SupabaseClient, input: NewClientInput) {
+  const { data, error } = await db.rpc('admin_create_client_site', {
+    p_website_name: input.websiteName,
+    p_organization_name: input.organizationName,
+    p_primary_domain: input.primaryDomain || null,
+    p_site_type: input.siteType || null,
+    p_features: input.features,
+    p_owner_email: input.ownerEmail || null
+  });
+  if (error) {
+    throw new Error(
+      error.code === '23505'
+        ? 'Ce domaine est déjà utilisé par un autre site.'
+        : error.code === '23514'
+          ? 'Domaine ou type de site invalide.'
+          : error.code === 'PT403'
+            ? 'Réservé à l’équipe LevelUp.'
+            : 'Création impossible.'
+    );
+  }
+  return data as { organization_id: string; website_id: string; owner: string | null };
+}
+
+export interface PendingInvitation {
+  id: string;
+  email: string;
+  role: OrgRole;
+  created_at: string;
+  expires_at: string;
+}
+
+export async function listInvitations(db: SupabaseClient, organizationId: string) {
+  const { data, error } = await db
+    .from('organization_invitations')
+    .select('id, email, role, created_at, expires_at')
+    .eq('organization_id', organizationId)
+    .is('accepted_at', null)
+    .order('created_at', { ascending: false });
+  if (error) return [];
+  return (data ?? []) as PendingInvitation[];
+}
+
+export async function cancelInvitation(db: SupabaseClient, id: string) {
+  const { error, count } = await db
+    .from('organization_invitations')
+    .delete({ count: 'exact' })
+    .eq('id', id);
+  if (error || !count) throw new Error('Annulation impossible (droits insuffisants).');
 }
