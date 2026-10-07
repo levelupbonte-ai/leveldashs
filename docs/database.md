@@ -13,11 +13,17 @@ the schema from application code or by hand in the dashboard.
 |---|---|---|
 | `20261004000000` | baseline | Already in production before versioning. Mark it applied: `supabase migration repair --status applied 20261004000000` |
 | `20261007132109` | security_hardening | **Applied** |
-| `20261007140000` | tenant_foundation | **Pending** — review, then `supabase db push` |
+| `20261007140000` | tenant_foundation | **Applied** |
+| `20261007150000` | website_content | **Applied** |
+| `20261007160000` | platform_seed | **Applied** |
+| `20261007160500` | final_stop_content | **Applied** |
 
-After applying, run the isolation suite in
-[`supabase/tests/tenant_isolation.sql`](../supabase/tests/tenant_isolation.sql) in the
-SQL editor. It always rolls back; the error message is the report and must show
+Versions applied through the Supabase MCP were recorded with their apply
+timestamp; align the history once with `supabase migration list` /
+`supabase migration repair` before using `supabase db push`.
+
+After applying, run the suites in [`supabase/tests`](../supabase/tests) in the SQL
+editor. They always roll back; the error message is the report and must show
 `0 failed`.
 
 ## Tenant model (tenant_foundation)
@@ -38,6 +44,42 @@ auth.users ─1:1─ profiles
 - New content tables (announcements, gallery, services, …) must follow the same
   pattern: `organization_id` + `website_id` + composite FK + RLS through
   `private.has_org_role(organization_id, '<min role>')`.
+
+## Websites
+
+| Website | `WEBSITE_ID` | Organization |
+|---|---|---|
+| levelup-ecosystem.com | `ws_6e797257f5b32b86` | LevelUp Ecosystem |
+| studio.levelup-ecosystem.com | `ws_871c0924a6afc646` | LevelUp Ecosystem |
+| finalstop.org | `ws_d5e600b7dc2ec9a9` | Final Stop Barber Shop & Salon |
+| blackpater.com | `ws_ab9493c5857ed460` | Black Pater |
+
+Attach an owner once their Supabase account exists (SQL editor):
+
+```sql
+insert into organization_members (organization_id, user_id, role)
+select 'd2d91733-77fe-4840-8a47-4564de49dd29', id, 'owner' from auth.users where email = 'owner@example.com';
+-- LevelUp staff:
+insert into platform_admins (user_id) select id from auth.users where email = 'you@example.com';
+```
+
+## Website content (website_content)
+
+| Table | Holds | Public (anon) | Members |
+|---|---|---|---|
+| `website_settings` | key/value: contact, hours, social, booking slots, waitlist toggle, branding | read `is_public` rows of live sites | viewer read, editor write |
+| `content_blocks` | page sections (hero, about…) as JSON | read published | viewer read, editor write |
+| `team_members`, `services`, `gallery_items`, `reviews`, `faq_items`, `announcements` | site content | read published | viewer read, editor write |
+| `appointments`, `waitlist_entries`, `form_submissions` | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
+| `studio_templates`, `studio_projects`, `studio_usage` | LevelStudio | published starter/style templates | owner reads own; writes via LevelStudio server |
+
+Public RPCs (callable with the publishable key): `get_public_website`,
+`submit_form`, `book_appointment`, `join_waitlist`, `get_public_waitlist`,
+`get_ticket_status`. They check that the website is live and the feature is
+enabled, take prices/names from the database (never from the browser),
+rate-limit (5/hour per contact, 300/hour per site) and return ticket codes
+instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
+`PT409`, `PT429`).
 
 ## Authorization
 

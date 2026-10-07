@@ -385,6 +385,11 @@ GRANT EXECUTE ON FUNCTION
   private.role_rank(text)
   TO authenticated;
 
+-- The LevelUp backend (service role) provisions websites, whose id default
+-- calls private.generate_public_id().
+GRANT USAGE ON SCHEMA private TO service_role;
+GRANT EXECUTE ON FUNCTION private.generate_public_id(text) TO service_role;
+
 -- ============================================================================
 -- Row Level Security
 -- ============================================================================
