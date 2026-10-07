@@ -24,6 +24,7 @@ the schema from application code or by hand in the dashboard.
 | `20261007201000` | add_member_by_email | **Applied** |
 | `20261007210000` | ecosystem_api (site bundle, allowed origins, onboarding, invitations) | **Applied** |
 | `20261007220000` | levelup_tag (install verification) | **Applied** |
+| `20261007230000` | levelup_site_content (LevelUp site pricing, FAQ, portfolio, settings) | **Applied** |
 | `20261007231000` | ai_key_state (shared AI key rotation, fingerprints only) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply

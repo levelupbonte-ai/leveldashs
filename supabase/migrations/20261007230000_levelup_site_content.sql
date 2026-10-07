@@ -101,12 +101,15 @@ FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM public.faq_items WHERE website_id = 'ws_6e797257f5b32b86');
 
 -- ============================================================================
--- Testimonials (components/blocks/testimonials.tsx): the 4 unique items (the
--- component repeats them twice for the carousel loop; the site still does).
+-- Testimonials (components/blocks/testimonials.tsx): the 4 unique items.
+-- These are placeholder quotes from the original site template (fictitious
+-- people and company), so they are stored as DRAFTS: they must not be
+-- published as real customer reviews. Replace them with real reviews in the
+-- dashboard (Avis clients) and publish those.
 -- ============================================================================
 
 INSERT INTO public.reviews (website_id, organization_id, author, rating, comment, source, data, sort_order, status)
-SELECT 'ws_6e797257f5b32b86', '716c151f-1c1f-4ba6-a02c-53ab6a9aa169', v.author, NULL, v.comment, 'website', v.data, v.sort_order, 'published'
+SELECT 'ws_6e797257f5b32b86', '716c151f-1c1f-4ba6-a02c-53ab6a9aa169', v.author, NULL, v.comment, 'template', v.data, v.sort_order, 'draft'
 FROM (VALUES
   ('Amy Chase', $c$We're misusing LevelUp as a CRM and it still works!$c$, $j${"role":"PM","company":"Mercury Finance","image":"/testimonials/amy-chase.webp"}$j$::jsonb, 0),
   ('Jonas Kotara', 'I was able to replace 80% of my team with LevelUp bots.', $j${"role":"Lead Engineer","company":"Mercury Finance","image":"/testimonials/jonas-kotara.webp"}$j$::jsonb, 10),
