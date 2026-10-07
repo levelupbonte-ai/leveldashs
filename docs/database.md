@@ -20,6 +20,8 @@ the schema from application code or by hand in the dashboard.
 | `20261007170000` | confirmation_emails | **Applied** |
 | `20261007180000` | studio_usage_rpc | **Applied** |
 | `20261007190000` | media_video_and_blackpater | **Applied** |
+| `20261007200000` | platform_admin_management | **Applied** |
+| `20261007201000` | add_member_by_email | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -92,6 +94,7 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 | `editor` | + upload / edit / delete media |
 | `admin` | + rename org / websites, edit website `settings`, manage non-owner members |
 | `owner` | + grant or remove `owner` (an org always keeps ≥ 1 owner) |
+| Platform admin (`platform_admins`) | Same as `admin` in **every** organization (never `owner`) |
 | LevelUp (service role / API) | Create websites, change status/domain, enable features |
 
 - RLS helpers live in the `private` schema (not exposed by the Data API).
@@ -99,9 +102,17 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
   domains or feature flags even where a row is updatable.
 - `public.create_organization(name, slug)` — creates an org and makes the caller
   owner (max 5 owned orgs per user).
+- `public.add_organization_member(organization_id, email, role)` — adds an
+  **existing** account to an organization by e-mail, or changes its role (admin+;
+  owner to grant `owner` or change an owner). Returns `added`, `updated` or
+  `not_found` (no account with that e-mail). Callable by `authenticated` only.
 - `public.get_public_website(website_id)` — public config of an **active** website
   (name, domain, enabled features). Callable by `anon`.
 - Platform staff are listed in `platform_admins` (insert with the service role only).
+  Since `platform_admin_management`, `private.has_org_role()` grants them any role
+  up to `admin` in every non-archived organization, so content, inbox, media and
+  Storage policies apply to them without extra policies. Owner-only actions stay
+  with the client's real owners.
 
 Note: deleting an auth user who is the last owner of an organization is blocked
 until ownership is transferred.
@@ -109,7 +120,11 @@ until ownership is transferred.
 ## Secrets
 
 - Browser: only the project URL and the **publishable/anon** key.
-- Server only: `SUPABASE_SECRET_KEY` / service role. Never prefix it with `NEXT_PUBLIC_`.
+- This dashboard uses only the publishable key, on the server too: every query runs
+  as the signed-in user (Supabase Auth, see [auth.md](./auth.md)) through RLS.
+- `SUPABASE_SECRET_KEY` / service role is for trusted server-side tooling only
+  (e.g. `scripts/migrate-media.mjs`). Never prefix it with `NEXT_PUBLIC_` and never
+  add it to the dashboard's environment.
 
 ## Media migration
 

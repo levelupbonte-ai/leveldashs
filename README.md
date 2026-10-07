@@ -4,9 +4,9 @@
 
 ## Overview
 
-LevelUp Dashboard is the admin/client dashboard used by LevelUp organizations to manage their website content, customers and settings. It talks to the LevelUp API (`https://api.levelup-ecosystem.com`). Authentication, authorization and tenant isolation (`organization_id` / `website_id`) are enforced by the backend.
+LevelUp Dashboard is the admin/client dashboard used by LevelUp organizations to manage their website content, customers and settings. It talks directly to the shared LevelUp Ecosystem Supabase project: users sign in with Supabase Auth and every query runs as the signed-in user, so authorization and tenant isolation (`organization_id` / `website_id`) are enforced by Row Level Security in the database. The UI is in French.
 
-Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Query/Table/Form, Zod, nuqs and Clerk.
+Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Query/Table/Form, Zod, nuqs and Supabase (Auth, Postgres, Storage).
 
 See [AGENTS.md](./AGENTS.md) for conventions and [docs/](./docs) for forms, themes, RBAC, auth and deployment.
 
@@ -15,8 +15,9 @@ See [AGENTS.md](./AGENTS.md) for conventions and [docs/](./docs) for forms, them
 ```plaintext
 src/
 ├── app/                           # Next.js App Router directory
-│   ├── auth/                      # Auth pages (sign-in, sign-up)
+│   ├── auth/                      # Auth pages (sign-in, sign-up, callback)
 │   ├── dashboard/                 # Dashboard route group
+│   │   ├── site/                  # Client website management (content, inbox, media, settings)
 │   │   ├── overview/              # Analytics with parallel routes
 │   │   ├── product/               # Product CRUD pages (React Query)
 │   │   ├── users/                 # Users table (React Query + nuqs)
@@ -25,10 +26,10 @@ src/
 │   │   ├── chat/                  # Messaging page
 │   │   ├── ai-chat/               # AI chat streaming demo
 │   │   ├── notifications/         # Notifications page
-│   │   ├── workspaces/            # Org management & teams
-│   │   ├── billing/               # Billing & plans
-│   │   ├── profile/               # User profile
-│   │   └── exclusive/             # Plan-gated page
+│   │   ├── workspaces/            # Organizations & team members
+│   │   ├── billing/               # Static "billing handled by LevelUp" page
+│   │   ├── profile/               # User profile & password
+│   │   └── exclusive/             # LevelUp admin: all clients (platform admins only)
 │   └── api/                       # API routes
 │
 ├── components/                    # Shared components
@@ -38,6 +39,8 @@ src/
 │   └── kbar/                      # Command+K interface
 │
 ├── features/                      # Feature-based modules
+│   ├── site/                      # Website content, inbox, media, settings (Supabase)
+│   ├── organizations/             # Organizations, members, LevelUp admin
 │   ├── overview/                  # Dashboard analytics (charts, cards)
 │   ├── products/                  # Product listing, form, tables (React Query)
 │   ├── users/                     # User management table (React Query)
@@ -50,6 +53,8 @@ src/
 │   └── profile/                   # Profile form schemas
 │
 ├── lib/                           # Core utilities (query-client, searchparams, etc.)
+│   ├── supabase/                  # Browser, server and proxy Supabase clients
+│   └── auth/                      # Dashboard session, active org/website, roles
 ├── hooks/                         # Custom hooks
 ├── config/                        # Navigation, infobar, data table config
 ├── constants/                     # Mock data
@@ -65,7 +70,7 @@ src/
 - Fill in the required variables in `.env.local` (never put secrets in `NEXT_PUBLIC_*` variables)
 - `bun run dev`
 
-The app runs at http://localhost:3000. For Clerk (auth, organizations, billing) see [docs/clerk_setup.md](./docs/clerk_setup.md).
+The app runs at http://localhost:3000. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only Supabase key the app uses). For auth setup (redirect URLs, Google provider, organizations and roles) see [docs/auth.md](./docs/auth.md); for the schema see [docs/database.md](./docs/database.md).
 
 ## Cleanup Script
 

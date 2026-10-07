@@ -1,179 +1,98 @@
-# Simplified Navigation RBAC System
+# Navigation RBAC
 
 ## Overview
 
-This document explains the fully client-side RBAC (Role-Based Access Control) system for navigation items.
+Sidebar and Cmd+K items are filtered client-side from the dashboard session (organization
+role, LevelUp platform-admin status and the features enabled on the active website).
 
-**Key Insight**: Navigation visibility is UX only, not security. We can check everything client-side using Clerk's hooks!
+**Key insight**: navigation visibility is UX only, not security. Every read and write goes
+to Supabase as the signed-in user and is enforced by Row Level Security (see
+[database.md](./database.md)). Pages that must not exist for a user check the session
+server-side (e.g. `/dashboard/exclusive` calls `notFound()` for non platform admins).
 
-## Architecture
+## Core Files
 
-### Core Files
+1. **`src/config/nav-config.ts`** — navigation groups and items with `access` rules
+2. **`src/hooks/use-nav.ts`** — `useFilteredNavItems()` / `useFilteredNavGroups()`
+3. **`src/types/index.ts`** — `PermissionCheck` (the `access` type) and `NavItem`
+4. **`src/lib/auth/session-context.tsx`** — `useDashboardSession()`, provided by
+   `src/app/dashboard/layout.tsx` from `requireDashboardSession()` (see [auth.md](./auth.md))
+5. **`src/lib/auth/types.ts`** — `OrgRole`, `ROLE_RANK`, `hasRole()`
 
-1. **`src/hooks/use-nav.ts`** - Single hook that handles all filtering logic (fully client-side)
-2. **`src/types/index.ts`** - Type definitions with `access` property
+The session is loaded once on the server by the `/dashboard` layout, so filtering is
+synchronous: no client fetch, no loading state, no flashing.
 
-### Why Client-Side?
+## Access Properties
 
-- **Navigation visibility is UX only** - Users can't bypass security by seeing/hiding nav items
-- **Clerk provides all data client-side** - `useOrganization()` gives us `membership.permissions` and `membership.role`
-- **Zero server calls** - Instant filtering, no loading states, no UI flashing
-- **Better performance** - No network latency, no async complexity
+| Key | Type | Visible when |
+|---|---|---|
+| `requireOrg` | `boolean` | An active organization is selected |
+| `requireWebsite` | `boolean` | A website of the active organization is selected |
+| `role` | `'viewer' \| 'editor' \| 'admin' \| 'owner'` | The user's role in the active organization is at least this one (`owner > admin > editor > viewer`). Platform admins always pass |
+| `feature` | `string \| string[]` | At least one of these `website_features` keys is enabled on the active website |
+| `platformAdmin` | `boolean` | The user is in `platform_admins` (LevelUp staff) |
 
-**Note**: For actual security (API routes, server actions, page protection), always use server-side checks.
-
-## Performance Characteristics
-
-### All Checks Are Synchronous
-
-✅ **requireOrg**: Client-side check using `useOrganization()`  
-✅ **permission**: Client-side check using `membership.permissions` array  
-✅ **role**: Client-side check using `membership.role`  
-⚠️ **plan/feature**: Requires server-side check (see below)
-
-### Zero Server Calls
-
-- All navigation filtering happens synchronously
-- No loading states
-- No UI flashing
-- Instant results
+Items without `access` are always visible. All keys on an item must pass. For an item with
+children, each child is filtered with its own `access` too.
 
 ## Usage
 
-### In `nav-config.ts`
-
 ```typescript
 {
-  title: 'Teams',
-  url: '/dashboard/workspaces/team',
-  icon: 'userPen',
-  // Simple: requireOrg (client-side check, instant)
-  access: { requireOrg: true }
+  title: 'Rendez-vous',
+  url: '/dashboard/site/appointments',
+  icon: 'calendar',
+  items: [],
+  // Only when the active website has the "bookings" feature
+  access: { requireWebsite: true, feature: 'bookings' }
 }
 
 {
-  title: 'Admin Panel',
-  url: '/dashboard/admin',
-  icon: 'settings',
-  // All client-side checks - instant!
-  access: {
-    requireOrg: true,
-    permission: 'org:admin:manage',  // Client-side from membership.permissions
-    role: 'admin'  // Client-side from membership.role
+  title: 'Annonces',
+  url: '/dashboard/site/announcements',
+  icon: 'speakerphone',
+  // Any of these features
+  access: { feature: ['announcements', 'promotions', 'blog'] }
 }
-```
 
-### In Components
-
-```typescript
-import { useFilteredNavItems } from '@/hooks/use-nav';
-
-function MyComponent() {
-  const filteredItems = useFilteredNavItems(navItems);
-  // filteredItems is automatically filtered based on RBAC
-}
-```
-
-### Plan/Feature Checks
-
-Plans and features require Clerk's `has()` function which is server-side only. Options:
-
-1. **Store in organization metadata** (recommended for navigation):
-
-   ```typescript
-   // In your organization setup
-   organization.publicMetadata.plan = 'pro';
-
-   // In nav-config.ts
-   access: {
-     requireOrg: true,
-     // Check metadata instead of plan
-   }
-   ```
-
-2. **Show item, protect at page level** (current approach):
-   - Navigation item is shown
-   - Page component checks server-side and redirects/shows error if needed
-
-3. **Use server action** (if you really need it):
-   - Only for navigation items that absolutely need plan/feature checks
-   - Most navigation items won't need this
-
-## Scalability
-
-### Adding New Items
-
-Just add to `nav-config.ts`:
-
-```typescript
 {
-  title: 'New Feature',
-  url: '/dashboard/new',
-  icon: 'star',
-  access: { plan: 'pro' }  // That's it!
+  title: 'LevelUp admin',
+  url: '#',
+  icon: 'pro',
+  access: { platformAdmin: true },
+  items: [{ title: 'Tous les clients', url: '/dashboard/exclusive', icon: 'exclusive' }]
 }
 ```
 
-The system automatically:
-
-- Filters it in sidebar
-- Filters it in kbar
-- Handles async checks if needed
-- Handles sync checks immediately
-
-### Adding New Access Types
-
-1. Add to `PermissionCheck` interface in `src/app/actions/rbac.ts`
-2. Add check logic in `checkAccess()` function
-3. Update `use-nav.ts` to handle the new type
-
-## Comparison: Before vs After
-
-### Before (Overcomplicated)
-
-- 4 files with complex logic
-- Multiple hooks and utilities
-- Unclear data flow
-- Potential for bugs
-
-### After (Simplified)
-
-- 1 main hook file
-- Clear, linear logic
-- Easy to understand
-- Easy to maintain
-
-## Best Practices
-
-1. **Use `requireOrg: true` for simple cases** - It's instant and requires no server call
-2. **Combine checks when possible** - `{ requireOrg: true, permission: '...' }` is more efficient than separate checks
-3. **Avoid unnecessary checks** - Don't add `access` if the item should always be visible
-
-## Migration from Old System
-
-The old `visible` function still works for backward compatibility:
+In components:
 
 ```typescript
-// Old way (still works)
-visible: (context) => !!context?.organization;
+import { useFilteredNavGroups } from '@/hooks/use-nav';
 
-// New way (recommended)
-access: {
-  requireOrg: true;
-}
+const groups = useFilteredNavGroups(navGroups);
 ```
 
-## Future Improvements
+## Website Features
 
-Potential optimizations if needed:
+Feature keys come from the `features` catalog and are switched on per website in
+`website_features` (by LevelUp, not by clients). The same keys gate the `/dashboard/site`
+pages server-side: `SitePage` / `loadSitePage(feature)` show an "unavailable" state when
+the feature is off, and the content collections in `src/features/site/config/collections.ts`
+declare their own `feature`.
 
-1. Cache permission checks (e.g., React Query)
-2. Prefetch permissions on app load
-3. Optimistic UI updates
+## Platform Admins
 
-But for now, the current implementation is:
+LevelUp staff listed in `platform_admins`:
 
-- ✅ Simple
-- ✅ Fast
-- ✅ Scalable
-- ✅ Maintainable
+- see every organization in the switcher (RLS allows it)
+- pass every `role` check in the navigation
+- act with up to `admin` rights in every organization in the database (never `owner`)
+- are the only ones who see `platformAdmin` items
+
+## Adding a New Access Type
+
+1. Add the key to `PermissionCheck` in `src/types/index.ts`
+2. Add the data it needs to `DashboardSession` (`src/lib/auth/types.ts` +
+   `src/lib/auth/session.ts`) if it is not there yet
+3. Add the check to `allowed()` in `src/hooks/use-nav.ts`
+4. Make sure RLS (or a server-side page check) enforces the same rule

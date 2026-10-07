@@ -7,8 +7,8 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[AGENTS.md](./AGENTS.md)** — Full project overview, tech stack, structure, conventions, data fetching patterns, deployment
 - **[docs/forms.md](./docs/forms.md)** — Form system: TanStack Form + Zod, composable fields, validation, multi-step, sheet/dialog forms
 - **[docs/themes.md](./docs/themes.md)** — Theme system: OKLCH colors, adding themes, font config
-- **[docs/nav-rbac.md](./docs/nav-rbac.md)** — Navigation RBAC: access control, Clerk integration
-- **[docs/clerk_setup.md](./docs/clerk_setup.md)** — Clerk auth setup: organizations, billing, environment variables
+- **[docs/nav-rbac.md](./docs/nav-rbac.md)** — Navigation RBAC: roles, website features, platform admins
+- **[docs/auth.md](./docs/auth.md)** — Supabase Auth: sign-in/up, Google, callback, sessions, organizations & roles
 - **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
@@ -16,6 +16,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 
 - **React Query** for all data fetching — `void prefetchQuery()` on server + `useSuspenseQuery` on client (standard TanStack pattern), `useMutation` for forms, `HydrationBoundary` + `dehydrate` for hydration, `<Suspense fallback>` for streaming
 - **API layer** per feature — `api/types.ts` → `api/service.ts` → `api/queries.ts`; queries use key factories (`entityKeys.all/list/detail`); components import from service and queries, never from mock APIs directly
+- **Supabase** — Supabase Auth + RLS as the signed-in user: `@/lib/supabase/client` (browser) / `@/lib/supabase/server` (server), publishable key only, never the secret key; session via `getDashboardSession()` / `requireDashboardSession()` (server) and `useDashboardSession()` (client)
 - **nuqs** for URL search params — `searchParamsCache` on server, `useQueryStates` on client, use `getSortingStateParser` for sort (same parser as `useDataTable`)
 - **Icons** — only import from `@/components/icons`, never from `@tabler/icons-react` directly
 - **Forms** — `useAppForm` from `@/lib/form` (TanStack `createFormHook`) + `form.AppField` rendering the field components in `@/components/forms/fields` (`field.TextField`, `field.SelectField`, …); each component is the shadcn TanStack Form doc anatomy; raw `form.Field` for one-off custom fields; form-level Zod `onSubmit` validators
