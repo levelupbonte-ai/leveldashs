@@ -1,10 +1,10 @@
 {
-  "name": "next-shadcn-dashboard-starter",
+  "name": "levelup-dashboard",
   "version": "1.0.0",
   "private": true,
   "author": {
-    "name": "Kiran",
-    "url": "https://github.com/Kiranism"
+    "name": "LevelUp Ecosystem",
+    "url": "https://levelup-ecosystem.com"
   },
   "scripts": {
     "dev": "next dev",

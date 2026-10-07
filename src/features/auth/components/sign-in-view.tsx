@@ -7,7 +7,7 @@ import { InteractiveGridPattern } from './interactive-grid';
 
 export const metadata: Metadata = {
   title: 'Authentication',
-  description: 'Authentication forms built using the components.'
+  description: 'Sign in to your LevelUp dashboard.'
 };
 
 export default function SignInViewPage() {
@@ -37,7 +37,7 @@ export default function SignInViewPage() {
           >
             <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
           </svg>
-          Logo
+          LevelUp
         </div>
         <InteractiveGridPattern
           className={cn(
@@ -48,10 +48,9 @@ export default function SignInViewPage() {
         <div className='text-sidebar-foreground relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
-              &ldquo;This starter template has saved me countless hours of work and helped me
-              deliver projects to my clients faster than ever before.&rdquo;
+              &ldquo;Everything your business needs online, managed from one place.&rdquo;
             </p>
-            <footer className='text-sidebar-foreground/70 text-sm'>Random Dude</footer>
+            <footer className='text-sidebar-foreground/70 text-sm'>LevelUp Ecosystem</footer>
           </blockquote>
         </div>
       </div>

@@ -31,12 +31,12 @@ Build the image:
 # Node.js
 docker build \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -t shadcn-dashboard .
+  -t levelup-dashboard .
 
 # OR Bun
 docker build -f Dockerfile.bun \
   --build-arg NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
-  -t shadcn-dashboard .
+  -t levelup-dashboard .
 ```
 
 Run the container:
@@ -46,6 +46,6 @@ docker run -d -p 3000:3000 \
   -e NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_xxxxx \
   -e CLERK_SECRET_KEY=sk_live_xxxxx \
   --restart unless-stopped \
-  --name shadcn-dashboard \
-  shadcn-dashboard
+  --name levelup-dashboard \
+  levelup-dashboard
 ```

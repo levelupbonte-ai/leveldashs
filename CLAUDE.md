@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This is a Next.js 16 + shadcn/ui admin dashboard starter kit.
+This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 
 ## Key References
 

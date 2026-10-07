@@ -6,7 +6,7 @@ This file provides essential information for AI coding agents working on this pr
 
 ## Project Overview
 
-**Next.js Admin Dashboard Starter** is a production-ready admin dashboard template built with:
+**LevelUp Dashboard** is the LevelUp Ecosystem client dashboard, built with:
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript 5.7
