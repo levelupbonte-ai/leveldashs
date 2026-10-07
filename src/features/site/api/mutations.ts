@@ -6,6 +6,7 @@ import type { CollectionDef } from '../config/collections';
 import { siteKeys } from './queries';
 import {
   SiteServiceError,
+  adminUpdateWebsite,
   createCollectionItem,
   deleteCollectionItem,
   deleteMedia,
@@ -90,6 +91,11 @@ export function useSiteMutations(scope: SiteScope) {
     saveSetting: useMutation({
       mutationFn: ({ key, value }: { key: string; value: unknown }) =>
         saveSetting(db, scope, key, value),
+      ...common
+    }),
+    adminUpdateWebsite: useMutation({
+      mutationFn: (patch: Parameters<typeof adminUpdateWebsite>[2]) =>
+        adminUpdateWebsite(db, scope.websiteId, patch),
       ...common
     }),
     updateBlock: useMutation({

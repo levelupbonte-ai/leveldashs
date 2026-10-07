@@ -8,8 +8,10 @@ import type {
   FormSubmission,
   MediaItem,
   SiteOverview,
+  SeoSettings,
   SubmissionStatus,
   WaitlistEntry,
+  WebsiteIntegration,
   WaitlistStatus,
   WebsiteSetting
 } from './types';
@@ -356,4 +358,59 @@ export async function getSiteOverview(
   const newRequests = countOf(requests);
   const media = countOf(files);
   return { pendingAppointments, upcomingAppointments, waiting, newRequests, media };
+}
+
+// ---------------------------------------------------------------- integration (LevelUp tag)
+
+export async function getWebsiteIntegration(
+  db: SupabaseClient,
+  websiteId: string
+): Promise<WebsiteIntegration> {
+  const { data, error } = await db
+    .from('websites')
+    .select(
+      'id, name, status, primary_domain, allowed_origins, show_powered_by, tag_last_seen_at, tag_last_seen_origin, tag_version'
+    )
+    .eq('id', websiteId)
+    .single();
+  if (error) fail(error);
+  return data as WebsiteIntegration;
+}
+
+/** LevelUp staff only (admin_update_website checks platform_admins). */
+export async function adminUpdateWebsite(
+  db: SupabaseClient,
+  websiteId: string,
+  patch: {
+    allowedOrigins?: string[];
+    features?: string[];
+    showPoweredBy?: boolean;
+    status?: string;
+    primaryDomain?: string;
+  }
+) {
+  const { error } = await db.rpc('admin_update_website', {
+    p_website_id: websiteId,
+    p_allowed_origins: patch.allowedOrigins ?? null,
+    p_features: patch.features ?? null,
+    p_show_powered_by: patch.showPoweredBy ?? null,
+    p_status: patch.status ?? null,
+    p_primary_domain: patch.primaryDomain ?? null
+  });
+  if (error) {
+    if (error.code === '22023')
+      throw new SiteServiceError(error.message.replace(/^Invalid origin: /, 'Domaine invalide : '));
+    fail(error);
+  }
+}
+
+export async function getSeoSettings(db: SupabaseClient, websiteId: string): Promise<SeoSettings> {
+  const { data, error } = await db
+    .from('website_settings')
+    .select('value')
+    .eq('website_id', websiteId)
+    .eq('key', 'seo')
+    .maybeSingle();
+  if (error) fail(error);
+  return (data?.value as SeoSettings) ?? {};
 }

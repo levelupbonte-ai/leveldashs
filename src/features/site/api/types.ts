@@ -99,3 +99,28 @@ export interface SiteOverview {
   newRequests: number;
   media: number;
 }
+
+export interface WebsiteIntegration {
+  id: string;
+  name: string;
+  status: string;
+  primary_domain: string | null;
+  allowed_origins: string[];
+  show_powered_by: boolean;
+  tag_last_seen_at: string | null;
+  tag_last_seen_origin: string | null;
+  tag_version: string | null;
+}
+
+export interface SeoSettings {
+  enabled?: boolean;
+  title?: string;
+  description?: string;
+  keywords?: string[];
+  image?: string;
+  business_name?: string;
+  business_type?: string;
+  google_site_verification?: string;
+  robots?: string;
+  pages?: Record<string, { title?: string; description?: string; image?: string; robots?: string }>;
+}

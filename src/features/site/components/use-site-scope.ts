@@ -12,6 +12,7 @@ export function useSiteScope() {
     organizationId: activeOrg.id,
     website: activeWebsite,
     canEdit: isPlatformAdmin || hasRole(role, 'editor'),
-    canAdmin: isPlatformAdmin || hasRole(role, 'admin')
+    canAdmin: isPlatformAdmin || hasRole(role, 'admin'),
+    isPlatformAdmin
   };
 }

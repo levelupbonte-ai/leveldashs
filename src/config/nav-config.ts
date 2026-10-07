@@ -97,6 +97,22 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
+        title: 'SEO',
+        url: '/dashboard/site/seo',
+        icon: 'trendingUp',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'Développeurs',
+        url: '/dashboard/site/developers',
+        icon: 'code',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
         title: 'Paramètres du site',
         url: '/dashboard/site/settings',
         icon: 'settings',

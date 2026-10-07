@@ -2,7 +2,9 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
 import type { CollectionDef } from '../config/collections';
 import {
+  getSeoSettings,
   getSiteOverview,
+  getWebsiteIntegration,
   listAppointments,
   listCollection,
   listContentBlocks,
@@ -25,7 +27,9 @@ export const siteKeys = {
   media: (websiteId: string) => [...siteKeys.website(websiteId), 'media'] as const,
   settings: (websiteId: string) => [...siteKeys.website(websiteId), 'settings'] as const,
   blocks: (websiteId: string) => [...siteKeys.website(websiteId), 'blocks'] as const,
-  overview: (websiteId: string) => [...siteKeys.website(websiteId), 'overview'] as const
+  overview: (websiteId: string) => [...siteKeys.website(websiteId), 'overview'] as const,
+  integration: (websiteId: string) => [...siteKeys.website(websiteId), 'integration'] as const,
+  seo: (websiteId: string) => [...siteKeys.website(websiteId), 'seo'] as const
 };
 
 export const collectionQueryOptions = (db: SupabaseClient, def: CollectionDef, websiteId: string) =>
@@ -79,4 +83,17 @@ export const overviewQueryOptions = (db: SupabaseClient, websiteId: string) =>
     queryKey: siteKeys.overview(websiteId),
     queryFn: () => getSiteOverview(db, websiteId),
     staleTime: 30 * 1000
+  });
+
+export const integrationQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: siteKeys.integration(websiteId),
+    queryFn: () => getWebsiteIntegration(db, websiteId),
+    staleTime: 15 * 1000
+  });
+
+export const seoQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: siteKeys.seo(websiteId),
+    queryFn: () => getSeoSettings(db, websiteId)
   });
