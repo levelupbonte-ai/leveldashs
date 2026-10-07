@@ -1,7 +1,7 @@
 ---
 name: levelup-dashboard
 description: |
-  Guide for building features, pages, tables, forms, themes, and navigation in this Next.js 16 shadcn dashboard template. Use this skill whenever the user wants to add a new page, create a feature module, build a data table, add a form, configure navigation items, add a theme, set up RBAC access control, or work with the dashboard's patterns and conventions. Also triggers when adding routes under /dashboard, working with Clerk auth/orgs/billing, creating mock APIs, or modifying the sidebar. Even if the user doesn't mention "dashboard" explicitly — if they're adding UI, pages, or features to this project, use this skill.
+  Guide for building features, pages, tables, forms, themes, and navigation in this Next.js 16 shadcn dashboard template. Use this skill whenever the user wants to add a new page, create a feature module, build a data table, add a form, configure navigation items, add a theme, set up RBAC access control, or work with the dashboard's patterns and conventions. Also triggers when adding routes under /dashboard, working with Supabase auth/sessions/organizations/roles or website features, creating mock APIs, or modifying the sidebar. Even if the user doesn't mention "dashboard" explicitly — if they're adding UI, pages, or features to this project, use this skill.
 ---
 
 # Dashboard Development Guide
@@ -576,17 +576,24 @@ See [references/query-abstractions.md](references/query-abstractions.md) for why
 
 ## Navigation & RBAC
 
-Configure in `src/config/nav-config.ts`. Items are filtered client-side in `src/hooks/use-nav.ts` using Clerk.
+Configure in `src/config/nav-config.ts`. Items are filtered client-side in `src/hooks/use-nav.ts` from `useDashboardSession()` (Supabase session loaded by the `/dashboard` layout). See `docs/nav-rbac.md`.
 
 **Access control properties** on nav items:
 
-- `requireOrg: boolean` — requires active Clerk organization
-- `permission: string` — requires specific Clerk permission
-- `role: string` — requires specific Clerk role
-- `plan: string` — requires subscription plan (server-side)
-- `feature: string` — requires feature flag (server-side)
+- `requireOrg: boolean` — requires an active organization
+- `requireWebsite: boolean` — requires an active website
+- `role: 'viewer' | 'editor' | 'admin' | 'owner'` — minimum role in the active organization (platform admins always pass)
+- `feature: string | string[]` — at least one of these `website_features` keys enabled on the active website
+- `platformAdmin: boolean` — LevelUp staff only (`platform_admins`)
 
-Items without `access` are visible to everyone. All client-side checks are synchronous — no loading states.
+Items without `access` are visible to everyone. Filtering is synchronous (no loading states) and UX only — Row Level Security enforces access.
+
+## Auth & Data (Supabase)
+
+- Supabase Auth; clients in `@/lib/supabase/client` (browser) and `@/lib/supabase/server` (cookie-bound, server-only). Publishable key only — never the secret key; RLS applies to every query.
+- Server pages: `requireDashboardSession()` / `getDashboardSession()` from `@/lib/auth/session`; client: `useDashboardSession()` from `@/lib/auth/session-context`. Switch org/website with the server actions in `@/lib/auth/actions`.
+- Supabase-backed features (`features/site`, `features/organizations`): service functions take a `SupabaseClient`, query options are `xxxQueryOptions(db, ...)`; `/dashboard/site` pages prefetch through `SitePage`. See `docs/auth.md` and `docs/database.md`.
+- UI text is French.
 
 ---
 
