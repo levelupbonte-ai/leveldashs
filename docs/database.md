@@ -19,6 +19,7 @@ the schema from application code or by hand in the dashboard.
 | `20261007160500` | final_stop_content | **Applied** |
 | `20261007170000` | confirmation_emails | **Applied** |
 | `20261007180000` | studio_usage_rpc | **Applied** |
+| `20261007190000` | media_video_and_blackpater | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -109,3 +110,21 @@ until ownership is transferred.
 
 - Browser: only the project URL and the **publishable/anon** key.
 - Server only: `SUPABASE_SECRET_KEY` / service role. Never prefix it with `NEXT_PUBLIC_`.
+
+## Media migration
+
+`scripts/migrate-media.mjs` moves a website's images into the `media` Storage
+bucket, registers them in `media` and rewrites every reference:
+
+```bash
+# Final Stop: download the images currently hot-linked (i.ibb.co, Unsplash)
+SUPABASE_URL=https://rncuhmvykrmtxfzqpitc.supabase.co SUPABASE_SECRET_KEY=... \
+  node scripts/migrate-media.mjs --website ws_d5e600b7dc2ec9a9
+
+# Black Pater: upload the self-hosted files and update content block site/media
+SUPABASE_URL=https://rncuhmvykrmtxfzqpitc.supabase.co SUPABASE_SECRET_KEY=... \
+  node scripts/migrate-media.mjs --website ws_ab9493c5857ed460 --dir ../blackpater/public/media
+```
+
+Add `--dry-run` first to see what would change. Run it from a machine that can
+reach Supabase; the secret key stays on that machine.
