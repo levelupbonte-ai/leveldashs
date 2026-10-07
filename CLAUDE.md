@@ -10,6 +10,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/nav-rbac.md](./docs/nav-rbac.md)** — Navigation RBAC: roles, website features, platform admins
 - **[docs/auth.md](./docs/auth.md)** — Supabase Auth: sign-in/up, Google, callback, sessions, organizations & roles
 - **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
+- **[docs/ecosystem-api.md](./docs/ecosystem-api.md)** — LevelUp tag (`levelup.js`), public API, client onboarding, security model
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
 ## Critical Conventions
