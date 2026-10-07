@@ -17,6 +17,7 @@ the schema from application code or by hand in the dashboard.
 | `20261007150000` | website_content | **Applied** |
 | `20261007160000` | platform_seed | **Applied** |
 | `20261007160500` | final_stop_content | **Applied** |
+| `20261007170000` | confirmation_emails | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
