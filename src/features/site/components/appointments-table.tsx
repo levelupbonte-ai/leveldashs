@@ -13,10 +13,12 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { Suspense, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSiteMutations } from '../api/mutations';
 import { appointmentsQueryOptions } from '../api/queries';
+import type { AppointmentView } from '../api/service';
 import type { Appointment, AppointmentStatus } from '../api/types';
 import { NotesDialog } from './notes-dialog';
 import { StatusSelect } from './status-select';
@@ -42,34 +44,34 @@ function formatDate(date: string, time: string) {
 }
 
 export function AppointmentsTable() {
-  const scope = useSiteScope();
-  const { data } = useSuspenseQuery(appointmentsQueryOptions(createClient(), scope.websiteId));
-  const { updateAppointment } = useSiteMutations(scope);
-  const [tab, setTab] = useState<'upcoming' | 'past' | 'all'>('upcoming');
-  const [notesFor, setNotesFor] = useState<Appointment | null>(null);
-
-  const rows = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
-    if (tab === 'all') return data;
-    if (tab === 'past') return data.filter((a) => a.appointment_date < today);
-    return data
-      .filter((a) => a.appointment_date >= today && ['pending', 'confirmed'].includes(a.status))
-      .toSorted((a, b) =>
-        `${a.appointment_date}${a.appointment_time}`.localeCompare(
-          `${b.appointment_date}${b.appointment_time}`
-        )
-      );
-  }, [data, tab]);
-
+  const [tab, setTab] = useState<AppointmentView>('upcoming');
   return (
     <div className='space-y-4'>
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as AppointmentView)}>
         <TabsList>
           <TabsTrigger value='upcoming'>À venir</TabsTrigger>
           <TabsTrigger value='past'>Passés</TabsTrigger>
           <TabsTrigger value='all'>Tous</TabsTrigger>
         </TabsList>
       </Tabs>
+      <Suspense fallback={<Skeleton className='h-64 w-full' />}>
+        <AppointmentsList view={tab} />
+      </Suspense>
+    </div>
+  );
+}
+
+function AppointmentsList({ view }: { view: AppointmentView }) {
+  const scope = useSiteScope();
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useSuspenseInfiniteQuery(
+    appointmentsQueryOptions(createClient(), scope.websiteId, view)
+  );
+  const rows = data.pages.flat();
+  const { updateAppointment } = useSiteMutations(scope);
+  const [notesFor, setNotesFor] = useState<Appointment | null>(null);
+
+  return (
+    <div className='space-y-4'>
       {rows.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
@@ -144,6 +146,11 @@ export function AppointmentsTable() {
             </TableBody>
           </Table>
         </div>
+      )}
+      {hasNextPage && (
+        <Button variant='outline' disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+          {isFetchingNextPage ? 'Chargement…' : 'Charger plus'}
+        </Button>
       )}
       {notesFor && (
         <NotesDialog

@@ -10,7 +10,7 @@ export default function Page() {
       title='Demandes'
       description='Formulaires de contact, devis et inscriptions'
       prefetch={(qc, db, websiteId) =>
-        void qc.prefetchQuery(submissionsQueryOptions(db, websiteId))
+        void qc.prefetchInfiniteQuery(submissionsQueryOptions(db, websiteId))
       }
     >
       <SubmissionsList />

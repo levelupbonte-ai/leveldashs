@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -28,7 +28,10 @@ async function copy(url: string) {
 
 export function MediaLibrary() {
   const scope = useSiteScope();
-  const { data: media } = useSuspenseQuery(mediaQueryOptions(createClient(), scope.websiteId));
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useSuspenseInfiniteQuery(
+    mediaQueryOptions(createClient(), scope.websiteId)
+  );
+  const media = data.pages.flat();
   const { uploadMedia, deleteMedia } = useSiteMutations(scope);
   const [uploading, setUploading] = useState(0);
 
@@ -148,6 +151,11 @@ export function MediaLibrary() {
             </Card>
           ))}
         </div>
+      )}
+      {hasNextPage && (
+        <Button variant='outline' disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+          {isFetchingNextPage ? 'Chargement…' : 'Charger plus'}
+        </Button>
       )}
     </div>
   );

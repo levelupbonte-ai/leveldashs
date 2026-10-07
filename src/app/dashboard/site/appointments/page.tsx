@@ -11,7 +11,7 @@ export default function Page() {
       description='Réservations faites depuis votre site'
       feature='bookings'
       prefetch={(qc, db, websiteId) =>
-        void qc.prefetchQuery(appointmentsQueryOptions(db, websiteId))
+        void qc.prefetchInfiniteQuery(appointmentsQueryOptions(db, websiteId))
       }
     >
       <AppointmentsTable />

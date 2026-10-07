@@ -7,10 +7,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { createClient } from '@/lib/supabase/client';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { Suspense, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useSiteMutations } from '../api/mutations';
 import { submissionsQueryOptions } from '../api/queries';
+import type { SubmissionView } from '../api/service';
 import type { FormSubmission, SubmissionStatus } from '../api/types';
 import { NotesDialog } from './notes-dialog';
 import { StatusSelect } from './status-select';
@@ -43,28 +45,33 @@ function extraFields(data: Record<string, unknown>) {
 }
 
 export function SubmissionsList() {
-  const scope = useSiteScope();
-  const { data } = useSuspenseQuery(submissionsQueryOptions(createClient(), scope.websiteId));
-  const { updateSubmission } = useSiteMutations(scope);
-  const [tab, setTab] = useState<'open' | 'all'>('open');
-  const [notesFor, setNotesFor] = useState<FormSubmission | null>(null);
-
-  const rows = useMemo(
-    () =>
-      tab === 'all'
-        ? data
-        : data.filter((s) => ['new', 'contacted', 'in_progress', 'quoted'].includes(s.status)),
-    [data, tab]
-  );
-
+  const [tab, setTab] = useState<SubmissionView>('open');
   return (
     <div className='space-y-4'>
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+      <Tabs value={tab} onValueChange={(v) => setTab(v as SubmissionView)}>
         <TabsList>
           <TabsTrigger value='open'>À traiter</TabsTrigger>
           <TabsTrigger value='all'>Toutes</TabsTrigger>
         </TabsList>
       </Tabs>
+      <Suspense fallback={<Skeleton className='h-64 w-full' />}>
+        <Submissions view={tab} />
+      </Suspense>
+    </div>
+  );
+}
+
+function Submissions({ view }: { view: SubmissionView }) {
+  const scope = useSiteScope();
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage } = useSuspenseInfiniteQuery(
+    submissionsQueryOptions(createClient(), scope.websiteId, view)
+  );
+  const rows = data.pages.flat();
+  const { updateSubmission } = useSiteMutations(scope);
+  const [notesFor, setNotesFor] = useState<FormSubmission | null>(null);
+
+  return (
+    <div className='space-y-4'>
       {rows.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
@@ -147,6 +154,11 @@ export function SubmissionsList() {
             </Card>
           ))}
         </div>
+      )}
+      {hasNextPage && (
+        <Button variant='outline' disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
+          {isFetchingNextPage ? 'Chargement…' : 'Charger plus'}
+        </Button>
       )}
       {notesFor && (
         <NotesDialog

@@ -9,7 +9,9 @@ export default function Page() {
     <SitePage
       title='Médiathèque'
       description='Images et fichiers de votre site'
-      prefetch={(qc, db, websiteId) => void qc.prefetchQuery(mediaQueryOptions(db, websiteId))}
+      prefetch={(qc, db, websiteId) =>
+        void qc.prefetchInfiniteQuery(mediaQueryOptions(db, websiteId))
+      }
     >
       <MediaLibrary />
     </SitePage>

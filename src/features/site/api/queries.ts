@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { queryOptions } from '@tanstack/react-query';
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { CollectionDef } from '../config/collections';
 import {
   getSeoSettings,
@@ -11,8 +11,13 @@ import {
   listMedia,
   listSettings,
   listSubmissions,
-  listWaitlist
+  listWaitlist,
+  PAGE_SIZE,
+  type AppointmentView,
+  type SubmissionView
 } from './service';
+
+const nextPage = <T>(last: T[], all: T[][]) => (last.length === PAGE_SIZE ? all.length : undefined);
 
 // Query options take the Supabase client so the same keys work for the server
 // prefetch (cookie-bound client) and the browser (session client).
@@ -21,9 +26,11 @@ export const siteKeys = {
   website: (websiteId: string) => [...siteKeys.all, websiteId] as const,
   collection: (websiteId: string, key: string) =>
     [...siteKeys.website(websiteId), 'collection', key] as const,
-  appointments: (websiteId: string) => [...siteKeys.website(websiteId), 'appointments'] as const,
+  appointments: (websiteId: string, view?: AppointmentView) =>
+    [...siteKeys.website(websiteId), 'appointments', ...(view ? [view] : [])] as const,
   waitlist: (websiteId: string) => [...siteKeys.website(websiteId), 'waitlist'] as const,
-  submissions: (websiteId: string) => [...siteKeys.website(websiteId), 'submissions'] as const,
+  submissions: (websiteId: string, view?: SubmissionView) =>
+    [...siteKeys.website(websiteId), 'submissions', ...(view ? [view] : [])] as const,
   media: (websiteId: string) => [...siteKeys.website(websiteId), 'media'] as const,
   settings: (websiteId: string) => [...siteKeys.website(websiteId), 'settings'] as const,
   blocks: (websiteId: string) => [...siteKeys.website(websiteId), 'blocks'] as const,
@@ -38,10 +45,16 @@ export const collectionQueryOptions = (db: SupabaseClient, def: CollectionDef, w
     queryFn: () => listCollection(db, def, websiteId)
   });
 
-export const appointmentsQueryOptions = (db: SupabaseClient, websiteId: string) =>
-  queryOptions({
-    queryKey: siteKeys.appointments(websiteId),
-    queryFn: () => listAppointments(db, websiteId),
+export const appointmentsQueryOptions = (
+  db: SupabaseClient,
+  websiteId: string,
+  view: AppointmentView = 'upcoming'
+) =>
+  infiniteQueryOptions({
+    queryKey: siteKeys.appointments(websiteId, view),
+    queryFn: ({ pageParam }) => listAppointments(db, websiteId, view, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPage,
     staleTime: 15 * 1000
   });
 
@@ -53,17 +66,25 @@ export const waitlistQueryOptions = (db: SupabaseClient, websiteId: string) =>
     refetchInterval: 30 * 1000
   });
 
-export const submissionsQueryOptions = (db: SupabaseClient, websiteId: string) =>
-  queryOptions({
-    queryKey: siteKeys.submissions(websiteId),
-    queryFn: () => listSubmissions(db, websiteId),
+export const submissionsQueryOptions = (
+  db: SupabaseClient,
+  websiteId: string,
+  view: SubmissionView = 'open'
+) =>
+  infiniteQueryOptions({
+    queryKey: siteKeys.submissions(websiteId, view),
+    queryFn: ({ pageParam }) => listSubmissions(db, websiteId, view, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPage,
     staleTime: 15 * 1000
   });
 
 export const mediaQueryOptions = (db: SupabaseClient, websiteId: string) =>
-  queryOptions({
+  infiniteQueryOptions({
     queryKey: siteKeys.media(websiteId),
-    queryFn: () => listMedia(db, websiteId)
+    queryFn: ({ pageParam }) => listMedia(db, websiteId, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextPage
   });
 
 export const settingsQueryOptions = (db: SupabaseClient, websiteId: string) =>
