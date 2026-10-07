@@ -10,6 +10,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/nav-rbac.md](./docs/nav-rbac.md)** — Navigation RBAC: access control, Clerk integration
 - **[docs/clerk_setup.md](./docs/clerk_setup.md)** — Clerk auth setup: organizations, billing, environment variables
 - **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
+- **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
 ## Critical Conventions
 
