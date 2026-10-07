@@ -1,11 +1,14 @@
 import { Icons } from '@/components/icons';
 
 export interface PermissionCheck {
-  permission?: string;
-  plan?: string;
-  feature?: string;
-  role?: string;
+  /** Minimum organization role: viewer < editor < admin < owner */
+  role?: 'viewer' | 'editor' | 'admin' | 'owner';
+  /** Shown when the active website has one of these features enabled */
+  feature?: string | string[];
   requireOrg?: boolean;
+  requireWebsite?: boolean;
+  /** LevelUp staff only */
+  platformAdmin?: boolean;
 }
 
 export interface NavItem {

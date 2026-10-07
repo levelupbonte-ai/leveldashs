@@ -1,57 +1,36 @@
-'use client';
-
 import PageContainer from '@/components/layout/page-container';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useOrganization } from '@clerk/nextjs';
-import { PricingTable } from '@clerk/nextjs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Icons } from '@/components/icons';
 import { billingInfoContent } from '@/config/infoconfig';
+import { requireDashboardSession } from '@/lib/auth/session';
 
-export default function BillingPage() {
-  const { organization, isLoaded } = useOrganization();
+export const metadata = { title: 'Facturation' };
 
+export default async function BillingPage() {
+  const { activeOrg } = await requireDashboardSession();
   return (
     <PageContainer
-      isLoading={!isLoaded}
-      access={!!organization}
-      accessFallback={
-        <div className='flex min-h-[400px] items-center justify-center'>
-          <div className='space-y-2 text-center'>
-            <h2 className='text-2xl font-semibold'>No Organization Selected</h2>
-            <p className='text-muted-foreground'>
-              Please select or create an organization to view billing information.
-            </p>
-          </div>
-        </div>
-      }
       infoContent={billingInfoContent}
-      pageTitle='Billing & Plans'
-      pageDescription={`Manage your subscription and usage limits for ${organization?.name}`}
+      pageTitle='Facturation'
+      pageDescription={activeOrg ? `Abonnement de ${activeOrg.name}` : 'Abonnement'}
     >
-      <div className='space-y-6'>
-        {/* Info Alert */}
-        <Alert>
-          <Icons.info className='h-4 w-4' />
-          <AlertDescription>
-            Plans and subscriptions are managed through Clerk Billing. Subscribe to a plan to unlock
-            features and higher limits.
-          </AlertDescription>
-        </Alert>
-
-        {/* Clerk Pricing Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Available Plans</CardTitle>
-            <CardDescription>Choose a plan that fits your organization's needs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className='mx-auto max-w-4xl'>
-              <PricingTable for='organization' />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className='max-w-2xl'>
+        <CardHeader>
+          <CardTitle>Votre abonnement LevelUp</CardTitle>
+          <CardDescription>
+            La facturation est gérée directement par l’équipe LevelUp.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className='text-muted-foreground space-y-2 text-sm'>
+          <p>
+            Pour changer de formule, ajouter une fonction à votre site ou recevoir une facture,
+            écrivez-nous à{' '}
+            <a className='text-primary underline' href='mailto:contact@levelup-ecosystem.com'>
+              contact@levelup-ecosystem.com
+            </a>
+            .
+          </p>
+        </CardContent>
+      </Card>
     </PageContainer>
   );
 }

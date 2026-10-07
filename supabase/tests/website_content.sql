@@ -3,7 +3,7 @@
 SET LOCAL statement_timeout = '20s';
 DO $$
 DECLARE
-  u_a uuid := gen_random_uuid(); u_b uuid := gen_random_uuid();
+  u_a uuid := gen_random_uuid(); u_b uuid := gen_random_uuid(); u_p uuid := gen_random_uuid();
   org_a uuid; org_b uuid; ws_a text; ws_b text; n integer; j jsonb; t text;
   results text[] := '{}';
 BEGIN
@@ -70,6 +70,20 @@ BEGIN
   results := results || (CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END || ' owner confirms booking');
   BEGIN UPDATE public.appointments SET customer_email = 'x@y.z' WHERE ticket_code = t; results := results || 'FAIL edited customer data'::text;
   EXCEPTION WHEN insufficient_privilege THEN results := results || 'PASS customer-submitted fields immutable'::text; END;
+  EXECUTE 'RESET ROLE';
+
+  -- LevelUp platform admin: manages every client site (admin rights), never owner.
+  INSERT INTO auth.users (id, email, aud, role) VALUES (u_p,'p@t.l','authenticated','authenticated');
+  INSERT INTO public.platform_admins (user_id) VALUES (u_p);
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated')::text, true);
+  EXECUTE 'SET LOCAL ROLE authenticated';
+  UPDATE public.services SET badge = 'New' WHERE website_id = ws_a AND slug = 'haircut';
+  GET DIAGNOSTICS n = ROW_COUNT;
+  results := results || (CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END || ' platform admin edits client content');
+  BEGIN
+    INSERT INTO public.organization_members VALUES (org_a, u_p, 'owner');
+    results := results || 'FAIL platform admin granted itself owner'::text;
+  EXCEPTION WHEN insufficient_privilege THEN results := results || 'PASS platform admin cannot grant owner'::text; END;
   EXECUTE 'RESET ROLE';
 
   RAISE EXCEPTION E'CONTENT TESTS (rolled back): % failed\n%', (SELECT count(*) FROM unnest(results) r WHERE r LIKE 'FAIL%'), array_to_string(results, E'\n');

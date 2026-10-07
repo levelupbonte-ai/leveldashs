@@ -27,7 +27,8 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navGroups } from '@/config/nav-config';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useClerk, useOrganization, useUser } from '@clerk/nextjs';
+import { signOut } from '@/lib/auth/actions';
+import { useDashboardSession } from '@/lib/auth/session-context';
 import { useFilteredNavGroups } from '@/hooks/use-nav';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -38,9 +39,7 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user } = useUser();
-  const { organization } = useOrganization();
-  const { signOut } = useClerk();
+  const { user, activeOrg: organization } = useDashboardSession();
   const router = useRouter();
   const filteredGroups = useFilteredNavGroups(navGroups);
 
@@ -161,7 +160,7 @@ export default function AppSidebar() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => signOut({ redirectUrl: '/auth/sign-in' })}>
+                  <DropdownMenuItem onClick={() => void signOut()}>
                     <Icons.logout aria-hidden className='mr-2 h-4 w-4' />
                     Sign out
                   </DropdownMenuItem>

@@ -1,64 +1,32 @@
-'use client';
-
 import PageContainer from '@/components/layout/page-container';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useOrganization, Show } from '@clerk/nextjs';
-import { Icons } from '@/components/icons';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
+import { allWebsitesQueryOptions } from '@/features/organizations/api/queries';
+import { AdminWebsites } from '@/features/organizations/components/admin-websites';
+import { requireDashboardSession } from '@/lib/auth/session';
+import { getQueryClient } from '@/lib/query-client';
+import { createClient } from '@/lib/supabase/server';
+import { HydrationBoundary, dehydrate } from '@tanstack/react-query';
+import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function ExclusivePage() {
-  const { organization, isLoaded } = useOrganization();
+export const metadata = { title: 'LevelUp admin' };
+
+// LevelUp staff only (public.platform_admins). RLS returns every website to
+// platform admins; for anyone else this page does not exist.
+export default async function AdminPage() {
+  const session = await requireDashboardSession();
+  if (!session.isPlatformAdmin) notFound();
+
+  const queryClient = getQueryClient();
+  void queryClient.prefetchQuery(allWebsitesQueryOptions(await createClient()));
 
   return (
-    <PageContainer isLoading={!isLoaded}>
-      <Show
-        when={{ plan: 'pro' }}
-        fallback={
-          <div className='flex h-full items-center justify-center'>
-            <Alert>
-              <Icons.lock className='h-5 w-5 text-yellow-600' />
-              <AlertDescription>
-                <div className='mb-1 text-lg font-semibold'>Pro Plan Required</div>
-                <div className='text-muted-foreground'>
-                  This page is only available to organizations on the{' '}
-                  <span className='font-semibold'>Pro</span> plan.
-                  <br />
-                  Upgrade your subscription in&nbsp;
-                  <Link className='underline' href='/dashboard/billing'>
-                    Billing &amp; Plans
-                  </Link>
-                  .
-                </div>
-              </AlertDescription>
-            </Alert>
-          </div>
-        }
-      >
-        <div className='space-y-6'>
-          <div>
-            <h1 className='flex items-center gap-2 text-3xl font-bold tracking-tight'>
-              <Icons.badgeCheck className='h-7 w-7 text-green-600' />
-              Exclusive Area
-            </h1>
-            <p className='text-muted-foreground'>
-              Welcome, <span className='font-semibold'>{organization?.name}</span>! This page
-              contains exclusive features for Pro plan organizations.
-            </p>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Thank You for Checking Out the Exclusive Page</CardTitle>
-              <CardDescription>
-                This means you belong to an organization subscribed to the Pro plan.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className='text-lg'>Have a wonderful day!</div>
-            </CardContent>
-          </Card>
-        </div>
-      </Show>
+    <PageContainer pageTitle='Tous les clients' pageDescription='Sites gérés par LevelUp'>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <Suspense fallback={<Skeleton className='h-64 w-full' />}>
+          <AdminWebsites />
+        </Suspense>
+      </HydrationBoundary>
     </PageContainer>
   );
 }
