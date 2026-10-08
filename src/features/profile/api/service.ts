@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { MfaState, TotpEnrollment } from './types';
+import { passkeyErrorKind } from '@/lib/auth/passkey';
+import type { MfaState, Passkey, TotpEnrollment } from './types';
 
 export async function getMfaState(db: SupabaseClient): Promise<MfaState> {
   const [factorsRes, aalRes] = await Promise.all([
@@ -80,4 +81,58 @@ export async function removeFactor(db: SupabaseClient, factorId: string) {
 export async function signOutEverywhere(db: SupabaseClient) {
   const { error } = await db.auth.signOut({ scope: 'global' });
   if (error) throw new Error('Déconnexion impossible. Réessayez.');
+}
+
+/** Passkeys (WebAuthn) of the signed-in user, most recent first. */
+export async function listPasskeys(db: SupabaseClient): Promise<Passkey[]> {
+  const { data, error } = await db.auth.passkey.list();
+  if (error) throw new Error('Impossible de charger vos passkeys.');
+  return (data ?? [])
+    .map((p) => ({
+      id: p.id,
+      friendlyName: p.friendly_name ?? null,
+      createdAt: p.created_at,
+      lastUsedAt: p.last_used_at ?? null
+    }))
+    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+/** Error thrown when the person closes the browser prompt: the UI stays silent. */
+export class PasskeyCancelledError extends Error {
+  constructor() {
+    super('Ajout annulé.');
+    this.name = 'PasskeyCancelledError';
+  }
+}
+
+/** Runs the WebAuthn registration ceremony (browser prompt) for the signed-in user. */
+export async function addPasskey(db: SupabaseClient): Promise<void> {
+  const { error } = await db.auth.registerPasskey();
+  if (!error) return;
+  const kind = passkeyErrorKind(error);
+  if (kind === 'cancelled') throw new PasskeyCancelledError();
+  if (kind === 'already_registered') {
+    throw new Error('Cet appareil a déjà une passkey pour ce compte.');
+  }
+  if (kind === 'disabled') throw new Error('Les passkeys ne sont pas disponibles pour le moment.');
+  if ((error as { code?: string }).code === 'insufficient_aal') {
+    throw new Error('Confirmez d’abord votre code à 6 chiffres (reconnectez-vous).');
+  }
+  throw new Error('Ajout impossible. Réessayez.');
+}
+
+export async function renamePasskey(db: SupabaseClient, passkeyId: string, friendlyName: string) {
+  const { error } = await db.auth.passkey.update({ passkeyId, friendlyName });
+  if (error) throw new Error('Renommage impossible. Réessayez.');
+}
+
+export async function deletePasskey(db: SupabaseClient, passkeyId: string) {
+  const { error } = await db.auth.passkey.delete({ passkeyId });
+  if (error) {
+    throw new Error(
+      error.code === 'insufficient_aal'
+        ? 'Confirmez d’abord votre code à 6 chiffres (reconnectez-vous).'
+        : 'Suppression impossible. Réessayez.'
+    );
+  }
 }

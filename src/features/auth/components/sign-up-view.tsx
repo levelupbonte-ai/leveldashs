@@ -1,14 +1,15 @@
 import Link from 'next/link';
+import type { AuthMethods } from '@/lib/auth/auth-methods';
 import AuthShell from './auth-shell';
 import UserAuthForm from './user-auth-form';
 
-export default function SignUpViewPage({ next }: { next?: string }) {
+export default function SignUpViewPage({ next, methods }: { next?: string; methods: AuthMethods }) {
   return (
     <AuthShell
       title='Créer un compte'
       description='Votre accès LevelUp pour gérer votre site, vos réservations et vos demandes.'
     >
-      <UserAuthForm mode='sign-up' next={next} />
+      <UserAuthForm mode='sign-up' next={next} methods={methods} />
       <p className='text-muted-foreground text-center text-sm'>
         Déjà un compte ?{' '}
         <Link href='/auth/sign-in' className='hover:text-primary underline underline-offset-4'>

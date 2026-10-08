@@ -1,11 +1,20 @@
 import Link from 'next/link';
+import type { AuthMethods } from '@/lib/auth/auth-methods';
 import AuthShell from './auth-shell';
 import UserAuthForm from './user-auth-form';
 
-export default function SignInViewPage({ next, error }: { next?: string; error?: string }) {
+export default function SignInViewPage({
+  next,
+  error,
+  methods
+}: {
+  next?: string;
+  error?: string;
+  methods: AuthMethods;
+}) {
   return (
     <AuthShell title='Connexion' description='Accédez au tableau de bord de votre site.'>
-      <UserAuthForm mode='sign-in' next={next} initialError={error} />
+      <UserAuthForm mode='sign-in' next={next} initialError={error} methods={methods} />
       <p className='text-muted-foreground text-center text-sm'>
         Pas encore de compte ?{' '}
         <Link href='/auth/sign-up' className='hover:text-primary underline underline-offset-4'>

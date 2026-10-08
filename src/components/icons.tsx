@@ -1,6 +1,7 @@
 import {
   IconAdjustmentsHorizontal,
   IconDevices,
+  IconFingerprint,
   IconShieldCheck,
   IconMailCheck,
   IconShieldLock,
@@ -285,6 +286,7 @@ export const Icons = {
   shield: IconShieldLock,
   shieldCheck: IconShieldCheck,
   devices: IconDevices,
+  passkey: IconFingerprint,
 
   // Data / Charts
   trendingDown: IconTrendingDown,
