@@ -119,3 +119,19 @@ The exact rules live in RLS policies; see the Authorization section of
 
 Billing is not handled in the app: `/dashboard/billing` is a static page saying billing
 is managed by LevelUp (contact@levelup-ecosystem.com).
+
+## LevelUp auth e-mails (Send Email Hook)
+
+Supabase does not send auth e-mails itself: the **Send Email Hook** calls
+`POST /api/auth/email-hook`, which verifies the Standard Webhooks signature and
+sends LevelUp-branded French e-mails through Resend (`src/lib/email/auth-emails.ts`).
+Links point to `/auth/callback?token_hash=…&type=…&next=…` on this dashboard.
+
+- Password reset → `/auth/reset-password` (new password form, `updateUser`).
+- Magic link → "Recevoir un lien de connexion" on the sign-in page (existing accounts only).
+
+Setup: Supabase → Authentication → Hooks → Send Email → HTTPS
+`https://dashboard.levelup-ecosystem.com/api/auth/email-hook`, generate the
+secret, then set on Vercel (leveldashs): `SEND_EMAIL_HOOK_SECRET` (the
+`v1,whsec_…` value) and `RESEND_API_KEY`. Optional `AUTH_EMAIL_FROM`
+(default `LevelUp Ecosystem <account@levelup-ecosystem.com>`, a verified Resend domain).
