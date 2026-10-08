@@ -1,9 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { runAssistant } from '@/features/assistant/server/assistant';
-import { getDashboardSession } from '@/lib/auth/session';
-import { hasRole } from '@/lib/auth/types';
-import { createClient } from '@/lib/supabase/server';
+import { guardAssistantRequest } from '@/features/assistant/server/guard';
 
 const Body = z.object({
   messages: z
@@ -12,63 +10,31 @@ const Body = z.object({
     .max(20)
 });
 
-const ALLOWED_ORIGINS = new Set([
-  'https://dashboard.levelup-ecosystem.com',
-  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000'])
-]);
-
 export async function POST(request: NextRequest) {
-  // Cookies are shared with the other LevelUp subdomains, so only accept JSON
-  // sent by the dashboard itself (or its own Vercel preview host).
-  const origin = request.headers.get('origin');
-  let sameHost = false;
-  try {
-    sameHost = !!origin && new URL(origin).host === request.headers.get('host');
-  } catch {
-    sameHost = false;
-  }
-  if (
-    !request.headers.get('content-type')?.startsWith('application/json') ||
-    !origin ||
-    !(sameHost || ALLOWED_ORIGINS.has(origin))
-  ) {
-    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-  }
-  const session = await getDashboardSession();
-  if (!session) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
-  const { activeOrg, activeWebsite, isPlatformAdmin } = session;
-  if (!activeOrg || !activeWebsite) {
-    return NextResponse.json({ error: 'no_website' }, { status: 400 });
-  }
-
-  const parsed = Body.safeParse(await request.json().catch(() => null));
+  // Validate the body before spending any of the daily allowance.
+  const parsed = Body.safeParse(
+    await request
+      .clone()
+      .json()
+      .catch(() => null)
+  );
   if (!parsed.success) return NextResponse.json({ error: 'invalid' }, { status: 400 });
   const messages = parsed.data.messages.slice(-12);
   if (messages.at(-1)?.role !== 'user')
     return NextResponse.json({ error: 'invalid' }, { status: 400 });
 
-  const db = await createClient();
-  // Daily allowance per organization (database-enforced), checked before any AI call.
-  const { data: remaining, error: quotaError } = await db.rpc('assistant_consume', {
-    p_organization_id: activeOrg.id
-  });
-  if (quotaError) {
-    const limited = quotaError.code === 'PT429';
-    return NextResponse.json(
-      { error: limited ? 'limit' : 'forbidden' },
-      { status: limited ? 429 : 403 }
-    );
-  }
+  const guard = await guardAssistantRequest(request);
+  if ('error' in guard) return guard.error;
 
   try {
     const result = await runAssistant({
-      db,
-      websiteId: activeWebsite.id,
-      siteName: activeWebsite.name,
-      canEdit: isPlatformAdmin || hasRole(activeOrg.role, 'editor'),
+      db: guard.db,
+      websiteId: guard.website.id,
+      siteName: guard.website.name,
+      canEdit: guard.canEdit,
       messages
     });
-    return NextResponse.json({ ...result, remaining });
+    return NextResponse.json({ ...result, remaining: guard.remaining });
   } catch {
     return NextResponse.json({ error: 'unavailable' }, { status: 503 });
   }
