@@ -37,6 +37,7 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 |---|---|
 | `/auth/sign-in` | Email + password, "Continue with Google", password reset link |
 | `/auth/sign-up` | Email + password + full name (stored in `user_metadata.full_name`), Google |
+| `/auth/mfa` | Second step for accounts with an authenticator app: 6-digit TOTP code (`mfa.challengeAndVerify`), keeps `next` |
 | `/auth/callback` | Route handler: exchanges the OAuth/PKCE `code` (`exchangeCodeForSession`) or verifies e-mail links (`token_hash` + `type` via `verifyOtp`), then redirects to `next` |
 
 - The form lives in `src/features/auth/components/user-auth-form.tsx`.
@@ -135,3 +136,70 @@ Setup: Supabase → Authentication → Hooks → Send Email → HTTPS
 secret, then set on Vercel (leveldashs): `SEND_EMAIL_HOOK_SECRET` (the
 `v1,whsec_…` value) and `RESEND_API_KEY`. Optional `AUTH_EMAIL_FROM`
 (default `LevelUp Ecosystem <account@levelup-ecosystem.com>`, a verified Resend domain).
+
+## Two-factor authentication (TOTP)
+
+Supabase native MFA, authenticator apps only (Google Authenticator, 1Password, …).
+
+- **Enroll** — Profile → *Sécurité* (`src/features/profile/components/security-section.tsx`,
+  API in `src/features/profile/api`): `mfa.enroll({ factorType: 'totp' })` shows the QR code
+  (SVG data URL) and the secret, `mfa.challengeAndVerify` confirms the first code (the session
+  becomes `aal2`). Factors are listed with `mfa.listFactors()`; removing one
+  (`mfa.unenroll`) requires an `aal2` session.
+- **Sign-in** — password, magic link and Google only give `aal1`. When the user has a
+  verified factor (`getAuthenticatorAssuranceLevel()`: `currentLevel = aal1`,
+  `nextLevel = aal2`, see `src/lib/auth/mfa.ts`), the sign-in form, the sign-in/sign-up/reset-password
+  pages and `/auth/callback` send them to `/auth/mfa?next=…`. `next` still goes through
+  `safeNext()`; other LevelUp apps are reached with `window.location.assign`.
+- **Proxy** — `src/lib/supabase/proxy.ts` redirects every `/dashboard/*` request of an
+  `aal1` session that could be `aal2` to `/auth/mfa?next=<path>`.
+- **Required for managers** — platform admins and organization owners/admins without a
+  verified factor see a persistent banner (`MfaRequiredBanner`) linking to
+  `/dashboard/profile#securite` (`session.mfa.required` / `session.mfa.enabled`).
+- **Sessions** — *Déconnecter tous mes appareils* calls `auth.signOut({ scope: 'global' })`
+  (revokes every refresh token, all LevelUp apps), then the `signOut` server action.
+- **Lost authenticator** — there are no recovery codes yet (experimental in Supabase): LevelUp
+  staff removes the factor from the Supabase dashboard (Authentication → Users) after
+  verifying the person.
+- **Passkeys** — not used: Supabase passkeys/WebAuthn are still marked experimental.
+
+### Database rule (aal2)
+
+Migration `20261008070000_mfa_aal2_sensitive_writes.sql` adds
+`private.mfa_satisfied()` = `auth.jwt()->>'aal' = 'aal2'` **or** the user has no verified
+factor in `auth.mfa_factors`, and `private.assert_mfa()` (raises `PT403`, message
+containing `aal2`). It is enforced on:
+
+- `organization_members` and `organization_invitations` insert / update / delete —
+  `RESTRICTIVE` policies `*_require_aal2`, AND-ed with the existing permissive ones;
+- `add_organization_member` (SECURITY DEFINER, bypasses RLS) — explicit `assert_mfa()`;
+- platform-admin RPCs (`admin_create_client_site`, `admin_update_website`) through
+  `private.assert_platform_admin()`.
+
+Users without MFA are not affected. Once a factor is verified, a stolen password (aal1
+session) cannot change members, roles or invitations.
+
+### Supabase settings
+
+- **Authentication → Multi-Factor**: *TOTP (App Authenticator)* enabled (default on hosted
+  projects). Optionally limit the number of factors per user.
+
+## CAPTCHA (Cloudflare Turnstile, optional)
+
+When `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set, the sign-in / sign-up form renders a
+Turnstile widget (`src/features/auth/components/turnstile.tsx`, script
+`https://challenges.cloudflare.com/turnstile/v0/api.js`) and passes
+`options.captchaToken` to `signInWithPassword`, `signUp`, `signInWithOtp` (magic link) and
+`resetPasswordForEmail`. Tokens are single-use: the widget resets after each call. Without
+the variable nothing changes.
+
+Setup (in this order, otherwise every sign-in fails):
+
+1. Cloudflare → Turnstile → add a widget for `dashboard.levelup-ecosystem.com` (and
+   `localhost` for development); copy the **site key** and the **secret key**.
+2. Vercel (leveldashs): set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` to the site key and redeploy.
+3. Supabase → Authentication → Attack Protection → *Enable CAPTCHA protection*, provider
+   **Turnstile**, paste the **secret key**.
+
+Once CAPTCHA is on in Supabase, every password / OTP / sign-up / reset call needs a token,
+so all of them must go through this dashboard (the only LevelUp sign-in page).

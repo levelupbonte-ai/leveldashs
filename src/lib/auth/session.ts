@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
+import { hasVerifiedFactor } from './mfa';
 import { ACTIVE_ORG_COOKIE, ACTIVE_WEBSITE_COOKIE } from './cookies';
 import type { DashboardOrg, DashboardSession, DashboardWebsite, OrgRole } from './types';
 
@@ -71,7 +72,12 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
       name: w.name,
       primaryDomain: w.primary_domain,
       status: w.status,
-      features: ((w.website_features ?? []) as { feature_key: string; enabled: boolean }[])
+      features: (
+        (w.website_features ?? []) as {
+          feature_key: string;
+          enabled: boolean;
+        }[]
+      )
         .filter((f) => f.enabled)
         .map((f) => f.feature_key)
     }));
@@ -95,6 +101,12 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
         (typeof meta.avatar_url === 'string' ? meta.avatar_url : null)
     },
     isPlatformAdmin,
+    mfa: {
+      enabled: hasVerifiedFactor(user),
+      // LevelUp staff and anyone who can manage an organization's team.
+      required:
+        isPlatformAdmin || [...roles.values()].some((role) => role === 'owner' || role === 'admin')
+    },
     organizations,
     activeOrg,
     websites,

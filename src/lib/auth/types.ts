@@ -1,6 +1,11 @@
 export type OrgRole = 'owner' | 'admin' | 'editor' | 'viewer';
 
-export const ROLE_RANK: Record<OrgRole, number> = { viewer: 1, editor: 2, admin: 3, owner: 4 };
+export const ROLE_RANK: Record<OrgRole, number> = {
+  viewer: 1,
+  editor: 2,
+  admin: 3,
+  owner: 4
+};
 
 export interface DashboardUser {
   id: string;
@@ -28,6 +33,8 @@ export interface DashboardWebsite {
 export interface DashboardSession {
   user: DashboardUser;
   isPlatformAdmin: boolean;
+  /** Two-factor (TOTP) status; `required` for platform admins and org owners/admins. */
+  mfa: { enabled: boolean; required: boolean };
   organizations: DashboardOrg[];
   activeOrg: DashboardOrg | null;
   websites: DashboardWebsite[];

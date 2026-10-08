@@ -3,6 +3,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingButton } from '@/components/ui/loading-button';
+import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
@@ -10,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { TurnstileWidget, useCaptcha } from './turnstile';
 
 const signInSchema = z.object({
   fullName: z.string(),
@@ -27,6 +29,8 @@ const signUpSchema = signInSchema.extend({
 
 // Google sign-in shows only once the provider is enabled in Supabase Auth.
 const GOOGLE_AUTH_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH === 'on';
+
+const CAPTCHA_NOTICE = 'Confirmez que vous n’êtes pas un robot (vérification ci-dessus).';
 
 function callbackUrl(next: string) {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -53,6 +57,7 @@ export default function UserAuthForm({
     router.replace(target);
     router.refresh();
   }
+  const captcha = useCaptcha();
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
@@ -62,6 +67,10 @@ export default function UserAuthForm({
     defaultValues: { fullName: '', email: '', password: '' },
     validators: { onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema },
     onSubmit: async ({ value }) => {
+      if (!captcha.ready) {
+        setNotice(CAPTCHA_NOTICE);
+        return;
+      }
       setPending(true);
       setNotice(null);
       const supabase = createClient();
@@ -69,7 +78,8 @@ export default function UserAuthForm({
         if (mode === 'sign-in') {
           const { error } = await supabase.auth.signInWithPassword({
             email: value.email,
-            password: value.password
+            password: value.password,
+            options: { captchaToken: captcha.captchaToken }
           });
           if (error) {
             setNotice(
@@ -79,6 +89,11 @@ export default function UserAuthForm({
             );
             return;
           }
+          // A verified authenticator app: the second factor comes next.
+          if (await needsMfaChallenge(supabase)) {
+            router.replace(mfaChallengeUrl(destination));
+            return;
+          }
           goTo(destination);
         } else {
           const { data, error } = await supabase.auth.signUp({
@@ -86,7 +101,8 @@ export default function UserAuthForm({
             password: value.password,
             options: {
               data: { full_name: value.fullName.trim() },
-              emailRedirectTo: callbackUrl(destination)
+              emailRedirectTo: callbackUrl(destination),
+              captchaToken: captcha.captchaToken
             }
           });
           if (error) {
@@ -104,6 +120,7 @@ export default function UserAuthForm({
           }
         }
       } finally {
+        captcha.reset();
         setPending(false);
       }
     }
@@ -127,10 +144,16 @@ export default function UserAuthForm({
       setNotice('Entrez votre e-mail ci-dessus, puis cliquez sur « Mot de passe oublié ».');
       return;
     }
+    if (!captcha.ready) {
+      setNotice(CAPTCHA_NOTICE);
+      return;
+    }
     setPending(true);
     await createClient().auth.resetPasswordForEmail(email, {
-      redirectTo: callbackUrl('/auth/reset-password')
+      redirectTo: callbackUrl('/auth/reset-password'),
+      captchaToken: captcha.captchaToken
     });
+    captcha.reset();
     setPending(false);
     // Same message whether or not the account exists.
     setNotice('Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.');
@@ -143,11 +166,20 @@ export default function UserAuthForm({
       setNotice('Entrez votre e-mail ci-dessus pour recevoir un lien de connexion.');
       return;
     }
+    if (!captcha.ready) {
+      setNotice(CAPTCHA_NOTICE);
+      return;
+    }
     setPending(true);
     await createClient().auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(destination) }
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: callbackUrl(destination),
+        captchaToken: captcha.captchaToken
+      }
     });
+    captcha.reset();
     setPending(false);
     setNotice('Si un compte existe pour cet e-mail, un lien de connexion a été envoyé.');
   }
@@ -216,6 +248,7 @@ export default function UserAuthForm({
             )}
           />
         </FieldGroup>
+        <TurnstileWidget {...captcha.widgetProps} />
         {notice && (
           <p role='status' className='text-muted-foreground text-sm'>
             {notice}
