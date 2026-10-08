@@ -129,11 +129,27 @@ export default function UserAuthForm({
     }
     setPending(true);
     await createClient().auth.resetPasswordForEmail(email, {
-      redirectTo: callbackUrl('/dashboard/profile?reset=1')
+      redirectTo: callbackUrl('/auth/reset-password')
     });
     setPending(false);
     // Same message whether or not the account exists.
     setNotice('Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.');
+  }
+
+  // Passwordless sign-in for existing accounts: one-time link sent by LevelUp.
+  async function sendMagicLink() {
+    const email = form.getFieldValue('email');
+    if (!z.string().email().safeParse(email).success) {
+      setNotice('Entrez votre e-mail ci-dessus pour recevoir un lien de connexion.');
+      return;
+    }
+    setPending(true);
+    await createClient().auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(destination) }
+    });
+    setPending(false);
+    setNotice('Si un compte existe pour cet e-mail, un lien de connexion a été envoyé.');
   }
 
   return (
@@ -217,6 +233,17 @@ export default function UserAuthForm({
             onClick={resetPassword}
           >
             Mot de passe oublié ?
+          </Button>
+        )}
+        {mode === 'sign-in' && (
+          <Button
+            type='button'
+            variant='outline'
+            className='w-full'
+            disabled={pending}
+            onClick={sendMagicLink}
+          >
+            Recevoir un lien de connexion par e-mail
           </Button>
         )}
       </form>
