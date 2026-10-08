@@ -38,7 +38,6 @@ import {
   IconClipboardText,
   IconClock,
   IconCode,
-  IconCommand,
   IconCreditCard,
   IconDeviceLaptop,
   IconDots,
@@ -104,6 +103,40 @@ import {
 
 export type Icon = React.ComponentType<IconProps>;
 
+// LevelUp star (same facets as src/app/icon.svg), flat colors so several copies
+// can share a page without gradient id clashes.
+const STAR_FACETS: [string, string][] = [
+  ['256,278 256,38 202,192', '#BA97FE'],
+  ['256,278 256,38 310,192', '#7A31EE'],
+  ['256,278 310,192 484,204', '#681FE1'],
+  ['256,278 484,204 344,280', '#460DB7'],
+  ['256,278 344,280 397,470', '#3A0897'],
+  ['256,278 397,470 256,362', '#480DB7'],
+  ['256,278 256,362 115,470', '#5C15CC'],
+  ['256,278 115,470 168,280', '#6E22E1'],
+  ['256,278 168,280 28,204', '#8941F7'],
+  ['256,278 28,204 202,192', '#A974FE']
+];
+
+function LevelUpStar({ size = 24, className, title }: IconProps) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      viewBox='20 30 472 448'
+      width={size}
+      height={size}
+      className={className}
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : true}
+    >
+      {title && <title>{title}</title>}
+      {STAR_FACETS.map(([points, fill]) => (
+        <polygon key={points} points={points} fill={fill} />
+      ))}
+    </svg>
+  );
+}
+
 export const Icons = {
   // General
   alertCircle: IconAlertCircle,
@@ -163,7 +196,7 @@ export const Icons = {
   scissors: IconScissors,
   hourglass: IconHourglass,
   twitter: IconBrandTwitter,
-  logo: IconCommand,
+  logo: LevelUpStar,
 
   // Communication
   chat: IconMessage,

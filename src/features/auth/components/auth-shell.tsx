@@ -28,7 +28,7 @@ export default function AuthShell({
         <div className='text-sidebar-foreground relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
-              &ldquo;Everything your business needs online, managed from one place.&rdquo;
+              &ldquo;Tout ce dont votre entreprise a besoin en ligne, géré au même endroit.&rdquo;
             </p>
             <footer className='text-sidebar-foreground/70 text-sm'>LevelUp Ecosystem</footer>
           </blockquote>

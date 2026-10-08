@@ -67,8 +67,13 @@ export function WorkspacesView() {
         {organizations.map((org) => (
           <Card key={org.id}>
             <CardContent className='flex items-center gap-3'>
-              <div className='bg-muted flex size-10 items-center justify-center rounded-lg'>
-                <Icons.galleryVerticalEnd className='size-5' />
+              <div className='flex size-10 items-center justify-center overflow-hidden rounded-lg border border-violet-500/20 bg-violet-500/10'>
+                {org.logoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={org.logoUrl} alt='' className='size-full bg-white object-contain' />
+                ) : (
+                  <Icons.logo className='size-6' />
+                )}
               </div>
               <div className='min-w-0 flex-1'>
                 <p className='truncate font-medium'>{org.name}</p>

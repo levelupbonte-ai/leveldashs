@@ -15,34 +15,40 @@ const META_THEME_COLORS = {
   dark: '#09090b'
 };
 
+const DESCRIPTION =
+  'Gérez votre site, vos réservations et vos clients au même endroit avec LevelUp Ecosystem.';
+
 export const metadata: Metadata = {
-  ...(process.env.NEXT_PUBLIC_APP_URL
-    ? { metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL) }
-    : {}),
+  // Absolute og:image URLs for link previews (Facebook, WhatsApp, LinkedIn…).
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL || 'https://dashboard.levelup-ecosystem.com'
+  ),
   title: {
     default: 'LevelUp Dashboard',
     template: '%s | LevelUp'
   },
-  description: 'Manage your website, content and customers from the LevelUp Ecosystem dashboard.',
+  description: DESCRIPTION,
+  applicationName: 'LevelUp Dashboard',
   openGraph: {
     title: 'LevelUp Dashboard',
-    description: 'Manage your website, content and customers from the LevelUp Ecosystem dashboard.',
-    siteName: 'LevelUp',
+    description: DESCRIPTION,
+    siteName: 'LevelUp Ecosystem',
+    locale: 'fr_FR',
     type: 'website',
     images: [
       {
-        url: '/levelup-dashboard.png',
-        width: 3200,
-        height: 1600,
-        alt: 'LevelUp Dashboard overview page'
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'LevelUp Dashboard — l’étoile LevelUp'
       }
     ]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'LevelUp Dashboard',
-    description: 'Manage your website, content and customers from the LevelUp Ecosystem dashboard.',
-    images: ['/levelup-dashboard.png']
+    description: DESCRIPTION,
+    images: ['/og-image.png']
   }
 };
 
@@ -57,7 +63,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const themeToApply = isValidTheme ? activeThemeValue! : DEFAULT_THEME;
 
   return (
-    <html lang='en' suppressHydrationWarning data-theme={themeToApply}>
+    <html lang='fr' suppressHydrationWarning data-theme={themeToApply}>
       <head>
         <script
           dangerouslySetInnerHTML={{
