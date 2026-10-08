@@ -25,6 +25,14 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
+        title: 'Assistant IA',
+        url: '/dashboard/site/assistant',
+        icon: 'sparkles',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
         title: 'Rendez-vous',
         url: '/dashboard/site/appointments',
         icon: 'calendar',

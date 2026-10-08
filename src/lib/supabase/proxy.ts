@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { authCookieOptions } from './cookie-domain';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './env';
 
 // Refreshes the auth cookies on every request and gates /dashboard.
@@ -8,6 +9,7 @@ export async function updateSession(request: NextRequest) {
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) return response;
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    cookieOptions: authCookieOptions(request.nextUrl.hostname),
     cookies: {
       getAll() {
         return request.cookies.getAll();

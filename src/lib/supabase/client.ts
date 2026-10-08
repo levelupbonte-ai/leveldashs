@@ -1,6 +1,7 @@
 'use client';
 import { createBrowserClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { authCookieOptions } from './cookie-domain';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, assertSupabaseEnv } from './env';
 
 let client: SupabaseClient | undefined;
@@ -9,6 +10,8 @@ let client: SupabaseClient | undefined;
 export function createClient(): SupabaseClient {
   if (client) return client;
   assertSupabaseEnv();
-  client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  client = createBrowserClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    cookieOptions: authCookieOptions(window.location.hostname)
+  });
   return client;
 }
