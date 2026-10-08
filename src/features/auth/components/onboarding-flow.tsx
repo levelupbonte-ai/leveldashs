@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -31,7 +32,46 @@ const accessSchema = z.object({
   message: z.string().trim().max(1000)
 });
 
-function PendingScreen({ businessName, onEdit }: { businessName: string; onEdit: () => void }) {
+/**
+ * Nudge towards the authenticator app (TOTP). Approved members get a direct link
+ * to Profil → Sécurité; others are told where to find it once access opens.
+ */
+function MfaSuggestion({ canOpenDashboard }: { canOpenDashboard: boolean }) {
+  return (
+    <div className='flex gap-3 rounded-lg border border-violet-500/25 bg-violet-500/5 p-3 text-left text-xs'>
+      <Icons.shield className='mt-0.5 size-4 shrink-0 text-violet-500' aria-hidden />
+      <div className='space-y-1'>
+        <p className='text-foreground font-medium'>Protégez votre compte</p>
+        <p className='text-muted-foreground'>
+          Activez la double authentification avec une application (Google Authenticator, 1Password…)
+          : un code à 6 chiffres vous sera demandé à chaque connexion.
+        </p>
+        {canOpenDashboard ? (
+          <Link
+            href='/dashboard/profile#securite'
+            className='text-primary font-medium underline underline-offset-4'
+          >
+            Activer l’application d’authentification
+          </Link>
+        ) : (
+          <p className='text-muted-foreground'>
+            Dès que votre accès est validé : Profil → Sécurité.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PendingScreen({
+  businessName,
+  onEdit,
+  mfaEnabled
+}: {
+  businessName: string;
+  onEdit: () => void;
+  mfaEnabled: boolean;
+}) {
   return (
     <div className='space-y-5' role='status'>
       <AuthSteps current={3} />
@@ -58,6 +98,7 @@ function PendingScreen({ businessName, onEdit }: { businessName: string; onEdit:
           Modifier ma demande
         </Button>
       </div>
+      {!mfaEnabled && <MfaSuggestion canOpenDashboard={false} />}
     </div>
   );
 }
@@ -66,11 +107,13 @@ export default function OnboardingFlow({
   user,
   destination,
   hasAccess,
+  mfaEnabled,
   request
 }: {
   user: DashboardUser;
   destination: string;
   hasAccess: boolean;
+  mfaEnabled: boolean;
   request: Request | null;
 }) {
   const router = useRouter();
@@ -167,7 +210,13 @@ export default function OnboardingFlow({
   }
 
   if (step === 'pending')
-    return <PendingScreen businessName={business} onEdit={() => setStep('access')} />;
+    return (
+      <PendingScreen
+        businessName={business}
+        onEdit={() => setStep('access')}
+        mfaEnabled={mfaEnabled}
+      />
+    );
 
   if (step === 'access') {
     return (
@@ -243,6 +292,7 @@ export default function OnboardingFlow({
           {hasAccess || forOtherApp ? 'Terminer' : 'Continuer'}
         </profileForm.SubmitButton>
       </profileForm.AppForm>
+      {!mfaEnabled && !forOtherApp && <MfaSuggestion canOpenDashboard={hasAccess} />}
       <p className='text-muted-foreground text-center text-xs'>
         Connecté en tant que {user.email}.{' '}
         <button

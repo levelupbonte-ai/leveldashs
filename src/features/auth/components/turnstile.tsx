@@ -144,3 +144,5 @@ export function useCaptcha() {
     widgetProps: { onToken: setToken, ref: widgetRef }
   };
 }
+
+export type Captcha = ReturnType<typeof useCaptcha>;

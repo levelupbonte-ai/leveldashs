@@ -208,7 +208,7 @@ async function main() {
   }
   const site = await fetchBundle(a.website);
   const base = (a.base || (site.primary_domain ? `https://${site.primary_domain}` : '')).replace(/\/+$/, '');
-  if (!/^https:\/\//.test(base)) throw new Error('No https base URL: pass --base https://your-domain.com');
+  if (!base.startsWith('https://')) throw new Error('No https base URL: pass --base https://your-domain.com');
   const pages = (a.pages || '/').split(',').map((p) => p.trim()).filter(Boolean);
   const description = describe(site, site.settings?.seo || {});
   const graph = buildGraph(site, base, description);
