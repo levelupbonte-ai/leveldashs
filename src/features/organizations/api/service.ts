@@ -3,7 +3,7 @@ import type { OrgRole } from '@/lib/auth/types';
 import type { AdminWebsiteRow, OrgMember } from './types';
 
 // Raised by the database (private.assert_mfa) when the session is not aal2.
-const MFA_REQUIRED_MESSAGE =
+export const MFA_REQUIRED_MESSAGE =
   'Confirmez d’abord votre code de vérification en deux étapes (reconnectez-vous).';
 
 export async function listMembers(

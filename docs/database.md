@@ -26,6 +26,8 @@ the schema from application code or by hand in the dashboard.
 | `20261007220000` | levelup_tag (install verification) | **Applied** |
 | `20261007230000` | levelup_site_content (LevelUp site pricing, FAQ, portfolio, settings) | **Applied** |
 | `20261007231000` | ai_key_state (shared AI key rotation, fingerprints only) | **Applied** |
+| `20261008110000` | project_requests (showcase "Start a project" + AI qualification) | **Applied** |
+| `20261008120000` | ai_catalog (`ai_models`, `ai_routes`, views `ai_usage_stats`, `ai_model_ranking`; staff read `ai_calls`) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -89,6 +91,22 @@ enabled, take prices/names from the database (never from the browser),
 rate-limit (5/hour per contact, 300/hour per site) and return ticket codes
 instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 `PT409`, `PT429`).
+
+## AI catalog and usage (ai_catalog)
+
+| Object | Content | Access |
+|---|---|---|
+| `ai_models` | every `provider:model` the apps can call: label, `tier` (`free`/`paid`), cost note, strengths, `apps[]`/`tasks[]` | platform admins read |
+| `ai_routes` | `app` + `task` → models in fallback order (`position`), French description of where it is used | platform admins read |
+| `ai_calls` | one row per answered AI call (app, task, provider, model; never content), written by the apps' servers / `log_ai_call` | platform admins read |
+| `ai_usage_stats` (view) | calls per app/task/provider/model: 24 h, 7 d, 30 d, total, last use | `security_invoker`: admins only |
+| `ai_model_ranking` (view) | per model: 30-day calls, share %, rank, label/tier | `security_invoker`: admins only |
+
+The catalog is seeded from the default routes in code (dashboard `src/lib/ai/router.ts`,
+LevelStudio `server/lib/ai-router.ts`, showcase `src/lib/ai/router.ts`). When a route
+changes in code, update the seed (insert … on conflict) in a new migration. Shown on
+`/dashboard/exclusive` → *Intelligence artificielle*; project requests (`project_requests`)
+show in *Demandes de projet* on the same page.
 
 ## Authorization
 
