@@ -3,37 +3,125 @@ import { NavGroup } from '@/types';
 /**
  * Navigation configuration with RBAC support
  *
- * This configuration is used for both the sidebar navigation and Cmd+K bar.
- * Items are organized into groups, each rendered with a SidebarGroupLabel.
+ * Used by the sidebar and the Cmd+K bar. `access` controls visibility (UX only;
+ * Row Level Security enforces the real rules):
  *
- * RBAC Access Control:
- * Each navigation item can have an `access` property that controls visibility
- * based on permissions, plans, features, roles, and organization context.
- *
- * Examples:
- *
- * 1. Require organization:
- *    access: { requireOrg: true }
- *
- * 2. Require specific permission:
- *    access: { requireOrg: true, permission: 'org:teams:manage' }
- *
- * 3. Require specific plan:
- *    access: { plan: 'pro' }
- *
- * 4. Require specific feature:
- *    access: { feature: 'premium_access' }
- *
- * 5. Require specific role:
- *    access: { role: 'admin' }
- *
- * 6. Multiple conditions (all must be true):
- *    access: { requireOrg: true, permission: 'org:teams:manage', plan: 'pro' }
- *
- * Note: The `visible` function is deprecated but still supported for backward compatibility.
- * Use the `access` property for new items.
+ * - `requireOrg` / `requireWebsite`: an active organization / website is needed
+ * - `role`: minimum organization role (viewer < editor < admin < owner)
+ * - `feature`: website_features key(s) that must be enabled on the active website
+ * - `platformAdmin`: LevelUp staff only
  */
 export const navGroups: NavGroup[] = [
+  {
+    label: 'Mon site',
+    items: [
+      {
+        title: 'Vue d’ensemble',
+        url: '/dashboard/site',
+        icon: 'world',
+        isActive: false,
+        shortcut: ['s', 's'],
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'Rendez-vous',
+        url: '/dashboard/site/appointments',
+        icon: 'calendar',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true, feature: 'bookings' }
+      },
+      {
+        title: 'File d’attente',
+        url: '/dashboard/site/waitlist',
+        icon: 'hourglass',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true, feature: 'waitlist' }
+      },
+      {
+        title: 'Demandes',
+        url: '/dashboard/site/requests',
+        icon: 'inbox',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'Contenu',
+        url: '#',
+        icon: 'listDetails',
+        isActive: true,
+        access: { requireWebsite: true },
+        items: [
+          {
+            title: 'Services',
+            url: '/dashboard/site/services',
+            icon: 'scissors',
+            access: { feature: 'services' }
+          },
+          {
+            title: 'Équipe',
+            url: '/dashboard/site/team',
+            icon: 'teams',
+            access: { feature: 'team' }
+          },
+          {
+            title: 'Galerie',
+            url: '/dashboard/site/gallery',
+            icon: 'photo',
+            access: { feature: 'gallery' }
+          },
+          {
+            title: 'Avis clients',
+            url: '/dashboard/site/reviews',
+            icon: 'star',
+            access: { feature: 'reviews' }
+          },
+          {
+            title: 'Annonces',
+            url: '/dashboard/site/announcements',
+            icon: 'speakerphone',
+            access: { feature: ['announcements', 'promotions', 'blog'] }
+          },
+          { title: 'FAQ', url: '/dashboard/site/faq', icon: 'help' }
+        ]
+      },
+      {
+        title: 'Médiathèque',
+        url: '/dashboard/site/media',
+        icon: 'photo',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'SEO',
+        url: '/dashboard/site/seo',
+        icon: 'trendingUp',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'Développeurs',
+        url: '/dashboard/site/developers',
+        icon: 'code',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'Paramètres du site',
+        url: '/dashboard/site/settings',
+        icon: 'settings',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
+      }
+    ]
+  },
   {
     label: 'Overview',
     items: [
@@ -46,14 +134,14 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'Workspaces',
+        title: 'Organisations',
         url: '/dashboard/workspaces',
         icon: 'workspace',
         isActive: false,
         items: []
       },
       {
-        title: 'Teams',
+        title: 'Équipe & accès',
         url: '/dashboard/workspaces/team',
         icon: 'teams',
         isActive: false,
@@ -154,13 +242,14 @@ export const navGroups: NavGroup[] = [
     label: '',
     items: [
       {
-        title: 'Pro',
+        title: 'LevelUp admin',
         url: '#',
         icon: 'pro',
         isActive: false,
+        access: { platformAdmin: true },
         items: [
           {
-            title: 'Exclusive',
+            title: 'Tous les clients',
             url: '/dashboard/exclusive',
             icon: 'exclusive',
             shortcut: ['e', 'e']
@@ -193,7 +282,7 @@ export const navGroups: NavGroup[] = [
             access: { requireOrg: true }
           },
           {
-            title: 'Login',
+            title: 'Accueil',
             shortcut: ['l', 'l'],
             url: '/',
             icon: 'login'

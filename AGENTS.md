@@ -6,19 +6,19 @@ This file provides essential information for AI coding agents working on this pr
 
 ## Project Overview
 
-**Next.js Admin Dashboard Starter** is a production-ready admin dashboard template built with:
+**LevelUp Dashboard** is the LevelUp Ecosystem client dashboard, built with:
 
 - **Framework**: Next.js 16 (App Router)
 - **Language**: TypeScript 5.7
 - **Styling**: Tailwind CSS v4
 - **UI Components**: shadcn/ui (New York style)
-- **Authentication**: Clerk (with Organizations/Billing support)
+- **Authentication & data**: Supabase (Auth, Postgres with Row Level Security, Storage)
 - **Error Tracking**: Sentry
 - **Charts**: Recharts
 - **Containerization**: Docker (Node.js & Bun Dockerfiles)
 - **Package Manager**: Bun (preferred) or npm
 
-The project follows a feature-based folder structure designed for scalability in SaaS applications, internal tools, and admin panels.
+The project follows a feature-based folder structure. The UI is in French (labels, toasts, page titles); code, comments and docs are in English.
 
 ---
 
@@ -53,19 +53,22 @@ The project follows a feature-based folder structure designed for scalability in
 
 ### Authentication & Authorization
 
-- Clerk for authentication and user management
-- Clerk Organizations for multi-tenant workspaces
-- Clerk Billing for subscription management (B2B)
-- Client-side RBAC for navigation visibility
+- Supabase Auth (email + password, Google OAuth, password reset) via `@supabase/ssr`
+- Multi-tenant organizations in the database (`organizations`, `organization_members`, roles `owner > admin > editor > viewer`)
+- Row Level Security enforces every read/write; the app only uses the publishable key and queries as the signed-in user
+- LevelUp platform admins (`platform_admins`) act with up to `admin` rights in every organization
+- Client-side RBAC for navigation visibility (UX only)
+- Billing is handled by LevelUp outside the app (static `/dashboard/billing` page)
 
 ### Data & APIs
 
 - TanStack Table for data tables
 - TanStack React Query for data fetching and mutations
 - Recharts for analytics/charts
+- Supabase (`src/lib/supabase/*`) for real data: `features/site` and `features/organizations`
 - Service layer per feature (`api/types.ts` → `api/service.ts` → `api/queries.ts`)
 - Route handlers at `src/app/api/` (for Route Handler or BFF patterns)
-- Mock data in `src/constants/mock-api*.ts` (default, swap via service layer)
+- Mock data in `src/constants/mock-api*.ts` for the remaining demo pages (products, users, overview)
 - API client utility in `src/lib/api-client.ts` (for fetch-based patterns)
 
 ### Development Tools
@@ -82,18 +85,19 @@ The project follows a feature-based folder structure designed for scalability in
 ```
 /src
 ├── app/                    # Next.js App Router
-│   ├── auth/              # Authentication routes (sign-in, sign-up)
-│   ├── dashboard/         # Dashboard routes
+│   ├── auth/              # sign-in, sign-up, callback (Supabase Auth)
+│   ├── dashboard/         # Dashboard routes (layout loads the session)
+│   │   ├── site/          # Client website: overview, [collection], appointments, waitlist, requests, media, settings
 │   │   ├── overview/      # Parallel routes (@area_stats, @bar_stats, etc.)
 │   │   ├── product/       # Product management pages
 │   │   ├── kanban/        # Kanban board page
 │   │   ├── chat/          # Messaging page
 │   │   ├── ai-chat/       # AI chat streaming demo
 │   │   ├── notifications/ # Notifications page
-│   │   ├── workspaces/    # Organization management
-│   │   ├── billing/       # Subscription billing
-│   │   ├── exclusive/     # Pro plan feature example
-│   │   └── profile/       # User profile
+│   │   ├── workspaces/    # Organizations (list/create) + team/ (members & roles)
+│   │   ├── billing/       # Static "billing handled by LevelUp" page
+│   │   ├── exclusive/     # LevelUp admin "Tous les clients" (platform admins only)
+│   │   └── profile/       # User profile & password
 │   ├── api/               # API routes (if any)
 │   ├── layout.tsx         # Root layout with providers
 │   ├── page.tsx           # Landing page
@@ -110,7 +114,13 @@ The project follows a feature-based folder structure designed for scalability in
 │   └── ...
 │
 ├── features/              # Feature-based modules
-│   ├── auth/              # Authentication components
+│   ├── auth/              # Sign-in / sign-up form (Supabase Auth)
+│   ├── site/              # Client website management (Supabase)
+│   │   ├── api/           # types.ts, service.ts (takes a SupabaseClient), queries.ts (siteKeys), mutations.ts (useSiteMutations)
+│   │   ├── config/        # collections.ts: field definitions for generic CRUD collections
+│   │   ├── components/    # SitePage server wrapper, collection manager, media library, …
+│   │   └── server.ts      # loadSitePage(): active website + feature check + server client
+│   ├── organizations/     # Organizations, team members, LevelUp admin (Supabase)
 │   ├── overview/          # Dashboard analytics
 │   ├── products/          # Product management (React Query + nuqs)
 │   │   ├── api/
@@ -140,9 +150,13 @@ The project follows a feature-based folder structure designed for scalability in
 │   └── ...
 │
 ├── lib/                   # Utility functions
+│   ├── supabase/          # client.ts (browser), server.ts (cookie-bound), proxy.ts (updateSession), env.ts
+│   ├── auth/              # session.ts, session-context.tsx, actions.ts, cookies.ts, redirect.ts, types.ts
 │   ├── utils.ts           # cn() and formatters
 │   ├── searchparams.ts    # Search param utilities
 │   └── ...
+│
+├── proxy.ts               # Next.js proxy: refreshes the Supabase session, gates /dashboard
 │
 ├── types/                 # TypeScript type definitions
 │   └── index.ts           # Core types (NavItem, etc.)
@@ -153,9 +167,14 @@ The project follows a feature-based folder structure designed for scalability in
     └── themes/            # Individual theme files
 
 /docs                      # Documentation
-│   ├── clerk_setup.md     # Clerk configuration guide
+│   ├── auth.md            # Supabase Auth, session, organizations & roles
+│   ├── database.md        # Supabase schema, RLS, migrations
+│   ├── deployment.md      # Vercel, environment variables, Docker
+│   ├── forms.md           # Form system
 │   ├── nav-rbac.md        # Navigation RBAC documentation
 │   └── themes.md          # Theme customization guide
+
+/supabase                  # migrations/ (versioned SQL) and tests/ (SQL test suites)
 
 /scripts                   # Dev tooling
     ├── cleanup.js         # Feature removal, run via `bun run cleanup` (templates in cleanup-templates/, typechecked)
@@ -204,18 +223,14 @@ bun run prepare      # Install Husky hooks
 
 Copy `env.example.txt` to `.env.local` and configure:
 
-### Required for Authentication (Clerk)
+### Required for Authentication & Data (Supabase)
 
 ```env
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_...
-CLERK_SECRET_KEY=sk_...
-
-# Redirect URLs
-NEXT_PUBLIC_CLERK_SIGN_IN_URL="/auth/sign-in"
-NEXT_PUBLIC_CLERK_SIGN_UP_URL="/auth/sign-up"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_IN_URL="/dashboard/overview"
-NEXT_PUBLIC_CLERK_AFTER_SIGN_UP_URL="/dashboard/overview"
+NEXT_PUBLIC_SUPABASE_URL=https://rncuhmvykrmtxfzqpitc.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
+
+Only the publishable key is used. Never add the secret / service-role key to this app: every query runs as the signed-in user and is filtered by RLS. Supabase dashboard setup (redirect URLs, Google provider, SMTP) is in [docs/auth.md](./docs/auth.md).
 
 ### Optional for Error Tracking (Sentry)
 
@@ -226,8 +241,6 @@ NEXT_PUBLIC_SENTRY_PROJECT=your-project
 SENTRY_AUTH_TOKEN=sntrys_...
 NEXT_PUBLIC_SENTRY_DISABLED="false"  # Set to "true" to disable in dev
 ```
-
-**Note**: Clerk supports "keyless mode" — run `npx clerk@latest init` to provision a development instance in seconds (no account needed; keys are written to `.env.local`).
 
 ---
 
@@ -331,55 +344,56 @@ export const navGroups: NavGroup[] = [
 
 ### Access Control Properties
 
-- `requireOrg: boolean` - Requires active organization
-- `permission: string` - Requires specific permission
-- `role: string` - Requires specific role
-- `plan: string` - Requires specific subscription plan
-- `feature: string` - Requires specific feature
+- `requireOrg: boolean` - Requires an active organization
+- `requireWebsite: boolean` - Requires an active website
+- `role: 'viewer' | 'editor' | 'admin' | 'owner'` - Minimum role in the active organization (platform admins always pass)
+- `feature: string | string[]` - At least one of these `website_features` keys enabled on the active website
+- `platformAdmin: boolean` - LevelUp staff only (`platform_admins`)
 
 ### Client-Side Filtering
 
-The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation client-side using Clerk's `useOrganization()` and `useUser()` hooks. This is for UX only - actual security checks must happen server-side.
+The `useFilteredNavItems()` hook in `src/hooks/use-nav.ts` filters navigation from `useDashboardSession()` (loaded server-side by the dashboard layout). This is for UX only - RLS and server-side page checks enforce access. See `docs/nav-rbac.md`.
 
 ---
 
 ## Authentication Patterns
 
-### Protected Routes
+Full guide: [docs/auth.md](./docs/auth.md).
 
-Dashboard routes use Clerk's middleware pattern. Pages that require organization:
+### Supabase Clients
+
+- Browser: `createClient()` from `@/lib/supabase/client`
+- Server (Server Components, route handlers, server actions): `await createClient()` from `@/lib/supabase/server` (cookie-bound, `server-only`)
+- `src/proxy.ts` → `updateSession()` in `@/lib/supabase/proxy` refreshes cookies and redirects signed-out users from `/dashboard/*` to `/auth/sign-in?next=...`
+
+Both clients act as the signed-in user, so RLS applies the same way on server and client.
+
+### Auth Flow
+
+- `/auth/sign-in`, `/auth/sign-up`: email + password, Google OAuth, password reset
+- `/auth/callback`: PKCE `code` exchange and e-mail `token_hash` verification (`verifyOtp`)
+- Post-login redirects always go through `safeNext()` (`src/lib/auth/redirect.ts`) to block open redirects
+
+### Session in Pages
 
 ```tsx
-import { auth } from '@clerk/nextjs';
-import { redirect } from 'next/navigation';
+import { requireDashboardSession } from '@/lib/auth/session';
+import { notFound } from 'next/navigation';
 
 export default async function Page() {
-  const { orgId } = await auth();
-  if (!orgId) redirect('/dashboard/workspaces');
-  // ...
+  const session = await requireDashboardSession(); // redirects to sign-in if signed out
+  if (!session.isPlatformAdmin) notFound();
+  // session.activeOrg, session.activeWebsite (with .features), session.organizations
 }
 ```
 
-### Plan/Feature Protection
+Client components use `useDashboardSession()` from `@/lib/auth/session-context`. The active organization/website live in httpOnly cookies `lu_org` / `lu_site`; change them with the server actions `setActiveOrganization()` / `setActiveWebsite()` (and `signOut()`) in `src/lib/auth/actions.ts`, never by writing cookies directly.
 
-Use Clerk's `<Protect>` component for client-side:
+### Roles & Features
 
-```tsx
-import { Protect } from '@clerk/nextjs';
-
-<Protect plan='pro' fallback={<UpgradePrompt />}>
-  <PremiumContent />
-</Protect>;
-```
-
-Use `has()` function for server-side checks:
-
-```tsx
-import { auth } from '@clerk/nextjs';
-
-const { has } = await auth();
-const hasFeature = has({ feature: 'premium_access' });
-```
+- Roles: `owner > admin > editor > viewer` (`hasRole()` in `src/lib/auth/types.ts`)
+- Platform admins act with up to `admin` rights in every organization, never `owner`
+- Website features (`website_features`) gate site pages: `SitePage` / `loadSitePage(feature)` show an unavailable state when the feature is off
 
 ---
 
@@ -406,7 +420,9 @@ src/features/<name>/api/
 | **Route Handlers + ORM**                           | `service.ts` calls `/api/` routes via `apiClient`, route handlers call ORM                  |
 | **BFF** (Next.js proxies to Laravel/Go/etc.)       | `service.ts` calls `/api/` routes via `apiClient`, route handlers proxy to external backend |
 | **Direct external API** (frontend-only)            | `service.ts` calls external URL via `fetch()`                                               |
-| **Mock** (default)                                 | `service.ts` calls in-memory fake data stores                                               |
+| **Mock** (demo pages)                              | `service.ts` calls in-memory fake data stores                                               |
+
+Supabase features (`features/site`, `features/organizations`) use direct Supabase calls: service functions take a `SupabaseClient` as first argument and query options are `xxxQueryOptions(db, ...)`, so the same keys work for the server prefetch (cookie-bound client from `@/lib/supabase/server`) and the browser client. `/dashboard/site` pages prefetch through the `SitePage` server wrapper (`src/features/site/components/site-page.tsx`) and `HydrationBoundary`; mutations live in `api/mutations.ts` (`useSiteMutations`) and invalidate `siteKeys.website(websiteId)`.
 
 Route handlers at `src/app/api/` are ready for patterns 2 and 3. `src/lib/api-client.ts` provides a typed `fetch` wrapper.
 
@@ -559,8 +575,8 @@ Canonical guide: [docs/deployment.md](./docs/deployment.md) (Vercel, production 
 
 Ensure these are set in your deployment platform:
 
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
 
@@ -571,12 +587,12 @@ Production-ready Dockerfiles are included:
 - `Dockerfile` — Node.js-based
 - `Dockerfile.bun` — Bun-based
 
-Both use `output: 'standalone'` in `next.config.ts`. Pass `NEXT_PUBLIC_*` vars as `--build-arg` at build time, and runtime secrets via `-e` at run time.
+Both build with `BUILD_STANDALONE=true` (`output: 'standalone'` in `next.config.ts`). Pass `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as `--build-arg` at build time (they are inlined into the client bundle) and again via `-e` at run time.
 
 ### Build Considerations
 
-- Output: `standalone` (optimized for Docker/self-hosting)
-- Images: Configured for `api.slingacademy.com`, `img.clerk.com`, `clerk.com`
+- Output: `standalone` when `BUILD_STANDALONE=true` (optimized for Docker/self-hosting)
+- Images: Configured for `api.slingacademy.com`, `rncuhmvykrmtxfzqpitc.supabase.co` (`/storage/v1/object/public/**`), `lh3.googleusercontent.com` (Google avatars)
 - Sentry source maps uploaded automatically in CI
 
 ---
@@ -590,7 +606,6 @@ A single `scripts/cleanup.js` file handles removal of optional features:
 node scripts/cleanup.js --interactive
 
 # Remove specific features
-node scripts/cleanup.js clerk           # Remove auth/org/billing
 node scripts/cleanup.js kanban          # Remove kanban board
 node scripts/cleanup.js chat            # Remove messaging UI
 node scripts/cleanup.js ai-chat         # Remove AI chat demo
@@ -719,10 +734,14 @@ See "Theming System" section above or `docs/themes.md`.
 - Ensure using Tailwind CSS v4 syntax (`@import 'tailwindcss'`)
 - Check `postcss.config.js` uses `@tailwindcss/postcss`
 
-**Clerk keyless mode popup**
+**Redirected to sign-in / "NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY must be set"**
 
-- Run `npx clerk@latest init` to provision a dev instance in seconds (no account needed)
-- It writes keys to `.env.local`; later you can claim application or set env variables
+- Set both variables in `.env.local` and restart the dev server
+- Google sign-in or e-mail links failing: check the redirect URLs and Google provider in Supabase (see `docs/auth.md`)
+
+**Empty data / permission errors**
+
+- RLS hides rows the user may not see: check the user's `organization_members` role and the website's `website_features`
 
 **Theme not applying**
 
@@ -732,14 +751,15 @@ See "Theming System" section above or `docs/themes.md`.
 **Navigation items not showing**
 
 - Check `access` property in nav config
-- Verify user has required org/permission/role
+- Verify the active organization/website, the user's role and the website's enabled features
 
 ---
 
 ## External Documentation
 
 - [Next.js App Router](https://nextjs.org/docs/app)
-- [Clerk Next.js SDK](https://clerk.com/docs/references/nextjs)
+- [Supabase Auth with Next.js (SSR)](https://supabase.com/docs/guides/auth/server-side/nextjs)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - [shadcn/ui](https://ui.shadcn.com/docs)
 - [Tailwind CSS v4](https://tailwindcss.com/docs)
 - [TanStack Table](https://tanstack.com/table/latest)
@@ -760,4 +780,5 @@ See "Theming System" section above or `docs/themes.md`.
 9. **Page headers** - Always use `PageContainer` props (`pageTitle`, `pageDescription`, `pageHeaderAction`) for page headers. Never import `<Heading>` manually in pages — `PageContainer` handles that internally.
 10. **Forms** - Use `useAppForm` from `@/lib/form` with `form.AppField` rendering the shared field components (`field.TextField`, `field.SelectField`, …) from `@/components/forms/fields`. Each component follows the official shadcn TanStack Form anatomy; drop down to raw `form.Field` render props for one-off custom fields. Never use `useState` inside a render prop — extract stateful controls into components.
 11. **Button loading** - Use `<Button isLoading={isPending}>` for loading states. Uses CSS Grid overlap trick for zero layout shift. When `isLoading` is not passed, button behaves as default shadcn. `SubmitButton` in forms handles this automatically via form `isSubmitting` state.
-12. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`. Never import from `@/constants/mock-api*` directly in components.
+12. **Supabase** - Use `@/lib/supabase/client` (browser) or `@/lib/supabase/server` (server) only; never the secret/service-role key. Schema changes go through `supabase/migrations` (see `docs/database.md`), never application code. User-facing text is French.
+13. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`. Never import from `@/constants/mock-api*` directly in components.
