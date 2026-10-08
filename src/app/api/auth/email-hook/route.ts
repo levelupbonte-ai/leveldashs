@@ -70,7 +70,9 @@ const VERIFY_TYPE: Record<string, string> = {
 
 function link(type: string, tokenHash: string | undefined, next: string): string | undefined {
   const verifyType = VERIFY_TYPE[type];
-  if (!verifyType || !tokenHash || !/^[a-f0-9]{16,128}$/i.test(tokenHash)) return undefined;
+  // PKCE flows (the dashboard's) send hashes prefixed with "pkce_".
+  if (!verifyType || !tokenHash || !/^(pkce_)?[A-Za-z0-9_-]{16,256}$/.test(tokenHash))
+    return undefined;
   const url = new URL('/auth/callback', APP_URL);
   url.searchParams.set('token_hash', tokenHash);
   url.searchParams.set('type', verifyType);
@@ -78,7 +80,11 @@ function link(type: string, tokenHash: string | undefined, next: string): string
   return url.toString();
 }
 
+// E-mails whose whole point is the button: never send them without it.
+const NEEDS_LINK = new Set(['signup', 'magiclink', 'recovery', 'invite', 'email_change']);
+
 async function send(to: string, type: string, opts: { link?: string; code?: string }) {
+  if (NEEDS_LINK.has(type) && !opts.link) throw new Error('missing_link');
   const { subject, html } = buildAuthEmail(type, opts);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
