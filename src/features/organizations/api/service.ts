@@ -210,3 +210,60 @@ export async function cancelInvitation(db: SupabaseClient, id: string) {
     .eq('id', id);
   if (error || !count) throw new Error('Annulation impossible (droits insuffisants).');
 }
+
+export interface AccessRequest {
+  user_id: string;
+  business_name: string;
+  website: string | null;
+  phone: string | null;
+  message: string | null;
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  email: string | null;
+  full_name: string | null;
+}
+
+/** LevelUp staff: dashboard access requests, pending first (RLS: platform admins only). */
+export async function listAccessRequests(db: SupabaseClient): Promise<AccessRequest[]> {
+  const { data, error } = await db
+    .from('access_requests')
+    .select('user_id, business_name, website, phone, message, status, created_at')
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw new Error('Impossible de charger les demandes.');
+  const ids = (data ?? []).map((r) => r.user_id);
+  const { data: profiles } = ids.length
+    ? await db.from('profiles').select('id, email, full_name').in('id', ids)
+    : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
+  const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+  return (data ?? [])
+    .map((r) => ({
+      ...(r as Omit<AccessRequest, 'email' | 'full_name'>),
+      email: byId.get(r.user_id)?.email ?? null,
+      full_name: byId.get(r.user_id)?.full_name ?? null
+    }))
+    .toSorted((a, b) => Number(b.status === 'pending') - Number(a.status === 'pending'));
+}
+
+/** Approve (new organization named after the business, or an existing one) or reject; e-mails the applicant. */
+export async function decideAccessRequest(input: {
+  userId: string;
+  approve: boolean;
+  organizationId?: string;
+}) {
+  const res = await fetch('/api/access/decision', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input)
+  });
+  const body = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok) {
+    throw new Error(
+      body.error === 'mfa'
+        ? MFA_REQUIRED_MESSAGE
+        : body.error === 'forbidden'
+          ? 'Réservé à l’équipe LevelUp.'
+          : 'Décision impossible.'
+    );
+  }
+}

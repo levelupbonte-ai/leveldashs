@@ -1,13 +1,20 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
-import { listAllWebsites, listFeatures, listInvitations, listMembers } from './service';
+import {
+  listAccessRequests,
+  listAllWebsites,
+  listFeatures,
+  listInvitations,
+  listMembers
+} from './service';
 
 export const orgKeys = {
   all: ['organizations'] as const,
   members: (organizationId: string) => [...orgKeys.all, 'members', organizationId] as const,
   allWebsites: () => [...orgKeys.all, 'all-websites'] as const,
   features: () => ['features'] as const,
-  invitations: (organizationId: string) => [...orgKeys.all, 'invitations', organizationId] as const
+  invitations: (organizationId: string) => [...orgKeys.all, 'invitations', organizationId] as const,
+  accessRequests: () => [...orgKeys.all, 'access-requests'] as const
 };
 
 export const membersQueryOptions = (db: SupabaseClient, organizationId: string) =>
@@ -33,4 +40,10 @@ export const invitationsQueryOptions = (db: SupabaseClient, organizationId: stri
   queryOptions({
     queryKey: orgKeys.invitations(organizationId),
     queryFn: () => listInvitations(db, organizationId)
+  });
+
+export const accessRequestsQueryOptions = (db: SupabaseClient) =>
+  queryOptions({
+    queryKey: orgKeys.accessRequests(),
+    queryFn: () => listAccessRequests(db)
   });

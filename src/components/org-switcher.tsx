@@ -94,6 +94,9 @@ export function OrgSwitcher() {
             <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
               {pending ? (
                 <Icons.spinner className='size-4 animate-spin' />
+              ) : activeOrg.logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={activeOrg.logoUrl} alt='' className='size-full bg-white object-contain' />
               ) : (
                 <Icons.galleryVerticalEnd className='size-4' />
               )}
@@ -150,7 +153,12 @@ export function OrgSwitcher() {
                   className='gap-2 p-2'
                 >
                   <div className='flex size-6 items-center justify-center overflow-hidden rounded-md border'>
-                    <Icons.galleryVerticalEnd className='size-3.5 shrink-0' />
+                    {org.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={org.logoUrl} alt='' className='size-full bg-white object-contain' />
+                    ) : (
+                      <Icons.galleryVerticalEnd className='size-3.5 shrink-0' />
+                    )}
                   </div>
                   <span className='truncate'>{org.name}</span>
                   {org.id === activeOrg.id && <Icons.check className='ml-auto size-4' />}

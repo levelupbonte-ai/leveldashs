@@ -203,3 +203,23 @@ Setup (in this order, otherwise every sign-in fails):
 
 Once CAPTCHA is on in Supabase, every password / OTP / sign-up / reset call needs a token,
 so all of them must go through this dashboard (the only LevelUp sign-in page).
+
+## Dashboard access on approval
+
+Creating an account is open (LevelStudio stays available), but `/dashboard` only
+opens to members of an organization or LevelUp staff (`src/app/dashboard/layout.tsx`).
+
+- **Invited people** join their organization automatically when they confirm
+  their e-mail (`private.accept_invitations`): no approval needed.
+- **Everyone else** lands on `/auth/onboarding`: profile (name, photo), then an
+  access request (`submit_access_request`, table `access_requests`). The team
+  gets an e-mail; requests show on `/dashboard/exclusive` where staff approve
+  (`review_access_request`: creates the client's organization, owner role) or
+  reject. The applicant is e-mailed either way (`/api/access/decision`).
+- `create_organization` is limited to staff and existing members, so approval
+  cannot be skipped.
+
+Sign-up runs in steps (account → e-mail check → profile → approval); forgotten
+passwords and magic links have their own confirmation screens with a resend
+cooldown (`/auth/forgot-password`). Avatars and organization logos are uploaded
+to the public `brand` bucket (`avatars/<user>/`, `orgs/<org>/`, images only, 2 MB).

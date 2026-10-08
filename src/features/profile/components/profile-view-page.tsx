@@ -11,6 +11,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { BrandImageInput } from '@/components/brand-image-input';
+import { hasRole } from '@/lib/auth/types';
 import { SecuritySection } from './security-section';
 
 const nameSchema = z.object({
@@ -28,8 +30,34 @@ const passwordSchema = z
   });
 
 export default function ProfileViewPage({ passwordReset }: { passwordReset?: boolean }) {
-  const { user } = useDashboardSession();
+  const { user, activeOrg, isPlatformAdmin } = useDashboardSession();
   const router = useRouter();
+  const canBrandOrg = !!activeOrg && (isPlatformAdmin || hasRole(activeOrg.role, 'admin'));
+
+  async function saveAvatar(url: string | null) {
+    const db = createClient();
+    const { error } = await db.from('profiles').update({ avatar_url: url }).eq('id', user.id);
+    if (error) {
+      toast.error('Enregistrement impossible.');
+      return;
+    }
+    toast.success(url ? 'Photo mise à jour' : 'Photo retirée');
+    router.refresh();
+  }
+
+  async function saveLogo(url: string | null) {
+    if (!activeOrg) return;
+    const { error } = await createClient()
+      .from('organizations')
+      .update({ logo_url: url })
+      .eq('id', activeOrg.id);
+    if (error) {
+      toast.error('Enregistrement impossible.');
+      return;
+    }
+    toast.success(url ? 'Logo mis à jour' : 'Logo retiré');
+    router.refresh();
+  }
 
   const nameForm = useAppForm({
     defaultValues: { fullName: user.fullName },
@@ -83,7 +111,14 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
           <CardTitle>Informations</CardTitle>
           <CardDescription>{user.email}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className='space-y-6'>
+          <BrandImageInput
+            value={user.avatarUrl}
+            onChange={saveAvatar}
+            folder={`avatars/${user.id}`}
+            label='Photo de profil'
+            fallback={user.fullName || user.email}
+          />
           <form
             className='space-y-4'
             onSubmit={(e) => {
@@ -108,6 +143,26 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
           </form>
         </CardContent>
       </Card>
+      {canBrandOrg && activeOrg && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Logo de {activeOrg.name}</CardTitle>
+            <CardDescription>
+              Affiché en haut du tableau de bord pour toute votre équipe.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <BrandImageInput
+              value={activeOrg.logoUrl}
+              onChange={saveLogo}
+              folder={`orgs/${activeOrg.id}`}
+              label='Logo'
+              fallback={activeOrg.name}
+              rounded='lg'
+            />
+          </CardContent>
+        </Card>
+      )}
       <Card>
         <CardHeader>
           <CardTitle>Mot de passe</CardTitle>

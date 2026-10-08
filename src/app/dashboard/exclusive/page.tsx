@@ -1,6 +1,10 @@
 import PageContainer from '@/components/layout/page-container';
 import { Skeleton } from '@/components/ui/skeleton';
-import { allWebsitesQueryOptions } from '@/features/organizations/api/queries';
+import {
+  accessRequestsQueryOptions,
+  allWebsitesQueryOptions
+} from '@/features/organizations/api/queries';
+import { AccessRequests } from '@/features/organizations/components/access-requests';
 import { AdminWebsites } from '@/features/organizations/components/admin-websites';
 import { NewClientForm } from '@/features/organizations/components/new-client-form';
 import { requireDashboardSession } from '@/lib/auth/session';
@@ -19,18 +23,23 @@ export default async function AdminPage() {
   if (!session.isPlatformAdmin) notFound();
 
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(allWebsitesQueryOptions(await createClient()));
+  const db = await createClient();
+  void queryClient.prefetchQuery(allWebsitesQueryOptions(db));
+  void queryClient.prefetchQuery(accessRequestsQueryOptions(db));
 
   return (
     <PageContainer pageTitle='Tous les clients' pageDescription='Sites gérés par LevelUp'>
-      <div className='space-y-6'>
-        <NewClientForm />
-        <HydrationBoundary state={dehydrate(queryClient)}>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <div className='space-y-6'>
+          <Suspense fallback={<Skeleton className='h-32 w-full' />}>
+            <AccessRequests />
+          </Suspense>
+          <NewClientForm />
           <Suspense fallback={<Skeleton className='h-64 w-full' />}>
             <AdminWebsites />
           </Suspense>
-        </HydrationBoundary>
-      </div>
+        </div>
+      </HydrationBoundary>
     </PageContainer>
   );
 }
