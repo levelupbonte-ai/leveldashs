@@ -32,7 +32,10 @@ function verify(request: NextRequest, body: string): boolean {
   const signatures = request.headers.get('webhook-signature');
   const secret = HOOK_SECRET.replace(/^v1,whsec_/, '');
   if (!id || !timestamp || !signatures || !secret) return false;
-  if (Math.abs(Date.now() / 1000 - Number(timestamp)) > TOLERANCE_SECONDS) return false;
+  const ts = Number(timestamp);
+  // A non-numeric timestamp must fail closed: Number('x') is NaN and every
+  // comparison with NaN is false, which would otherwise skip the staleness gate.
+  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > TOLERANCE_SECONDS) return false;
 
   const expected = createHmac('sha256', Buffer.from(secret, 'base64'))
     .update(`${id}.${timestamp}.${body}`)
