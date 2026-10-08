@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { AuthSteps } from './auth-steps';
-import { EmailSent } from './email-sent';
+import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
 const signInSchema = z.object({
@@ -65,11 +65,17 @@ export default function UserAuthForm({
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
   );
-  const [sent, setSent] = useState<{ kind: 'signup' | 'magic'; email: string } | null>(null);
+  // Sign-up waiting for the e-mail link. The password stays in memory (React
+  // state only, never stored) so this tab can sign in once the link is clicked,
+  // even on another device.
+  const [sent, setSent] = useState<{ email: string; password: string } | null>(null);
   // After the e-mail check, a new account finishes its profile (and, for the
   // dashboard, asks for access); other LevelUp apps get the visitor back after.
+  const onboardingUrl = `/auth/onboarding?next=${encodeURIComponent(destination)}`;
+  // The link itself opens a "congratulations" page (/auth/verified), which says
+  // to go back to the first device or to continue on this one.
   const signUpRedirect = () =>
-    callbackUrl(`/auth/onboarding?next=${encodeURIComponent(destination)}`);
+    callbackUrl(`/auth/verified?next=${encodeURIComponent(onboardingUrl)}`);
 
   const form = useAppForm({
     defaultValues: { fullName: '', email: '', password: '' },
@@ -122,9 +128,9 @@ export default function UserAuthForm({
             return;
           }
           if (data.session) {
-            goTo(`/auth/onboarding?next=${encodeURIComponent(destination)}`);
+            goTo(onboardingUrl);
           } else {
-            setSent({ kind: 'signup', email: value.email });
+            setSent({ email: value.email, password: value.password });
           }
         }
       } finally {
@@ -146,70 +152,24 @@ export default function UserAuthForm({
     }
   }
 
-  // Passwordless sign-in for existing accounts: one-time link sent by LevelUp.
-  async function sendMagicLink() {
-    const email = form.getFieldValue('email');
-    if (!z.string().email().safeParse(email).success) {
-      setNotice('Entrez votre e-mail ci-dessus pour recevoir un lien de connexion.');
-      return;
-    }
-    if (!captcha.ready) {
-      setNotice(CAPTCHA_NOTICE);
-      return;
-    }
-    setPending(true);
-    await createClient().auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: callbackUrl(destination),
-        captchaToken: captcha.captchaToken
-      }
-    });
-    captcha.reset();
-    setPending(false);
-    setSent({ kind: 'magic', email });
-  }
-
   async function resend(captchaToken: string | undefined) {
     if (!sent) return;
-    const supabase = createClient();
-    if (sent.kind === 'signup') {
-      await supabase.auth.resend({
-        type: 'signup',
-        email: sent.email,
-        options: { emailRedirectTo: signUpRedirect(), captchaToken }
-      });
-    } else {
-      await supabase.auth.signInWithOtp({
-        email: sent.email,
-        options: {
-          shouldCreateUser: false,
-          emailRedirectTo: callbackUrl(destination),
-          captchaToken
-        }
-      });
-    }
+    await createClient().auth.resend({
+      type: 'signup',
+      email: sent.email,
+      options: { emailRedirectTo: signUpRedirect(), captchaToken }
+    });
   }
 
   if (sent) {
     return (
-      <div className='space-y-6'>
-        {sent.kind === 'signup' && <AuthSteps current={1} />}
-        <EmailSent
-          email={sent.email}
-          title={
-            sent.kind === 'signup' ? 'Confirmez votre adresse e-mail' : 'Vérifiez votre boîte mail'
-          }
-          description={
-            sent.kind === 'signup'
-              ? 'Pour activer votre compte, cliquez sur le lien que nous venons d’envoyer à'
-              : 'Si un compte existe, un lien de connexion vient d’être envoyé à'
-          }
-          onResend={resend}
-          onChangeEmail={() => setSent(null)}
-        />
-      </div>
+      <SignupEmailSent
+        email={sent.email}
+        password={sent.password}
+        onResend={resend}
+        onChangeEmail={() => setSent(null)}
+        onVerified={() => router.replace(onboardingUrl)}
+      />
     );
   }
 
@@ -218,14 +178,15 @@ export default function UserAuthForm({
       {mode === 'sign-up' && <AuthSteps current={0} />}
       {GOOGLE_AUTH_ENABLED && (
         <>
+          {/* Google Sign-In branding: white button, official multicolor G, grey border. */}
           <Button
-            className='w-full'
+            className='h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]'
             variant='outline'
             type='button'
             disabled={pending}
             onClick={signInWithGoogle}
           >
-            <Icons.google className='mr-2 h-4 w-4' />
+            <Icons.googleColor size={20} />
             Continuer avec Google
           </Button>
           <div className='relative'>
@@ -299,15 +260,10 @@ export default function UserAuthForm({
           </Link>
         )}
         {mode === 'sign-in' && (
-          <Button
-            type='button'
-            variant='outline'
-            className='w-full'
-            disabled={pending}
-            onClick={sendMagicLink}
-          >
-            Recevoir un lien de connexion par e-mail
-          </Button>
+          <p className='text-muted-foreground text-center text-xs text-balance'>
+            <Icons.shieldCheck className='mr-1 inline size-3.5 align-[-2px]' aria-hidden />
+            Protégé par la double authentification (application d’authentification)
+          </p>
         )}
       </form>
     </div>

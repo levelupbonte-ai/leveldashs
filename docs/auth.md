@@ -35,8 +35,9 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 | Route | What it does |
 |---|---|
-| `/auth/sign-in` | Email + password, "Continue with Google", password reset link |
+| `/auth/sign-in` | Email + password, "Continuer avec Google" (Google-branded button), password reset link, 2FA notice |
 | `/auth/sign-up` | Email + password + full name (stored in `user_metadata.full_name`), Google |
+| `/auth/verified` | Landing page of the sign-up confirmation link: "Félicitations, votre adresse e-mail est vérifiée", go back to the first device or "Continuer ici" (`next`, default `/auth/onboarding`) |
 | `/auth/mfa` | Second step for accounts with an authenticator app: 6-digit TOTP code (`mfa.challengeAndVerify`), keeps `next` |
 | `/auth/callback` | Route handler: exchanges the OAuth/PKCE `code` (`exchangeCodeForSession`) or verifies e-mail links (`token_hash` + `type` via `verifyOtp`), then redirects to `next` |
 
@@ -45,7 +46,7 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
   accepts same-origin relative paths (blocks `//evil.com`, `/\evil.com`, absolute URLs).
   Default destination: `/dashboard/site`.
 - If e-mail confirmation is on, sign-up shows a notice and the confirmation link lands on
-  `/auth/callback`. Password reset links go to `/dashboard/profile?reset=1`, where the
+  `/auth/callback`, then `/auth/verified` (see *Cross-device e-mail verification*). Password reset links go to `/dashboard/profile?reset=1`, where the
   user sets a new password (`auth.updateUser`).
 - A failed callback redirects to `/auth/sign-in?error=callback`.
 
@@ -129,7 +130,9 @@ sends LevelUp-branded French e-mails through Resend (`src/lib/email/auth-emails.
 Links point to `/auth/callback?token_hash=…&type=…&next=…` on this dashboard.
 
 - Password reset → `/auth/reset-password` (new password form, `updateUser`).
-- Magic link → "Recevoir un lien de connexion" on the sign-in page (existing accounts only).
+- Sign-up confirmation → always `/auth/verified?next=…` (the hook wraps `next`).
+- Magic links are no longer offered on the sign-in page (the hook still formats them if
+  Supabase sends one).
 
 Setup: Supabase → Authentication → Hooks → Send Email → HTTPS
 `https://dashboard.levelup-ecosystem.com/api/auth/email-hook`, generate the
@@ -146,7 +149,7 @@ Supabase native MFA, authenticator apps only (Google Authenticator, 1Password, �
   (SVG data URL) and the secret, `mfa.challengeAndVerify` confirms the first code (the session
   becomes `aal2`). Factors are listed with `mfa.listFactors()`; removing one
   (`mfa.unenroll`) requires an `aal2` session.
-- **Sign-in** — password, magic link and Google only give `aal1`. When the user has a
+- **Sign-in** — password and Google only give `aal1`. When the user has a
   verified factor (`getAuthenticatorAssuranceLevel()`: `currentLevel = aal1`,
   `nextLevel = aal2`, see `src/lib/auth/mfa.ts`), the sign-in form, the sign-in/sign-up/reset-password
   pages and `/auth/callback` send them to `/auth/mfa?next=…`. `next` still goes through
@@ -189,8 +192,9 @@ session) cannot change members, roles or invitations.
 When `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set, the sign-in / sign-up form renders a
 Turnstile widget (`src/features/auth/components/turnstile.tsx`, script
 `https://challenges.cloudflare.com/turnstile/v0/api.js`) and passes
-`options.captchaToken` to `signInWithPassword`, `signUp`, `signInWithOtp` (magic link) and
-`resetPasswordForEmail`. Tokens are single-use: the widget resets after each call. Without
+`options.captchaToken` to `signInWithPassword`, `signUp`, `resend` and
+`resetPasswordForEmail`. The automatic sign-up check (below) waits for a fresh token
+before each attempt. Tokens are single-use: the widget resets after each call. Without
 the variable nothing changes.
 
 Setup (in this order, otherwise every sign-in fails):
@@ -220,6 +224,33 @@ opens to members of an organization or LevelUp staff (`src/app/dashboard/layout.
   cannot be skipped.
 
 Sign-up runs in steps (account → e-mail check → profile → approval); forgotten
-passwords and magic links have their own confirmation screens with a resend
+passwords have their own confirmation screen with a resend
 cooldown (`/auth/forgot-password`). Avatars and organization logos are uploaded
 to the public `brand` bucket (`avatars/<user>/`, `orgs/<org>/`, images only, 2 MB).
+
+## Cross-device e-mail verification
+
+People often sign up on a computer and open the confirmation e-mail on their phone.
+
+1. Sign-up keeps the e-mail and password **in React state only** (never storage) and
+   shows `SignupEmailSent` (`src/features/auth/components/signup-email-sent.tsx`).
+2. `useEmailVerificationWatch` (`src/features/auth/hooks/`) retries
+   `signInWithPassword` every **10 s** (30 calls / 5 min = the default per-IP sign-in
+   limit; a 429 doubles the delay up to 60 s). Supabase answers `email_not_confirmed`
+   until the link is clicked, then signs in on this device and the tab goes to
+   `/auth/onboarding` by itself. It pauses while the tab is hidden (checks again on
+   `visibilitychange`), stops after 20 minutes ("Vérifier maintenant" restarts it), and
+   also listens to `onAuthStateChange` / `getSession` for a link opened in the same browser.
+3. The link (`/auth/callback?token_hash=…`) creates a session where it is opened and
+   lands on `/auth/verified`: congratulations, "go back to the device where you started",
+   and a "Continuer ici" button.
+
+Google sign-ups need no e-mail check.
+
+## Google button
+
+`NEXT_PUBLIC_GOOGLE_AUTH=on` shows "Continuer avec Google" (white button, official
+multicolor G — `Icons.googleColor` — per Google's sign-in branding guidelines). It calls
+`signInWithOAuth({ provider: 'google' })` with `redirectTo` = `/auth/callback?next=…`;
+the callback sends users with an authenticator app to `/auth/mfa` first. Only turn the
+variable on once the Google provider is enabled in Supabase.

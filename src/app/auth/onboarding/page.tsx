@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import OnboardingFlow from '@/features/auth/components/onboarding-flow';
+import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { safeNext } from '@/lib/auth/redirect';
 import { getDashboardSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
@@ -17,8 +18,16 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
   const session = await getDashboardSession();
   if (!session) redirect(`/auth/sign-in?next=${encodeURIComponent('/auth/onboarding')}`);
 
-  const hasAccess = session.isPlatformAdmin || session.organizations.length > 0;
   const db = await createClient();
+  // Authenticator app already set up: the 6-digit code comes before anything else.
+  const {
+    data: { user }
+  } = await db.auth.getUser();
+  if (await needsMfaChallenge(db, user)) {
+    redirect(mfaChallengeUrl(`/auth/onboarding?next=${encodeURIComponent(destination)}`));
+  }
+
+  const hasAccess = session.isPlatformAdmin || session.organizations.length > 0;
   const { data: request } = await db
     .from('access_requests')
     .select('status, business_name, website, phone, message')
@@ -48,6 +57,7 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
         user={session.user}
         destination={destination}
         hasAccess={hasAccess}
+        mfaEnabled={session.mfa.enabled}
         request={
           request
             ? {

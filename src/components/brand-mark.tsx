@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils';
 
-// LevelUp technical-app mark (star in the viewfinder frame), shared with LevelStudio.
+// LevelUp star, same as the LevelUp Ecosystem favicon.
 // Served by Next.js from src/app/icon.svg.
 export function BrandMark({ className }: { className?: string }) {
   return (

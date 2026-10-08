@@ -1,64 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <title>LevelUp Ecosystem</title>
   <defs>
-    <linearGradient id="ls-facet-top-l" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-top-l" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#C8B3FE"/>
       <stop offset="100%" stop-color="#AC7AFE"/>
     </linearGradient>
-    <linearGradient id="ls-facet-top-r" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-top-r" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#843FF4"/>
       <stop offset="100%" stop-color="#6F23E7"/>
     </linearGradient>
-    <linearGradient id="ls-facet-right-u" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-right-u" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#7327EB"/>
       <stop offset="100%" stop-color="#5C16D6"/>
     </linearGradient>
-    <linearGradient id="ls-facet-right-d" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-right-d" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#5111CA"/>
       <stop offset="100%" stop-color="#3A08A3"/>
     </linearGradient>
-    <linearGradient id="ls-facet-botr-u" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-botr-u" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#430BA8"/>
       <stop offset="100%" stop-color="#300586"/>
     </linearGradient>
-    <linearGradient id="ls-facet-botr-d" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-botr-d" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#5211C8"/>
       <stop offset="100%" stop-color="#3D09A5"/>
     </linearGradient>
-    <linearGradient id="ls-facet-botl-d" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-botl-d" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#691CDD"/>
       <stop offset="100%" stop-color="#4F0DBB"/>
     </linearGradient>
-    <linearGradient id="ls-facet-botl-u" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-botl-u" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#7C2CF0"/>
       <stop offset="100%" stop-color="#6117D2"/>
     </linearGradient>
-    <linearGradient id="ls-facet-left-d" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-left-d" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#9754FD"/>
       <stop offset="100%" stop-color="#7A2EF1"/>
     </linearGradient>
-    <linearGradient id="ls-facet-left-u" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="lu-star-left-u" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#B583FF"/>
       <stop offset="100%" stop-color="#9C64FD"/>
     </linearGradient>
   </defs>
+  <g transform="translate(256, 262) scale(1.0) translate(-256, -254)">
+    <polygon points="256,278 256,38 202,192" fill="url(#lu-star-top-l)"/>
 
-  <!-- Viewfinder Frame Brackets (LevelStudio signature) -->
-  <path d="M 64 144 L 64 64 L 144 64" fill="none" stroke="#7C3AED" stroke-width="20" stroke-linecap="square"/>
-  <path d="M 368 64 L 448 64 L 448 144" fill="none" stroke="#7C3AED" stroke-width="20" stroke-linecap="square"/>
-  <path d="M 64 368 L 64 448 L 144 448" fill="none" stroke="#7C3AED" stroke-width="20" stroke-linecap="square"/>
-  <path d="M 368 448 L 448 448 L 448 368" fill="none" stroke="#7C3AED" stroke-width="20" stroke-linecap="square"/>
+    <polygon points="256,278 256,38 310,192" fill="url(#lu-star-top-r)"/>
 
-  <!-- Centered 10-Faceted 3D Star -->
-  <g transform="translate(256, 256) scale(0.44) translate(-256, -256)">
-    <polygon points="256,278 256,38 202,192" fill="url(#ls-facet-top-l)"/>
-    <polygon points="256,278 256,38 310,192" fill="url(#ls-facet-top-r)"/>
-    <polygon points="256,278 310,192 484,204" fill="url(#ls-facet-right-u)"/>
-    <polygon points="256,278 484,204 344,280" fill="url(#ls-facet-right-d)"/>
-    <polygon points="256,278 344,280 397,470" fill="url(#ls-facet-botr-u)"/>
-    <polygon points="256,278 397,470 256,362" fill="url(#ls-facet-botr-d)"/>
-    <polygon points="256,278 256,362 115,470" fill="url(#ls-facet-botl-d)"/>
-    <polygon points="256,278 115,470 168,280" fill="url(#ls-facet-botl-u)"/>
-    <polygon points="256,278 168,280 28,204" fill="url(#ls-facet-left-d)"/>
-    <polygon points="256,278 28,204 202,192" fill="url(#ls-facet-left-u)"/>
+    <polygon points="256,278 310,192 484,204" fill="url(#lu-star-right-u)"/>
+
+    <polygon points="256,278 484,204 344,280" fill="url(#lu-star-right-d)"/>
+
+    <polygon points="256,278 344,280 397,470" fill="url(#lu-star-botr-u)"/>
+
+    <polygon points="256,278 397,470 256,362" fill="url(#lu-star-botr-d)"/>
+
+    <polygon points="256,278 256,362 115,470" fill="url(#lu-star-botl-d)"/>
+
+    <polygon points="256,278 115,470 168,280" fill="url(#lu-star-botl-u)"/>
+
+    <polygon points="256,278 168,280 28,204" fill="url(#lu-star-left-d)"/>
+
+    <polygon points="256,278 28,204 202,192" fill="url(#lu-star-left-u)"/>
   </g>
 </svg>

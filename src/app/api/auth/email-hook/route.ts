@@ -59,6 +59,16 @@ function destination(redirectTo: string | undefined): string {
   return safeNext(redirectTo);
 }
 
+/**
+ * Sign-up links always land on the "e-mail verified" page, which tells people to
+ * return to the device where they started (that tab moves on by itself) or to
+ * continue on this one (`next`).
+ */
+function verifiedPage(next: string): string {
+  if (next.startsWith('/auth/verified')) return next;
+  return `/auth/verified?next=${encodeURIComponent(next)}`;
+}
+
 // verifyOtp types: sign-up and magic-link tokens are both verified as 'email'.
 const VERIFY_TYPE: Record<string, string> = {
   signup: 'email',
@@ -119,7 +129,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({});
   }
 
-  const next = type === 'recovery' ? '/auth/reset-password' : destination(data.redirect_to);
+  const next =
+    type === 'recovery'
+      ? '/auth/reset-password'
+      : type === 'signup'
+        ? verifiedPage(destination(data.redirect_to))
+        : destination(data.redirect_to);
   try {
     if (type === 'email_change') {
       // Field names are reversed upstream: token_hash_new goes to the current

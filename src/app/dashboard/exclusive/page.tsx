@@ -7,6 +7,12 @@ import {
 import { AccessRequests } from '@/features/organizations/components/access-requests';
 import { AdminWebsites } from '@/features/organizations/components/admin-websites';
 import { NewClientForm } from '@/features/organizations/components/new-client-form';
+import {
+  aiInsightsQueryOptions,
+  projectRequestsQueryOptions
+} from '@/features/platform-admin/api/queries';
+import { AiInsights } from '@/features/platform-admin/components/ai-insights';
+import { ProjectRequests } from '@/features/platform-admin/components/project-requests';
 import { requireDashboardSession } from '@/lib/auth/session';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
@@ -26,6 +32,8 @@ export default async function AdminPage() {
   const db = await createClient();
   void queryClient.prefetchQuery(allWebsitesQueryOptions(db));
   void queryClient.prefetchQuery(accessRequestsQueryOptions(db));
+  void queryClient.prefetchQuery(projectRequestsQueryOptions(db));
+  void queryClient.prefetchQuery(aiInsightsQueryOptions(db));
 
   return (
     <PageContainer pageTitle='Tous les clients' pageDescription='Sites gérés par LevelUp'>
@@ -34,9 +42,15 @@ export default async function AdminPage() {
           <Suspense fallback={<Skeleton className='h-32 w-full' />}>
             <AccessRequests />
           </Suspense>
+          <Suspense fallback={<Skeleton className='h-64 w-full' />}>
+            <ProjectRequests />
+          </Suspense>
           <NewClientForm />
           <Suspense fallback={<Skeleton className='h-64 w-full' />}>
             <AdminWebsites />
+          </Suspense>
+          <Suspense fallback={<Skeleton className='h-96 w-full' />}>
+            <AiInsights />
           </Suspense>
         </div>
       </HydrationBoundary>

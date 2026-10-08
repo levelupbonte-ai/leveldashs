@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { TurnstileWidget, useCaptcha } from './turnstile';
+import { type Captcha, TurnstileWidget, useCaptcha } from './turnstile';
 
 const COOLDOWN_SECONDS = 60;
 
@@ -18,7 +18,9 @@ export function EmailSent({
   onResend,
   backHref = '/auth/sign-in',
   backLabel = 'Retour à la connexion',
-  onChangeEmail
+  onChangeEmail,
+  captcha: sharedCaptcha,
+  children
 }: {
   email: string;
   title: string;
@@ -27,8 +29,13 @@ export function EmailSent({
   backHref?: string;
   backLabel?: string;
   onChangeEmail?: () => void;
+  /** Captcha owned by the parent when it also needs tokens (e.g. auto sign-in). */
+  captcha?: Captcha;
+  /** Extra content under the description (e.g. automatic verification status). */
+  children?: React.ReactNode;
 }) {
-  const captcha = useCaptcha();
+  const ownCaptcha = useCaptcha();
+  const captcha = sharedCaptcha ?? ownCaptcha;
   const [wait, setWait] = useState(COOLDOWN_SECONDS);
   const [sending, setSending] = useState(false);
   const [resent, setResent] = useState(false);
@@ -63,6 +70,7 @@ export function EmailSent({
           {description} <span className='text-foreground font-medium break-all'>{email}</span>
         </p>
       </div>
+      {children}
       <ul className='text-muted-foreground space-y-1.5 rounded-lg border p-3 text-xs'>
         <li>Le lien est valable une heure et ne fonctionne qu’une fois.</li>
         <li>Rien reçu ? Regardez dans les courriers indésirables ou les promotions.</li>

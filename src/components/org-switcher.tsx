@@ -57,8 +57,8 @@ export function OrgSwitcher() {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton size='lg' onClick={() => router.push('/dashboard/workspaces')}>
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg'>
-              <Icons.add className='size-4' />
+            <div className='flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg border border-violet-500/20 bg-violet-500/10'>
+              <Icons.logo className='size-5' />
             </div>
             <div
               className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ${collapsedClass}`}
@@ -91,14 +91,14 @@ export function OrgSwitcher() {
               />
             }
           >
-            <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg'>
+            <div className='flex aspect-square size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-violet-500/20 bg-violet-500/10'>
               {pending ? (
                 <Icons.spinner className='size-4 animate-spin' />
               ) : activeOrg.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={activeOrg.logoUrl} alt='' className='size-full bg-white object-contain' />
               ) : (
-                <Icons.galleryVerticalEnd className='size-4' />
+                <Icons.logo className='size-5' />
               )}
             </div>
             <div
@@ -157,7 +157,7 @@ export function OrgSwitcher() {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={org.logoUrl} alt='' className='size-full bg-white object-contain' />
                     ) : (
-                      <Icons.galleryVerticalEnd className='size-3.5 shrink-0' />
+                      <Icons.logo className='size-4 shrink-0' />
                     )}
                   </div>
                   <span className='truncate'>{org.name}</span>

@@ -98,7 +98,7 @@ export function buildAuthEmail(type: string, opts: { link?: string; code?: strin
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;padding:32px">
 <tr><td>
-<p style="font-weight:800;font-size:18px;margin:0 0 24px">LevelUp<span style="color:#71717a;font-weight:600"> Ecosystem</span></p>
+<p style="font-weight:800;font-size:18px;margin:0 0 24px"><img src="https://dashboard.levelup-ecosystem.com/apple-icon.png" width="32" height="32" alt="" style="vertical-align:middle;margin-right:8px;border-radius:8px">LevelUp<span style="color:#71717a;font-weight:600"> Ecosystem</span></p>
 <h1 style="font-size:22px;margin:0 0 12px">${c.title}</h1>
 <p style="font-size:15px;line-height:1.6;margin:0">${c.intro}</p>
 ${button}${code}
