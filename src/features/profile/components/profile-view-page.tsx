@@ -6,6 +6,7 @@ import { FieldGroup } from '@/components/ui/field';
 import { Icons } from '@/components/icons';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { useDashboardSession } from '@/lib/auth/session-context';
+import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 import * as z from 'zod';
 import { BrandImageInput } from '@/components/brand-image-input';
 import { hasRole } from '@/lib/auth/types';
+import { PasskeysCard } from './passkeys-card';
 import { SecuritySection } from './security-section';
 
 const nameSchema = z.object({
@@ -29,7 +31,14 @@ const passwordSchema = z
     path: ['confirm']
   });
 
-export default function ProfileViewPage({ passwordReset }: { passwordReset?: boolean }) {
+export default function ProfileViewPage({
+  passwordReset,
+  passkeyEnabled = false
+}: {
+  passwordReset?: boolean;
+  /** Passkeys turned on in Supabase Auth (live settings). */
+  passkeyEnabled?: boolean;
+}) {
   const { user, activeOrg, isPlatformAdmin } = useDashboardSession();
   const router = useRouter();
   const canBrandOrg = !!activeOrg && (isPlatformAdmin || hasRole(activeOrg.role, 'admin'));
@@ -78,7 +87,10 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
 
   const passwordForm = useAppForm({
     defaultValues: { password: '', confirm: '' },
-    validators: { onSubmit: passwordSchema },
+    validators: {
+      onSubmit: passwordSchema,
+      onSubmitAsync: commonPasswordValidator
+    },
     onSubmit: async ({ value, formApi }) => {
       const { error } = await createClient().auth.updateUser({
         password: value.password
@@ -205,8 +217,9 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
           </form>
         </CardContent>
       </Card>
-      <div id='securite' className='scroll-mt-20 lg:col-span-2'>
+      <div id='securite' className='grid scroll-mt-20 gap-6 lg:col-span-2'>
         <SecuritySection />
+        {passkeyEnabled && <PasskeysCard />}
       </div>
     </div>
   );

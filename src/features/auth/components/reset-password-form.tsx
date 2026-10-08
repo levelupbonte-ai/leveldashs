@@ -1,5 +1,6 @@
 'use client';
 import { FieldGroup } from '@/components/ui/field';
+import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -31,7 +32,7 @@ export default function ResetPasswordForm() {
 
   const form = useAppForm({
     defaultValues: { password: '', confirm: '' },
-    validators: { onSubmit: schema },
+    validators: { onSubmit: schema, onSubmitAsync: commonPasswordValidator },
     onSubmit: async ({ value }) => {
       setNotice(null);
       const { error } = await createClient().auth.updateUser({

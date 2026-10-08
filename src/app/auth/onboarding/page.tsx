@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import OnboardingFlow from '@/features/auth/components/onboarding-flow';
+import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { safeNext } from '@/lib/auth/redirect';
 import { getDashboardSession } from '@/lib/auth/session';
@@ -34,6 +35,7 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
     .eq('user_id', session.user.id)
     .maybeSingle();
 
+  const { passkey } = await getAuthMethods();
   const pending = !hasAccess && request?.status === 'pending';
   const rejected = !hasAccess && request?.status === 'rejected';
   return (
@@ -58,6 +60,7 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
         destination={destination}
         hasAccess={hasAccess}
         mfaEnabled={session.mfa.enabled}
+        passkeyEnabled={passkey}
         request={
           request
             ? {

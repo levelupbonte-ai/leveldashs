@@ -3,7 +3,10 @@ import { Icons } from '@/components/icons';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingButton } from '@/components/ui/loading-button';
+import type { AuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
+import { passkeyErrorKind, usePasskeySupport } from '@/lib/auth/passkey';
+import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
@@ -30,10 +33,11 @@ const signUpSchema = signInSchema.extend({
     .max(72, { message: '72 caractères maximum' })
 });
 
-// Google sign-in shows only once the provider is enabled in Supabase Auth.
-const GOOGLE_AUTH_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH === 'on';
-
 const CAPTCHA_NOTICE = 'Confirmez que vous n’êtes pas un robot (vérification ci-dessus).';
+const EMAIL_NOT_CONFIRMED_NOTICE =
+  'Confirmez votre adresse e-mail (lien reçu par e-mail) puis reconnectez-vous.';
+const PASSKEY_NOT_FOUND_NOTICE =
+  'Aucune passkey trouvée pour ce compte. Connectez-vous avec votre mot de passe puis ajoutez une passkey dans Profil → Sécurité.';
 
 function callbackUrl(next: string) {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -42,11 +46,14 @@ function callbackUrl(next: string) {
 export default function UserAuthForm({
   mode,
   next,
-  initialError
+  initialError,
+  methods = { google: false, passkey: false }
 }: {
   mode: 'sign-in' | 'sign-up';
   next?: string;
   initialError?: string;
+  /** Sign-in methods enabled in Supabase (read server-side from /auth/v1/settings). */
+  methods?: AuthMethods;
 }) {
   const router = useRouter();
   const destination = safeNext(next);
@@ -62,6 +69,11 @@ export default function UserAuthForm({
   }
   const captcha = useCaptcha();
   const [pending, setPending] = useState(false);
+  const passkeySupported = usePasskeySupport();
+  // Turned off when Supabase answers `passkey_disabled` (settings changed since the page loaded).
+  const [passkeyDisabled, setPasskeyDisabled] = useState(false);
+  const showPasskey = mode === 'sign-in' && methods.passkey && passkeySupported && !passkeyDisabled;
+  const showGoogle = methods.google;
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
   );
@@ -79,7 +91,11 @@ export default function UserAuthForm({
 
   const form = useAppForm({
     defaultValues: { fullName: '', email: '', password: '' },
-    validators: { onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema },
+    validators: {
+      onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema,
+      // New passwords only: refuse very common ones (runs once the schema passes).
+      onSubmitAsync: mode === 'sign-up' ? commonPasswordValidator : undefined
+    },
     onSubmit: async ({ value }) => {
       if (!captcha.ready) {
         setNotice(CAPTCHA_NOTICE);
@@ -98,17 +114,12 @@ export default function UserAuthForm({
           if (error) {
             setNotice(
               error.code === 'email_not_confirmed'
-                ? 'Confirmez votre adresse e-mail (lien reçu par e-mail) puis reconnectez-vous.'
+                ? EMAIL_NOT_CONFIRMED_NOTICE
                 : 'E-mail ou mot de passe incorrect.'
             );
             return;
           }
-          // A verified authenticator app: the second factor comes next.
-          if (await needsMfaChallenge(supabase)) {
-            router.replace(mfaChallengeUrl(destination));
-            return;
-          }
-          goTo(destination);
+          await afterSignIn(supabase);
         } else {
           const { data, error } = await supabase.auth.signUp({
             email: value.email,
@@ -139,6 +150,56 @@ export default function UserAuthForm({
       }
     }
   });
+
+  // Same path for every sign-in method: second factor first, then the destination
+  // (the dashboard layout sends accounts without access to onboarding).
+  async function afterSignIn(supabase: ReturnType<typeof createClient>) {
+    // A verified authenticator app: the second factor comes next.
+    if (await needsMfaChallenge(supabase)) {
+      router.replace(mfaChallengeUrl(destination));
+      return;
+    }
+    goTo(destination);
+  }
+
+  async function signInWithPasskey() {
+    if (!captcha.ready) {
+      setNotice(CAPTCHA_NOTICE);
+      return;
+    }
+    setPending(true);
+    setNotice(null);
+    const supabase = createClient();
+    try {
+      const { error } = await supabase.auth.signInWithPasskey({
+        options: { captchaToken: captcha.captchaToken }
+      });
+      if (error) {
+        switch (passkeyErrorKind(error)) {
+          case 'cancelled':
+            return;
+          case 'disabled':
+            setPasskeyDisabled(true);
+            return;
+          case 'not_found':
+            setNotice(PASSKEY_NOT_FOUND_NOTICE);
+            return;
+          case 'email_not_confirmed':
+            setNotice(EMAIL_NOT_CONFIRMED_NOTICE);
+            return;
+          default:
+            setNotice(
+              'Connexion par passkey impossible. Réessayez ou utilisez votre mot de passe.'
+            );
+            return;
+        }
+      }
+      await afterSignIn(supabase);
+    } finally {
+      captcha.reset();
+      setPending(false);
+    }
+  }
 
   async function signInWithGoogle() {
     setPending(true);
@@ -176,19 +237,35 @@ export default function UserAuthForm({
   return (
     <div className='space-y-4'>
       {mode === 'sign-up' && <AuthSteps current={0} />}
-      {GOOGLE_AUTH_ENABLED && (
+      {(showGoogle || showPasskey) && (
         <>
-          {/* Google Sign-In branding: white button, official multicolor G, grey border. */}
-          <Button
-            className='h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]'
-            variant='outline'
-            type='button'
-            disabled={pending}
-            onClick={signInWithGoogle}
-          >
-            <Icons.googleColor size={20} />
-            Continuer avec Google
-          </Button>
+          <div className='grid gap-2'>
+            {showGoogle && (
+              /* Google Sign-In branding: white button, official multicolor G, grey border. */
+              <Button
+                className='h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]'
+                variant='outline'
+                type='button'
+                disabled={pending}
+                onClick={signInWithGoogle}
+              >
+                <Icons.googleColor size={20} />
+                Continuer avec Google
+              </Button>
+            )}
+            {showPasskey && (
+              <Button
+                className='h-11 w-full gap-3 text-[15px] font-medium'
+                variant='outline'
+                type='button'
+                disabled={pending}
+                onClick={signInWithPasskey}
+              >
+                <Icons.passkey className='size-5' aria-hidden />
+                Se connecter avec une passkey
+              </Button>
+            )}
+          </div>
           <div className='relative'>
             <div className='absolute inset-0 flex items-center'>
               <span className='w-full border-t' />
@@ -221,7 +298,7 @@ export default function UserAuthForm({
               <field.TextField
                 label='E-mail'
                 type='email'
-                autoComplete='email'
+                autoComplete={showPasskey ? 'username webauthn' : 'email'}
                 placeholder='vous@exemple.com'
                 disabled={pending}
               />
@@ -258,12 +335,6 @@ export default function UserAuthForm({
           >
             Mot de passe oublié ?
           </Link>
-        )}
-        {mode === 'sign-in' && (
-          <p className='text-muted-foreground text-center text-xs text-balance'>
-            <Icons.shieldCheck className='mr-1 inline size-3.5 align-[-2px]' aria-hidden />
-            Protégé par la double authentification (application d’authentification)
-          </p>
         )}
       </form>
     </div>

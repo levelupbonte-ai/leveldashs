@@ -63,14 +63,39 @@ function MfaSuggestion({ canOpenDashboard }: { canOpenDashboard: boolean }) {
   );
 }
 
+/** One line pointing to Profil → Sécurité once passkeys are enabled in Supabase. */
+function PasskeySuggestion({ canOpenDashboard }: { canOpenDashboard: boolean }) {
+  return (
+    <p className='text-muted-foreground flex items-start gap-2 text-left text-xs'>
+      <Icons.passkey className='mt-0.5 size-4 shrink-0' aria-hidden />
+      <span>
+        Connectez-vous plus vite avec une passkey (Face ID, Touch ID, Windows Hello) :{' '}
+        {canOpenDashboard ? (
+          <Link
+            href='/dashboard/profile#securite'
+            className='text-primary font-medium underline underline-offset-4'
+          >
+            Profil → Sécurité
+          </Link>
+        ) : (
+          'Profil → Sécurité, dès que votre accès est validé'
+        )}
+        .
+      </span>
+    </p>
+  );
+}
+
 function PendingScreen({
   businessName,
   onEdit,
-  mfaEnabled
+  mfaEnabled,
+  passkeyEnabled
 }: {
   businessName: string;
   onEdit: () => void;
   mfaEnabled: boolean;
+  passkeyEnabled: boolean;
 }) {
   return (
     <div className='space-y-5' role='status'>
@@ -99,6 +124,7 @@ function PendingScreen({
         </Button>
       </div>
       {!mfaEnabled && <MfaSuggestion canOpenDashboard={false} />}
+      {passkeyEnabled && <PasskeySuggestion canOpenDashboard={false} />}
     </div>
   );
 }
@@ -108,12 +134,15 @@ export default function OnboardingFlow({
   destination,
   hasAccess,
   mfaEnabled,
+  passkeyEnabled = false,
   request
 }: {
   user: DashboardUser;
   destination: string;
   hasAccess: boolean;
   mfaEnabled: boolean;
+  /** Passkeys turned on in Supabase Auth (live settings). */
+  passkeyEnabled?: boolean;
   request: Request | null;
 }) {
   const router = useRouter();
@@ -142,7 +171,9 @@ export default function OnboardingFlow({
   }
 
   const profileForm = useAppForm({
-    defaultValues: { fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName },
+    defaultValues: {
+      fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName
+    },
     validators: { onSubmit: profileSchema },
     onSubmit: async ({ value }) => {
       const db = createClient();
@@ -173,7 +204,10 @@ export default function OnboardingFlow({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(value)
       });
-      const body = (await res.json().catch(() => ({}))) as { status?: string; error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        status?: string;
+        error?: string;
+      };
       if (!res.ok) {
         toast.error(
           body.error === 'unverified'
@@ -201,7 +235,10 @@ export default function OnboardingFlow({
         </p>
         <a
           href='https://studio.levelup-ecosystem.com'
-          className={buttonVariants({ variant: 'outline', className: 'w-full' })}
+          className={buttonVariants({
+            variant: 'outline',
+            className: 'w-full'
+          })}
         >
           Continuer vers LevelStudio
         </a>
@@ -215,6 +252,7 @@ export default function OnboardingFlow({
         businessName={business}
         onEdit={() => setStep('access')}
         mfaEnabled={mfaEnabled}
+        passkeyEnabled={passkeyEnabled}
       />
     );
 
@@ -293,6 +331,7 @@ export default function OnboardingFlow({
         </profileForm.SubmitButton>
       </profileForm.AppForm>
       {!mfaEnabled && !forOtherApp && <MfaSuggestion canOpenDashboard={hasAccess} />}
+      {passkeyEnabled && !forOtherApp && <PasskeySuggestion canOpenDashboard={hasAccess} />}
       <p className='text-muted-foreground text-center text-xs'>
         Connecté en tant que {user.email}.{' '}
         <button

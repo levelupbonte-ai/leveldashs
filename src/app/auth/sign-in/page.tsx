@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { safeNext } from '@/lib/auth/redirect';
 import { createClient } from '@/lib/supabase/server';
@@ -24,5 +25,6 @@ export default async function Page(props: {
     if (await needsMfaChallenge(supabase, user)) redirect(mfaChallengeUrl(safeNext(next)));
     redirect(safeNext(next));
   }
-  return <SignInViewPage next={next} error={error} />;
+  const methods = await getAuthMethods();
+  return <SignInViewPage next={next} error={error} methods={methods} />;
 }

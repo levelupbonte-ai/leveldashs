@@ -22,3 +22,10 @@ export interface TotpEnrollment {
   /** Base32 secret for manual entry. */
   secret: string;
 }
+
+export interface Passkey {
+  id: string;
+  friendlyName: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+}
