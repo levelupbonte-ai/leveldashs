@@ -3,7 +3,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingButton } from '@/components/ui/loading-button';
-import { safeNext } from '@/lib/auth/redirect';
+import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
@@ -25,6 +25,9 @@ const signUpSchema = signInSchema.extend({
     .max(72, { message: '72 caractères maximum' })
 });
 
+// Google sign-in shows only once the provider is enabled in Supabase Auth.
+const GOOGLE_AUTH_ENABLED = process.env.NEXT_PUBLIC_GOOGLE_AUTH === 'on';
+
 function callbackUrl(next: string) {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 }
@@ -40,6 +43,16 @@ export default function UserAuthForm({
 }) {
   const router = useRouter();
   const destination = safeNext(next);
+
+  // Another LevelUp app (LevelStudio, main site) gets a full page load.
+  function goTo(target: string) {
+    if (isExternalNext(target)) {
+      window.location.assign(target);
+      return;
+    }
+    router.replace(target);
+    router.refresh();
+  }
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
@@ -66,8 +79,7 @@ export default function UserAuthForm({
             );
             return;
           }
-          router.replace(destination);
-          router.refresh();
+          goTo(destination);
         } else {
           const { data, error } = await supabase.auth.signUp({
             email: value.email,
@@ -86,8 +98,7 @@ export default function UserAuthForm({
             return;
           }
           if (data.session) {
-            router.replace(destination);
-            router.refresh();
+            goTo(destination);
           } else {
             setNotice('Presque fini : cliquez sur le lien envoyé à votre adresse e-mail.');
           }
@@ -127,24 +138,28 @@ export default function UserAuthForm({
 
   return (
     <div className='space-y-4'>
-      <Button
-        className='w-full'
-        variant='outline'
-        type='button'
-        disabled={pending}
-        onClick={signInWithGoogle}
-      >
-        <Icons.google className='mr-2 h-4 w-4' />
-        Continuer avec Google
-      </Button>
-      <div className='relative'>
-        <div className='absolute inset-0 flex items-center'>
-          <span className='w-full border-t' />
-        </div>
-        <div className='relative flex justify-center text-xs uppercase'>
-          <span className='bg-background text-muted-foreground px-2'>ou par e-mail</span>
-        </div>
-      </div>
+      {GOOGLE_AUTH_ENABLED && (
+        <>
+          <Button
+            className='w-full'
+            variant='outline'
+            type='button'
+            disabled={pending}
+            onClick={signInWithGoogle}
+          >
+            <Icons.google className='mr-2 h-4 w-4' />
+            Continuer avec Google
+          </Button>
+          <div className='relative'>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t' />
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-background text-muted-foreground px-2'>ou par e-mail</span>
+            </div>
+          </div>
+        </>
+      )}
       <form
         className='w-full space-y-2'
         onSubmit={(e) => {

@@ -1,7 +1,8 @@
 import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
+import { authCookieOptions } from './cookie-domain';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, assertSupabaseEnv } from './env';
 
 // Server client bound to the request cookies: acts as the signed-in user,
@@ -9,7 +10,9 @@ import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, assertSupabaseEnv } from './env
 export async function createClient(): Promise<SupabaseClient> {
   assertSupabaseEnv();
   const cookieStore = await cookies();
+  const host = (await headers()).get('host');
   return createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    cookieOptions: authCookieOptions(host),
     cookies: {
       getAll() {
         return cookieStore.getAll();
