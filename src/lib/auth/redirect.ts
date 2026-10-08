@@ -1,25 +1,39 @@
-import { SHARED_AUTH_DOMAIN } from '@/lib/supabase/cookie-domain';
+/** LevelUp apps a sign-in may return to (exact hosts, never a wildcard). */
+const ALLOWED_HOSTS = new Set([
+  'levelup-ecosystem.com',
+  'www.levelup-ecosystem.com',
+  'dashboard.levelup-ecosystem.com',
+  'studio.levelup-ecosystem.com'
+]);
+
+const PROBE_ORIGIN = 'https://next.invalid';
 
 /**
- * Post-login destination: a same-origin relative path, or an https URL on a
- * LevelUp app (levelup-ecosystem.com and its subdomains), so the dashboard
- * sign-in can serve as the single login page of every LevelUp app.
- * Anything else falls back, which blocks open redirects.
+ * Post-login destination: a same-origin path, or an https URL on one of the
+ * LevelUp apps above, so the dashboard sign-in can serve every LevelUp app.
+ * Paths are parsed the way browsers do (tabs/newlines stripped, backslashes
+ * read as slashes) and must stay on this origin; anything else falls back.
  */
 export function safeNext(next: string | null | undefined, fallback = '/dashboard/site'): string {
-  if (!next) return fallback;
+  if (!next || next.length > 2048) return fallback;
   if (next.startsWith('/')) {
-    return next.startsWith('//') || next.startsWith('/\\') ? fallback : next;
+    try {
+      const url = new URL(next, PROBE_ORIGIN);
+      if (url.origin !== PROBE_ORIGIN) return fallback;
+      return url.pathname + url.search + url.hash;
+    } catch {
+      return fallback;
+    }
   }
   try {
     const url = new URL(next);
-    const host = url.hostname.toLowerCase();
-    const allowed =
+    const ok =
       url.protocol === 'https:' &&
       !url.username &&
       !url.password &&
-      (host === SHARED_AUTH_DOMAIN || host.endsWith(`.${SHARED_AUTH_DOMAIN}`));
-    return allowed ? url.toString() : fallback;
+      !url.port &&
+      ALLOWED_HOSTS.has(url.hostname.toLowerCase());
+    return ok ? url.toString() : fallback;
   } catch {
     return fallback;
   }

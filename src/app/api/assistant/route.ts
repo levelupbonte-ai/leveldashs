@@ -12,7 +12,28 @@ const Body = z.object({
     .max(20)
 });
 
+const ALLOWED_ORIGINS = new Set([
+  'https://dashboard.levelup-ecosystem.com',
+  ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000'])
+]);
+
 export async function POST(request: NextRequest) {
+  // Cookies are shared with the other LevelUp subdomains, so only accept JSON
+  // sent by the dashboard itself (or its own Vercel preview host).
+  const origin = request.headers.get('origin');
+  let sameHost = false;
+  try {
+    sameHost = !!origin && new URL(origin).host === request.headers.get('host');
+  } catch {
+    sameHost = false;
+  }
+  if (
+    !request.headers.get('content-type')?.startsWith('application/json') ||
+    !origin ||
+    !(sameHost || ALLOWED_ORIGINS.has(origin))
+  ) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  }
   const session = await getDashboardSession();
   if (!session) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 });
   const { activeOrg, activeWebsite, isPlatformAdmin } = session;
