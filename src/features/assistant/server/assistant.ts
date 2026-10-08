@@ -5,6 +5,8 @@ import { geminiRotator } from '@/lib/ai/gemini';
 import {
   aiRoute,
   chatCompletion,
+  generateWithTarget,
+  logAiCall,
   type AiTarget,
   type ChatMessage,
   type ChatTool
@@ -423,6 +425,66 @@ async function runWithOpenAICompatible(
   return '';
 }
 
+const POLISH_SYSTEM = `Tu es rédacteur web pour des petites entreprises. Tu améliores un texte destiné au site d’un client : même sens, mêmes faits (prix, horaires, noms), ton professionnel et chaleureux, phrases claires, aucun cliché marketing, aucun emoji, aucun point d’exclamation. Garde la langue du texte d’origine. Réponds uniquement par le texte final, sans guillemets ni commentaire.`;
+
+/** Client-facing copy goes through the best writer (DeepSeek first) before it is shown. */
+async function polishText(
+  input: AssistantInput,
+  kind: string,
+  text: string | undefined,
+  maxChars: number
+): Promise<string | undefined> {
+  if (!text || text.length < 12) return text;
+  try {
+    const { text: out, target } = await generateWithTarget('writing', {
+      system: POLISH_SYSTEM,
+      prompt: `Site : ${input.siteName}\nType : ${kind} (${maxChars} caractères maximum)\n\nTexte :\n${text}`,
+      maxTokens: Math.ceil(maxChars / 2),
+      temperature: 0.4
+    });
+    void logAiCall(input.db, 'writing', target);
+    const clean = out.replace(/^["«\s]+|["»\s]+$/g, '').trim();
+    return clean && clean.length <= maxChars * 1.15 ? clean : text;
+  } catch {
+    return text;
+  }
+}
+
+async function polishProposals(
+  input: AssistantInput,
+  proposals: AssistantProposal[]
+): Promise<AssistantProposal[]> {
+  return Promise.all(
+    proposals.map(async (p): Promise<AssistantProposal> => {
+      if (p.kind === 'service') {
+        return {
+          ...p,
+          changes: {
+            ...p.changes,
+            description: await polishText(
+              input,
+              'description de service',
+              p.changes.description,
+              600
+            )
+          }
+        };
+      }
+      if (p.kind === 'faq') {
+        return {
+          ...p,
+          answer: (await polishText(input, 'réponse de FAQ', p.answer, 800)) ?? p.answer
+        };
+      }
+      const [title, description] = await Promise.all([
+        polishText(input, 'titre Google', p.title, 60),
+        polishText(input, 'description Google', p.description, 155)
+      ]);
+      return { ...p, title, description };
+    })
+  );
+}
+
 /**
  * Walks the "agents" AI route (free providers first, Gemini after): if one
  * provider is rate-limited or down mid-conversation, the next one restarts the
@@ -445,9 +507,10 @@ export async function runAssistant(
         target.provider === 'gemini'
           ? await runWithGemini(target.model, input, ctx, tools)
           : await runWithOpenAICompatible(target, input, ctx, tools);
+      void logAiCall(input.db, 'agents', target);
       return {
         reply: reply || 'Je n’ai pas de réponse pour le moment.',
-        proposals: ctx.proposals
+        proposals: await polishProposals(input, ctx.proposals)
       };
     } catch (err) {
       lastError = err;

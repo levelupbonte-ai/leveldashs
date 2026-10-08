@@ -11,6 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { SecuritySection } from './security-section';
 
 const nameSchema = z.object({
   fullName: z.string().trim().min(2, { message: 'Votre nom' }).max(120)
@@ -51,7 +52,9 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
     defaultValues: { password: '', confirm: '' },
     validators: { onSubmit: passwordSchema },
     onSubmit: async ({ value, formApi }) => {
-      const { error } = await createClient().auth.updateUser({ password: value.password });
+      const { error } = await createClient().auth.updateUser({
+        password: value.password
+      });
       if (error) {
         toast.error(
           error.code === 'same_password'
@@ -147,6 +150,9 @@ export default function ProfileViewPage({ passwordReset }: { passwordReset?: boo
           </form>
         </CardContent>
       </Card>
+      <div id='securite' className='scroll-mt-20 lg:col-span-2'>
+        <SecuritySection />
+      </div>
     </div>
   );
 }

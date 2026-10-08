@@ -1,3 +1,4 @@
+import { AiUsageCard } from '@/features/assistant/components/ai-usage-card';
 import { AssistantChat } from '@/features/assistant/components/assistant-chat';
 import { SitePage } from '@/features/site/components/site-page';
 
@@ -11,6 +12,7 @@ export default function Page() {
       prefetch={() => {}}
     >
       <AssistantChat />
+      <AiUsageCard />
     </SitePage>
   );
 }

@@ -1,5 +1,8 @@
 import {
   IconAdjustmentsHorizontal,
+  IconDevices,
+  IconShieldCheck,
+  IconShieldLock,
   IconAlertCircle,
   IconAlertTriangle,
   IconArrowRight,
@@ -212,6 +215,9 @@ export const Icons = {
   sparkles: IconSparkles,
   badgeCheck: IconRosetteDiscountCheck,
   lock: IconLock,
+  shield: IconShieldLock,
+  shieldCheck: IconShieldCheck,
+  devices: IconDevices,
 
   // Data / Charts
   trendingDown: IconTrendingDown,

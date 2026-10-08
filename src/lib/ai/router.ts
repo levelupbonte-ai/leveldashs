@@ -14,7 +14,7 @@ import { geminiRotator } from './gemini';
  *   AI_ROUTE_AGENTS="groq:openai/gpt-oss-120b,gemini:gemini-3.1-flash-lite"
  */
 
-export type AiTask = 'agents' | 'site' | 'studio_chat' | 'studio_build';
+export type AiTask = 'agents' | 'writing' | 'reports' | 'site' | 'studio_chat' | 'studio_build';
 export type ProviderId = 'groq' | 'cerebras' | 'mistral' | 'openrouter' | 'deepseek' | 'gemini';
 export interface AiTarget {
   provider: ProviderId;
@@ -42,6 +42,11 @@ const OPENAI_COMPATIBLE: Record<
 const DEFAULT_ROUTES: Record<AiTask, string> = {
   agents:
     'cerebras:gpt-oss-120b,groq:openai/gpt-oss-120b,mistral:mistral-small-latest,gemini:gemini-3.1-flash-lite',
+  // Client-facing copy (service descriptions, FAQ, SEO): best writer first.
+  writing:
+    'deepseek:deepseek-chat,mistral:mistral-small-latest,groq:openai/gpt-oss-120b,gemini:gemini-3.1-flash-lite',
+  // Summaries of the client's activity.
+  reports: 'groq:openai/gpt-oss-120b,cerebras:gpt-oss-120b,gemini:gemini-3.1-flash-lite',
   site: 'groq:openai/gpt-oss-20b,mistral:mistral-small-latest,gemini:gemini-3.1-flash-lite',
   studio_chat:
     'groq:openai/gpt-oss-120b,cerebras:gpt-oss-120b,gemini:gemini-3.1-flash-lite,deepseek:deepseek-chat',
@@ -203,6 +208,19 @@ export async function generateText(
     temperature: number;
   }
 ): Promise<string> {
+  return (await generateWithTarget(task, input)).text;
+}
+
+/** Like generateText, also telling which provider answered (for usage tracking). */
+export async function generateWithTarget(
+  task: AiTask,
+  input: {
+    system?: string;
+    prompt: string;
+    maxTokens: number;
+    temperature: number;
+  }
+): Promise<{ text: string; target: AiTarget }> {
   let lastError: unknown = new Error(`No AI provider configured for ${task}`);
   for (const target of aiRoute(task)) {
     try {
@@ -219,7 +237,7 @@ export async function generateText(
           });
           return resp.text ?? '';
         }, 2);
-        if (text.trim()) return text.trim();
+        if (text.trim()) return { text: text.trim(), target };
         continue;
       }
       const result = await chatCompletion(target, {
@@ -230,11 +248,28 @@ export async function generateText(
         maxTokens: input.maxTokens,
         temperature: input.temperature
       });
-      if (result.content) return result.content;
+      if (result.content) return { text: result.content, target };
     } catch (err) {
       // Any failure (quota, outage, bad key, unknown model) moves to the next target.
       lastError = err;
     }
   }
   throw lastError;
+}
+
+/** Records which provider answered (counters only, never content). Never throws. */
+export async function logAiCall(
+  db: { rpc: (fn: string, args: Record<string, unknown>) => PromiseLike<unknown> },
+  task: AiTask,
+  target: AiTarget
+) {
+  try {
+    await db.rpc('log_ai_call', {
+      p_task: task,
+      p_provider: target.provider,
+      p_model: target.model
+    });
+  } catch {
+    // usage tracking must never break a feature
+  }
 }

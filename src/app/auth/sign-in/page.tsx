@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
+import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { safeNext } from '@/lib/auth/redirect';
 import { createClient } from '@/lib/supabase/server';
 import SignInViewPage from '@/features/auth/components/sign-in-view';
@@ -14,9 +15,14 @@ export default async function Page(props: {
 }) {
   const { next, error } = await props.searchParams;
   // Already signed in (single LevelUp session): go straight to the destination.
+  const supabase = await createClient();
   const {
     data: { user }
-  } = await (await createClient()).auth.getUser();
-  if (user) redirect(safeNext(next));
+  } = await supabase.auth.getUser();
+  if (user) {
+    // Second factor still pending: finish it before leaving the sign-in flow.
+    if (await needsMfaChallenge(supabase, user)) redirect(mfaChallengeUrl(safeNext(next)));
+    redirect(safeNext(next));
+  }
   return <SignInViewPage next={next} error={error} />;
 }

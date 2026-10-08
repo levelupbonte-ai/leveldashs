@@ -2,6 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrgRole } from '@/lib/auth/types';
 import type { AdminWebsiteRow, OrgMember } from './types';
 
+// Raised by the database (private.assert_mfa) when the session is not aal2.
+const MFA_REQUIRED_MESSAGE =
+  'Confirmez d’abord votre code de vérification en deux étapes (reconnectez-vous).';
+
 export async function listMembers(
   db: SupabaseClient,
   organizationId: string
@@ -41,7 +45,15 @@ export async function addMember(
     p_email: email,
     p_role: role
   });
-  if (error) throw new Error(error.code === 'PT403' ? 'Droits insuffisants.' : 'Ajout impossible.');
+  if (error) {
+    throw new Error(
+      error.message.includes('aal2')
+        ? MFA_REQUIRED_MESSAGE
+        : error.code === 'PT403'
+          ? 'Droits insuffisants.'
+          : 'Ajout impossible.'
+    );
+  }
   return data as 'added' | 'updated' | 'invited';
 }
 
@@ -81,7 +93,10 @@ export async function removeMember(db: SupabaseClient, organizationId: string, u
 }
 
 export async function createOrganization(db: SupabaseClient, name: string, slug: string) {
-  const { data, error } = await db.rpc('create_organization', { p_name: name, p_slug: slug });
+  const { data, error } = await db.rpc('create_organization', {
+    p_name: name,
+    p_slug: slug
+  });
   if (error) {
     throw new Error(
       error.code === '23505'
@@ -123,7 +138,11 @@ export async function listFeatures(db: SupabaseClient) {
     .eq('is_active', true)
     .order('sort_order');
   if (error) throw new Error('Impossible de charger les fonctions.');
-  return (data ?? []) as { key: string; name: string; description: string | null }[];
+  return (data ?? []) as {
+    key: string;
+    name: string;
+    description: string | null;
+  }[];
 }
 
 export interface NewClientInput {
@@ -151,12 +170,18 @@ export async function createClientSite(db: SupabaseClient, input: NewClientInput
         ? 'Ce domaine est déjà utilisé par un autre site.'
         : error.code === '23514'
           ? 'Domaine ou type de site invalide.'
-          : error.code === 'PT403'
-            ? 'Réservé à l’équipe LevelUp.'
-            : 'Création impossible.'
+          : error.message.includes('aal2')
+            ? MFA_REQUIRED_MESSAGE
+            : error.code === 'PT403'
+              ? 'Réservé à l’équipe LevelUp.'
+              : 'Création impossible.'
     );
   }
-  return data as { organization_id: string; website_id: string; owner: string | null };
+  return data as {
+    organization_id: string;
+    website_id: string;
+    owner: string | null;
+  };
 }
 
 export interface PendingInvitation {

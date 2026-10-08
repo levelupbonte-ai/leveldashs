@@ -8,7 +8,10 @@ export const metadata = {
 export default async function Page(props: { searchParams: Promise<{ reset?: string }> }) {
   const { reset } = await props.searchParams;
   return (
-    <PageContainer pageTitle='Mon profil' pageDescription='Votre nom et votre mot de passe'>
+    <PageContainer
+      pageTitle='Mon profil'
+      pageDescription='Votre nom, votre mot de passe et la sécurité du compte'
+    >
       <ProfileViewPage passwordReset={reset === '1'} />
     </PageContainer>
   );
