@@ -2,6 +2,13 @@ import 'server-only';
 import { Type, type Content, type FunctionDeclaration } from '@google/genai';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { geminiRotator } from '@/lib/ai/gemini';
+import {
+  aiRoute,
+  chatCompletion,
+  type AiTarget,
+  type ChatMessage,
+  type ChatTool
+} from '@/lib/ai/router';
 import { getSeoSettings, getSiteOverview } from '@/features/site/api/service';
 import type { AssistantMessage, AssistantProposal } from '../types';
 
@@ -11,7 +18,6 @@ import type { AssistantMessage, AssistantProposal } from '../types';
 // gets counts, dates, services and public website content only. Changes are only
 // *proposed*; the user applies them with a click (and RLS checks the role again).
 
-const MODEL = 'gemini-3.1-flash-lite';
 const MAX_TOOL_ROUNDS = 4;
 
 const DASHBOARD_GUIDE = `Pages du dashboard LevelUp (menu de gauche) :
@@ -82,7 +88,10 @@ const READ_TOOLS: FunctionDeclaration[] = [
     description: 'Services publiés : slug, nom, prix affiché, durée, description.'
   },
   { name: 'list_faq', description: 'Questions fréquentes publiées.' },
-  { name: 'get_seo', description: 'Réglages SEO actuels (titre, description, mots-clés).' }
+  {
+    name: 'get_seo',
+    description: 'Réglages SEO actuels (titre, description, mots-clés).'
+  }
 ];
 
 const PROPOSE_TOOLS: FunctionDeclaration[] = [
@@ -105,7 +114,10 @@ const PROPOSE_TOOLS: FunctionDeclaration[] = [
     description: 'Propose une nouvelle question/réponse pour la FAQ.',
     parameters: {
       type: Type.OBJECT,
-      properties: { question: { type: Type.STRING }, answer: { type: Type.STRING } },
+      properties: {
+        question: { type: Type.STRING },
+        answer: { type: Type.STRING }
+      },
       required: ['question', 'answer']
     }
   },
@@ -114,7 +126,10 @@ const PROPOSE_TOOLS: FunctionDeclaration[] = [
     description: 'Propose un nouveau titre et/ou une nouvelle description Google.',
     parameters: {
       type: Type.OBJECT,
-      properties: { title: { type: Type.STRING }, description: { type: Type.STRING } }
+      properties: {
+        title: { type: Type.STRING },
+        description: { type: Type.STRING }
+      }
     }
   }
 ];
@@ -252,41 +267,75 @@ async function runTool(ctx: Ctx, name: string, args: Record<string, unknown>): P
       if (text(args.description, 2000)) changes.description = text(args.description, 2000);
       if (text(args.price_label, 40)) changes.price_label = text(args.price_label, 40);
       if (!Object.keys(changes).length) return { error: 'Aucune modification.' };
-      ctx.proposals.push({ kind: 'service', id: service.id, name: service.name, changes });
-      return { ok: true, note: 'Proposition affichée : le client doit cliquer « Appliquer ».' };
+      ctx.proposals.push({
+        kind: 'service',
+        id: service.id,
+        name: service.name,
+        changes
+      });
+      return {
+        ok: true,
+        note: 'Proposition affichée : le client doit cliquer « Appliquer ».'
+      };
     }
     case 'propose_faq': {
       const question = text(args.question, 500);
       const answer = text(args.answer, 4000);
       if (!question || !answer) return { error: 'Question et réponse requises.' };
       ctx.proposals.push({ kind: 'faq', question, answer });
-      return { ok: true, note: 'Proposition affichée : le client doit cliquer « Appliquer ».' };
+      return {
+        ok: true,
+        note: 'Proposition affichée : le client doit cliquer « Appliquer ».'
+      };
     }
     case 'propose_seo': {
       const title = text(args.title, 70) || undefined;
       const description = text(args.description, 170) || undefined;
       if (!title && !description) return { error: 'Aucune modification.' };
       ctx.proposals.push({ kind: 'seo', title, description });
-      return { ok: true, note: 'Proposition affichée : le client doit cliquer « Appliquer ».' };
+      return {
+        ok: true,
+        note: 'Proposition affichée : le client doit cliquer « Appliquer ».'
+      };
     }
   }
   return { error: 'Outil inconnu.' };
 }
 
-export async function runAssistant(input: {
+type AssistantInput = {
   db: SupabaseClient;
   websiteId: string;
   siteName: string;
   canEdit: boolean;
   messages: AssistantMessage[];
-}): Promise<{ reply: string; proposals: AssistantProposal[] }> {
-  const ctx: Ctx = {
-    db: input.db,
-    websiteId: input.websiteId,
-    canEdit: input.canEdit,
-    proposals: []
-  };
-  const tools = input.canEdit ? [...READ_TOOLS, ...PROPOSE_TOOLS] : READ_TOOLS;
+};
+
+async function callTool(ctx: Ctx, name: string, args: Record<string, unknown>) {
+  try {
+    return { untrusted_data: await runTool(ctx, name, args) };
+  } catch {
+    return { untrusted_data: { error: 'Données indisponibles.' } };
+  }
+}
+
+/** Gemini declarations → JSON Schema for OpenAI-compatible providers. */
+function toJsonSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(toJsonSchema);
+  if (!schema || typeof schema !== 'object') return schema;
+  return Object.fromEntries(
+    Object.entries(schema).map(([k, v]) => [
+      k,
+      k === 'type' && typeof v === 'string' ? v.toLowerCase() : toJsonSchema(v)
+    ])
+  );
+}
+
+async function runWithGemini(
+  model: string,
+  input: AssistantInput,
+  ctx: Ctx,
+  tools: FunctionDeclaration[]
+): Promise<string> {
   const contents: Content[] = input.messages.map((m) => ({
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.text }]
@@ -296,7 +345,7 @@ export async function runAssistant(input: {
     const resp = await geminiRotator.executeWithRotation(
       (ai) =>
         ai.models.generateContent({
-          model: MODEL,
+          model,
           contents,
           config: {
             systemInstruction: systemPrompt(input.siteName, input.canEdit),
@@ -308,12 +357,7 @@ export async function runAssistant(input: {
       2
     );
     const calls = resp.functionCalls ?? [];
-    if (!calls.length || round === MAX_TOOL_ROUNDS) {
-      return {
-        reply: (resp.text ?? '').trim() || 'Je n’ai pas de réponse pour le moment.',
-        proposals: ctx.proposals
-      };
-    }
+    if (!calls.length || round === MAX_TOOL_ROUNDS) return (resp.text ?? '').trim();
     contents.push(
       resp.candidates?.[0]?.content ?? {
         role: 'model',
@@ -321,19 +365,93 @@ export async function runAssistant(input: {
       }
     );
     const results = await Promise.all(
-      calls.slice(0, 6).map(async (c) => {
-        let result: unknown;
-        try {
-          result = await runTool(ctx, c.name ?? '', (c.args ?? {}) as Record<string, unknown>);
-        } catch {
-          result = { error: 'Données indisponibles.' };
+      calls.slice(0, 6).map(async (c) => ({
+        functionResponse: {
+          id: c.id,
+          name: c.name,
+          response: await callTool(ctx, c.name ?? '', (c.args ?? {}) as Record<string, unknown>)
         }
-        return {
-          functionResponse: { id: c.id, name: c.name, response: { untrusted_data: result } }
-        };
-      })
+      }))
     );
     contents.push({ role: 'user', parts: results });
   }
-  return { reply: '', proposals: ctx.proposals };
+  return '';
+}
+
+async function runWithOpenAICompatible(
+  target: AiTarget,
+  input: AssistantInput,
+  ctx: Ctx,
+  tools: FunctionDeclaration[]
+): Promise<string> {
+  const chatTools: ChatTool[] = tools.map((t) => ({
+    type: 'function',
+    function: {
+      name: t.name ?? '',
+      description: t.description,
+      parameters: (toJsonSchema(t.parameters) as Record<string, unknown>) ?? {
+        type: 'object',
+        properties: {}
+      }
+    }
+  }));
+  const messages: ChatMessage[] = [
+    { role: 'system', content: systemPrompt(input.siteName, input.canEdit) },
+    ...input.messages.map((m) => ({ role: m.role, content: m.text }) as ChatMessage)
+  ];
+
+  for (let round = 0; round <= MAX_TOOL_ROUNDS; round++) {
+    const last = round === MAX_TOOL_ROUNDS;
+    const result = await chatCompletion(target, {
+      messages,
+      tools: last ? undefined : chatTools,
+      maxTokens: 700,
+      temperature: 0.4
+    });
+    if (!result.toolCalls.length || last) return result.content;
+    messages.push(result.message);
+    const calls = result.toolCalls.slice(0, 6);
+    const outputs = await Promise.all(calls.map((c) => callTool(ctx, c.name, c.args)));
+    calls.forEach((c, i) =>
+      messages.push({
+        role: 'tool',
+        tool_call_id: c.id,
+        content: JSON.stringify(outputs[i])
+      })
+    );
+  }
+  return '';
+}
+
+/**
+ * Walks the "agents" AI route (free providers first, Gemini after): if one
+ * provider is rate-limited or down mid-conversation, the next one restarts the
+ * turn from scratch, so proposals are never duplicated.
+ */
+export async function runAssistant(
+  input: AssistantInput
+): Promise<{ reply: string; proposals: AssistantProposal[] }> {
+  const tools = input.canEdit ? [...READ_TOOLS, ...PROPOSE_TOOLS] : READ_TOOLS;
+  let lastError: unknown = new Error('No AI provider configured');
+  for (const target of aiRoute('agents')) {
+    const ctx: Ctx = {
+      db: input.db,
+      websiteId: input.websiteId,
+      canEdit: input.canEdit,
+      proposals: []
+    };
+    try {
+      const reply =
+        target.provider === 'gemini'
+          ? await runWithGemini(target.model, input, ctx, tools)
+          : await runWithOpenAICompatible(target, input, ctx, tools);
+      return {
+        reply: reply || 'Je n’ai pas de réponse pour le moment.',
+        proposals: ctx.proposals
+      };
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  throw lastError;
 }
