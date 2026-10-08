@@ -9,6 +9,7 @@ import { requireDashboardSession } from '@/lib/auth/session';
 import { SessionProvider } from '@/lib/auth/session-context';
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Dashboard',
@@ -22,6 +23,10 @@ export const metadata: Metadata = {
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   // Gate the whole /dashboard segment: redirect to sign-in when signed out.
   const session = await requireDashboardSession();
+  // The dashboard is for LevelUp clients: members of an organization (invited
+  // people join automatically) or LevelUp staff. Everyone else finishes their
+  // profile and asks for access first.
+  if (!session.isPlatformAdmin && session.organizations.length === 0) redirect('/auth/onboarding');
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';

@@ -1,16 +1,19 @@
 'use client';
 import { Icons } from '@/components/icons';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { LoadingButton } from '@/components/ui/loading-button';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { AuthSteps } from './auth-steps';
+import { EmailSent } from './email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
 const signInSchema = z.object({
@@ -62,6 +65,11 @@ export default function UserAuthForm({
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
   );
+  const [sent, setSent] = useState<{ kind: 'signup' | 'magic'; email: string } | null>(null);
+  // After the e-mail check, a new account finishes its profile (and, for the
+  // dashboard, asks for access); other LevelUp apps get the visitor back after.
+  const signUpRedirect = () =>
+    callbackUrl(`/auth/onboarding?next=${encodeURIComponent(destination)}`);
 
   const form = useAppForm({
     defaultValues: { fullName: '', email: '', password: '' },
@@ -101,7 +109,7 @@ export default function UserAuthForm({
             password: value.password,
             options: {
               data: { full_name: value.fullName.trim() },
-              emailRedirectTo: callbackUrl(destination),
+              emailRedirectTo: signUpRedirect(),
               captchaToken: captcha.captchaToken
             }
           });
@@ -114,9 +122,9 @@ export default function UserAuthForm({
             return;
           }
           if (data.session) {
-            goTo(destination);
+            goTo(`/auth/onboarding?next=${encodeURIComponent(destination)}`);
           } else {
-            setNotice('Presque fini : cliquez sur le lien envoyé à votre adresse e-mail.');
+            setSent({ kind: 'signup', email: value.email });
           }
         }
       } finally {
@@ -136,27 +144,6 @@ export default function UserAuthForm({
       setPending(false);
       toast.error('Connexion Google indisponible pour le moment.');
     }
-  }
-
-  async function resetPassword() {
-    const email = form.getFieldValue('email');
-    if (!z.string().email().safeParse(email).success) {
-      setNotice('Entrez votre e-mail ci-dessus, puis cliquez sur « Mot de passe oublié ».');
-      return;
-    }
-    if (!captcha.ready) {
-      setNotice(CAPTCHA_NOTICE);
-      return;
-    }
-    setPending(true);
-    await createClient().auth.resetPasswordForEmail(email, {
-      redirectTo: callbackUrl('/auth/reset-password'),
-      captchaToken: captcha.captchaToken
-    });
-    captcha.reset();
-    setPending(false);
-    // Same message whether or not the account exists.
-    setNotice('Si un compte existe pour cet e-mail, un lien de réinitialisation a été envoyé.');
   }
 
   // Passwordless sign-in for existing accounts: one-time link sent by LevelUp.
@@ -181,11 +168,54 @@ export default function UserAuthForm({
     });
     captcha.reset();
     setPending(false);
-    setNotice('Si un compte existe pour cet e-mail, un lien de connexion a été envoyé.');
+    setSent({ kind: 'magic', email });
+  }
+
+  async function resend(captchaToken: string | undefined) {
+    if (!sent) return;
+    const supabase = createClient();
+    if (sent.kind === 'signup') {
+      await supabase.auth.resend({
+        type: 'signup',
+        email: sent.email,
+        options: { emailRedirectTo: signUpRedirect(), captchaToken }
+      });
+    } else {
+      await supabase.auth.signInWithOtp({
+        email: sent.email,
+        options: {
+          shouldCreateUser: false,
+          emailRedirectTo: callbackUrl(destination),
+          captchaToken
+        }
+      });
+    }
+  }
+
+  if (sent) {
+    return (
+      <div className='space-y-6'>
+        {sent.kind === 'signup' && <AuthSteps current={1} />}
+        <EmailSent
+          email={sent.email}
+          title={
+            sent.kind === 'signup' ? 'Confirmez votre adresse e-mail' : 'Vérifiez votre boîte mail'
+          }
+          description={
+            sent.kind === 'signup'
+              ? 'Pour activer votre compte, cliquez sur le lien que nous venons d’envoyer à'
+              : 'Si un compte existe, un lien de connexion vient d’être envoyé à'
+          }
+          onResend={resend}
+          onChangeEmail={() => setSent(null)}
+        />
+      </div>
+    );
   }
 
   return (
     <div className='space-y-4'>
+      {mode === 'sign-up' && <AuthSteps current={0} />}
       {GOOGLE_AUTH_ENABLED && (
         <>
           <Button
@@ -258,15 +288,15 @@ export default function UserAuthForm({
           {mode === 'sign-in' ? 'Se connecter' : 'Créer mon compte'}
         </LoadingButton>
         {mode === 'sign-in' && (
-          <Button
-            type='button'
-            variant='link'
-            className='text-muted-foreground w-full'
-            disabled={pending}
-            onClick={resetPassword}
+          <Link
+            href='/auth/forgot-password'
+            className={buttonVariants({
+              variant: 'link',
+              className: 'text-muted-foreground w-full'
+            })}
           >
             Mot de passe oublié ?
-          </Button>
+          </Link>
         )}
         {mode === 'sign-in' && (
           <Button

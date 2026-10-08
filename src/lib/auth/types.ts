@@ -18,6 +18,7 @@ export interface DashboardOrg {
   id: string;
   name: string;
   slug: string;
+  logoUrl: string | null;
   /** null when a LevelUp platform admin views an organization they are not a member of */
   role: OrgRole | null;
 }

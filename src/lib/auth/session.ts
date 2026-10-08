@@ -35,7 +35,7 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
   // Platform admins see every organization (RLS allows it); members see theirs.
   const orgQuery = supabase
     .from('organizations')
-    .select('id, name, slug')
+    .select('id, name, slug, logo_url')
     .neq('status', 'archived')
     .order('name');
   const { data: orgRows } = isPlatformAdmin
@@ -49,6 +49,7 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
     id: o.id,
     name: o.name,
     slug: o.slug,
+    logoUrl: o.logo_url ?? null,
     role: roles.get(o.id) ?? null
   }));
 
