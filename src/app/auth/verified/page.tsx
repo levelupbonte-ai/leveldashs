@@ -14,7 +14,7 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
   const { next } = await props.searchParams;
   return (
     <AuthShell
-      title='Félicitations, votre adresse e-mail est vérifiée'
+      title='Félicitations, votre adresse e‑mail est vérifiée'
       description='Votre compte LevelUp est activé.'
     >
       <EmailVerifiedView next={safeNext(next, '/auth/onboarding')} />

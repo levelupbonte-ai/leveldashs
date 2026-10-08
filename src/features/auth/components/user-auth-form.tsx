@@ -260,8 +260,8 @@ export default function UserAuthForm({
           </Link>
         )}
         {mode === 'sign-in' && (
-          <p className='text-muted-foreground flex items-center justify-center gap-1.5 text-center text-xs'>
-            <Icons.shieldCheck className='size-3.5 shrink-0' aria-hidden />
+          <p className='text-muted-foreground text-center text-xs text-balance'>
+            <Icons.shieldCheck className='mr-1 inline size-3.5 align-[-2px]' aria-hidden />
             Protégé par la double authentification (application d’authentification)
           </p>
         )}

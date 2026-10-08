@@ -21,7 +21,7 @@ export function EmailVerifiedView({ next }: { next: string }) {
           Vous pouvez fermer cette fenêtre.
         </p>
       </div>
-      <Link href={next} className={buttonVariants({ variant: 'outline', className: 'w-full' })}>
+      <Link href={next} className={buttonVariants({ variant: 'secondary', className: 'w-full' })}>
         Continuer ici
       </Link>
     </div>
