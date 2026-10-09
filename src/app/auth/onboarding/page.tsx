@@ -2,9 +2,11 @@ import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import OnboardingFlow from '@/features/auth/components/onboarding-flow';
+import { RecordLastMethod } from '@/features/auth/components/record-last-method';
+import { getAccessRequest, hasDashboardAccess, PENDING_PATH } from '@/lib/auth/access';
 import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
-import { safeNext } from '@/lib/auth/redirect';
+import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { getDashboardSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 
@@ -13,8 +15,10 @@ export const metadata: Metadata = {
   description: 'Votre profil et votre accès au tableau de bord LevelUp.'
 };
 
-export default async function Page(props: { searchParams: Promise<{ next?: string }> }) {
-  const { next } = await props.searchParams;
+export default async function Page(props: {
+  searchParams: Promise<{ next?: string; edit?: string }>;
+}) {
+  const { next, edit } = await props.searchParams;
   const destination = safeNext(next);
   const session = await getDashboardSession();
   if (!session) redirect(`/auth/sign-in?next=${encodeURIComponent('/auth/onboarding')}`);
@@ -28,47 +32,42 @@ export default async function Page(props: { searchParams: Promise<{ next?: strin
     redirect(mfaChallengeUrl(`/auth/onboarding?next=${encodeURIComponent(destination)}`));
   }
 
-  const hasAccess = session.isPlatformAdmin || session.organizations.length > 0;
-  const { data: request } = await db
-    .from('access_requests')
-    .select('status, business_name, website, phone, message')
-    .eq('user_id', session.user.id)
-    .maybeSingle();
+  const hasAccess = hasDashboardAccess(session);
+  const request = await getAccessRequest(session.user.id);
+  const forOtherApp = isExternalNext(destination);
+  const editing = edit === '1' && request?.status === 'pending';
+  // Request already sent (or turned down): the status page, not the profile form
+  // again. Visitors heading back to another LevelUp app keep going there.
+  if (!hasAccess && !forOtherApp && !editing) {
+    if (request?.status === 'pending' || request?.status === 'rejected') redirect(PENDING_PATH);
+  }
 
   const { passkey } = await getAuthMethods();
-  const pending = !hasAccess && request?.status === 'pending';
-  const rejected = !hasAccess && request?.status === 'rejected';
   return (
     <AuthShell
-      title={
-        pending
-          ? 'Demande en cours de vérification'
-          : rejected
-            ? 'Demande non retenue'
-            : 'Finaliser votre compte'
-      }
+      title={editing ? 'Modifier ma demande' : 'Finaliser votre compte'}
       description={
-        pending
-          ? 'L’équipe LevelUp vérifie chaque accès au tableau de bord.'
-          : rejected
-            ? 'Votre demande d’accès au tableau de bord n’a pas été validée.'
-            : 'Quelques informations pour personnaliser votre espace.'
+        editing
+          ? 'Mettez à jour les informations transmises à l’équipe LevelUp.'
+          : 'Quelques informations pour personnaliser votre espace.'
       }
     >
+      <RecordLastMethod />
       <OnboardingFlow
         user={session.user}
         destination={destination}
         hasAccess={hasAccess}
         mfaEnabled={session.mfa.enabled}
         passkeyEnabled={passkey}
+        initialStep={editing ? 'access' : 'profile'}
         request={
           request
             ? {
-                status: request.status as 'pending' | 'approved' | 'rejected',
-                businessName: request.business_name,
-                website: request.website ?? '',
-                phone: request.phone ?? '',
-                message: request.message ?? ''
+                status: request.status,
+                businessName: request.businessName,
+                website: request.website,
+                phone: request.phone,
+                message: request.message
               }
             : null
         }
