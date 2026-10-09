@@ -140,7 +140,7 @@ function RequestCard({ request: r }: { request: ProjectRequest }) {
       {r.ai_summary && <p className='text-sm'>{r.ai_summary}</p>}
 
       {(r.ai_reasons.length > 0 || r.ai_red_flags.length > 0) && (
-        <div className='grid gap-3 text-xs sm:grid-cols-2'>
+        <div className='grid grid-cols-1 gap-3 text-xs sm:grid-cols-2'>
           {r.ai_reasons.length > 0 && (
             <ul className='space-y-1'>
               {r.ai_reasons.map((reason) => (
@@ -170,7 +170,7 @@ function RequestCard({ request: r }: { request: ProjectRequest }) {
         </div>
       )}
 
-      <dl className='grid gap-x-4 gap-y-1 text-xs sm:grid-cols-2'>
+      <dl className='grid grid-cols-1 gap-x-4 gap-y-1 text-xs sm:grid-cols-2'>
         <div className='flex gap-1.5'>
           <dt className='text-muted-foreground'>Contact :</dt>
           <dd className='min-w-0'>

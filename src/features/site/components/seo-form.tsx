@@ -98,7 +98,7 @@ export function SeoForm() {
   });
 
   return (
-    <div className='grid gap-6 xl:grid-cols-[1fr_380px]'>
+    <div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]'>
       <Card>
         <CardHeader>
           <CardTitle>Référencement Google</CardTitle>

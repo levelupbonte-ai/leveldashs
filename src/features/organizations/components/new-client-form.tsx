@@ -98,7 +98,7 @@ export function NewClientForm() {
             form.handleSubmit();
           }}
         >
-          <FieldGroup className='grid gap-4 md:grid-cols-2'>
+          <FieldGroup className='grid grid-cols-1 gap-4 md:grid-cols-2'>
             <form.AppField
               name='organizationName'
               children={(field) => (

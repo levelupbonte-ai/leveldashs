@@ -35,9 +35,10 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 | Route | What it does |
 |---|---|
-| `/auth/sign-in` | Email + password, "Continuer avec Google" (Google-branded button) and "Se connecter avec une passkey" when enabled in Supabase, password reset link |
+| `/auth/sign-in` | Email + password, "Continuer avec Google" (Google-branded button) and "Continuer avec une passkey" when enabled in Supabase, password reset link |
 | `/auth/sign-up` | Email + password + full name (stored in `user_metadata.full_name`), Google when enabled |
 | `/auth/verified` | Landing page of the sign-up confirmation link: "Félicitations, votre adresse e-mail est vérifiée", go back to the first device or "Continuer ici" (`next`, default `/auth/onboarding`) |
+| `/auth/pending` | "Votre compte est en cours de vérification": status of the access request (timeline, typical delay, the e-mail to expect), "Modifier ma demande", "Se déconnecter"; rejected requests see "Demande non retenue" |
 | `/auth/mfa` | Second step for accounts with an authenticator app: 6-digit TOTP code (`mfa.challengeAndVerify`), keeps `next` |
 | `/auth/callback` | Route handler: exchanges the OAuth/PKCE `code` (`exchangeCodeForSession`) or verifies e-mail links (`token_hash` + `type` via `verifyOtp`), then redirects to `next` |
 
@@ -216,7 +217,13 @@ opens to members of an organization or LevelUp staff (`src/app/dashboard/layout.
 - **Invited people** join their organization automatically when they confirm
   their e-mail (`private.accept_invitations`): no approval needed.
 - **Everyone else** lands on `/auth/onboarding`: profile (name, photo), then an
-  access request (`submit_access_request`, table `access_requests`). The team
+  access request (`submit_access_request`, table `access_requests`).
+- Once a request exists, `/dashboard` (layout, `getAccessState()` in
+  `src/lib/auth/access.ts`) and `/auth/onboarding` send the account to
+  `/auth/pending` instead: pending or rejected, every sign-in path (password,
+  Google, passkey, e-mail links, a direct visit, an already signed-in visit to
+  `/auth/sign-in`) ends there, never on the profile form again.
+  `/auth/onboarding?edit=1` edits a pending request (button "Modifier ma demande"). The team
   gets an e-mail; requests show on `/dashboard/exclusive` where staff approve
   (`review_access_request`: creates the client's organization, owner role) or
   reject. The applicant is e-mailed either way (`/api/access/decision`).
@@ -257,8 +264,22 @@ onboarding and profile pages pass these flags down. Any error hides the buttons
 (fail closed). Turning a provider on or off in the Supabase dashboard shows or
 hides the buttons within five minutes, without a redeploy.
 
-Layout of the sign-in form: Google and passkey buttons stacked at the top, then the
-"ou par e-mail" divider, then e-mail + password.
+Layout of the sign-in form: Google and passkey buttons stacked at the top (same
+outline style and height), then the "ou par e-mail" divider, then e-mail + password.
+
+**Last method.** After a successful sign-in the browser keeps the method name in
+`localStorage.lu_last_method` (`google` | `passkey` | `password`, nothing else;
+`src/features/auth/lib/last-method.ts`). Google is marked in `sessionStorage` before the
+OAuth redirect and confirmed by `RecordLastMethod` on the first signed-in page. When the
+last method is Google or passkey (and still available), the sign-in page shows only that
+button with a "Dernière méthode utilisée" badge; the rest folds behind "Autres méthodes de
+connexion".
+
+**No Google for Google accounts.** `hasGoogleIdentity(user)` (`src/lib/auth/identities.ts`,
+`identities` or `app_metadata.providers`) hides "Continuer avec Google" when the browser
+session already belongs to a Google account. Signed-in visitors never see the sign-in /
+sign-up forms anyway (both pages redirect), and the onboarding, pending and MFA screens
+have no Google button.
 
 ### Google button
 
@@ -277,7 +298,7 @@ supabase-js versions enable the API by default and ignore the flag).
 
 - **Enable** — Supabase → Authentication → Sign In / Providers → *Passkeys* (relying
   party = the dashboard domain). `passkeys_enabled` then turns true in the settings.
-- **Sign-in** — "Se connecter avec une passkey" (`auth.signInWithPasskey()`, with the
+- **Sign-in** — "Continuer avec une passkey" (icon: person with a key, `Icons.passkey` = Tabler `IconUserKey`) (`auth.signInWithPasskey()`, with the
   Turnstile token when CAPTCHA is on), hidden when the browser has no
   `window.PublicKeyCredential`. Success follows the password path: `/auth/mfa` when a
   verified TOTP factor exists, otherwise `safeNext(next)` (the dashboard layout sends

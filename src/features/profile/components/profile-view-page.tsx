@@ -111,7 +111,7 @@ export default function ProfileViewPage({
   });
 
   return (
-    <div className='grid max-w-4xl gap-6 lg:grid-cols-2'>
+    <div className='grid grid-cols-1 max-w-4xl gap-6 lg:grid-cols-2'>
       {passwordReset && (
         <Alert className='lg:col-span-2'>
           <Icons.lock className='size-4' />

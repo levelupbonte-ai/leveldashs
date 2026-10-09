@@ -5,6 +5,8 @@ import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { MfaRequiredBanner } from '@/components/layout/mfa-required-banner';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { RecordLastMethod } from '@/features/auth/components/record-last-method';
+import { getAccessState, noAccessPath } from '@/lib/auth/access';
 import { requireDashboardSession } from '@/lib/auth/session';
 import { SessionProvider } from '@/lib/auth/session-context';
 import type { Metadata } from 'next';
@@ -25,13 +27,16 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await requireDashboardSession();
   // The dashboard is for LevelUp clients: members of an organization (invited
   // people join automatically) or LevelUp staff. Everyone else finishes their
-  // profile and asks for access first.
-  if (!session.isPlatformAdmin && session.organizations.length === 0) redirect('/auth/onboarding');
+  // profile and asks for access first; a submitted (or rejected) request goes
+  // straight to its status page, whatever the sign-in method.
+  const access = await getAccessState(session);
+  if (access !== 'member') redirect(noAccessPath(access));
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
   return (
     <SessionProvider session={session}>
+      <RecordLastMethod />
       <KBar>
         <SidebarProvider defaultOpen={defaultOpen}>
           <a
@@ -41,10 +46,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
             Skip to content
           </a>
           <AppSidebar />
-          <SidebarInset id='main-content' tabIndex={-1} className='scroll-mt-16'>
+          <SidebarInset id='main-content' tabIndex={-1} className='min-w-0 scroll-mt-16'>
             <Header />
             <MfaRequiredBanner />
-            <InfobarProvider defaultOpen={false}>
+            <InfobarProvider defaultOpen={false} className='min-w-0'>
               {children}
               <InfoSidebar side='right' />
             </InfobarProvider>

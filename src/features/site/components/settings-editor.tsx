@@ -42,7 +42,7 @@ export function SettingsEditor() {
           l’enregistrement.
         </AlertDescription>
       </Alert>
-      <TabsContent value='settings' className='grid gap-4 lg:grid-cols-2'>
+      <TabsContent value='settings' className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {settings.map((s) => (
           <JsonEditorCard
             key={`${s.key}-${s.updated_at}`}
@@ -66,7 +66,7 @@ export function SettingsEditor() {
         {pages.map((page) => (
           <section key={page} className='space-y-3'>
             <h2 className='text-lg font-semibold capitalize'>{page}</h2>
-            <div className='grid gap-4 lg:grid-cols-2'>
+            <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
               {blocks
                 .filter((b) => b.page === page)
                 .map((b) => (
