@@ -7,14 +7,16 @@ import type { AuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { passkeyErrorKind, usePasskeySupport } from '@/lib/auth/passkey';
 import { commonPasswordValidator } from '@/lib/auth/password-check';
+import { hasGoogleIdentity } from '@/lib/auth/identities';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { markPendingMethod, saveLastMethod, useLastMethod } from '../lib/last-method';
 import { AuthSteps } from './auth-steps';
 import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
@@ -38,6 +40,19 @@ const EMAIL_NOT_CONFIRMED_NOTICE =
   'Confirmez votre adresse e-mail (lien reçu par e-mail) puis reconnectez-vous.';
 const PASSKEY_NOT_FOUND_NOTICE =
   'Aucune passkey trouvée pour ce compte. Connectez-vous avec votre mot de passe puis ajoutez une passkey dans Profil → Sécurité.';
+
+// Google and passkey buttons share one look (outline, full width, 44 px), the
+// Google one keeping the white background and grey border of Google's branding.
+const PROVIDER_BUTTON =
+  'h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]';
+
+function LastUsedBadge() {
+  return (
+    <span className='bg-primary text-primary-foreground pointer-events-none absolute -top-2 right-3 rounded-full px-2 py-0.5 text-[10px] leading-none font-medium shadow-sm'>
+      Dernière méthode utilisée
+    </span>
+  );
+}
 
 function callbackUrl(next: string) {
   return `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -73,7 +88,33 @@ export default function UserAuthForm({
   // Turned off when Supabase answers `passkey_disabled` (settings changed since the page loaded).
   const [passkeyDisabled, setPasskeyDisabled] = useState(false);
   const showPasskey = mode === 'sign-in' && methods.passkey && passkeySupported && !passkeyDisabled;
-  const showGoogle = methods.google;
+  // Already a Google account (session in this browser): never offer Google again.
+  const [googleLinked, setGoogleLinked] = useState(false);
+  useEffect(() => {
+    let active = true;
+    createClient()
+      .auth.getSession()
+      .then(({ data }) => {
+        if (active && hasGoogleIdentity(data.session?.user)) setGoogleLinked(true);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+  const showGoogle = methods.google && !googleLinked;
+  // Sign-in only: the method used last time in this browser comes first and the
+  // others fold behind "Autres méthodes de connexion".
+  const lastMethod = useLastMethod();
+  const [showAll, setShowAll] = useState(false);
+  const preferred =
+    mode === 'sign-in' && !showAll
+      ? lastMethod === 'google' && showGoogle
+        ? 'google'
+        : lastMethod === 'passkey' && showPasskey
+          ? 'passkey'
+          : null
+      : null;
   const [notice, setNotice] = useState<string | null>(
     initialError ? 'La connexion a échoué. Réessayez.' : null
   );
@@ -119,6 +160,7 @@ export default function UserAuthForm({
             );
             return;
           }
+          saveLastMethod('password');
           await afterSignIn(supabase);
         } else {
           const { data, error } = await supabase.auth.signUp({
@@ -194,6 +236,7 @@ export default function UserAuthForm({
             return;
         }
       }
+      saveLastMethod('passkey');
       await afterSignIn(supabase);
     } finally {
       captcha.reset();
@@ -203,6 +246,8 @@ export default function UserAuthForm({
 
   async function signInWithGoogle() {
     setPending(true);
+    // Confirmed (saved as the last method) once a signed-in page loads.
+    markPendingMethod('google');
     const { error } = await createClient().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callbackUrl(destination) }
@@ -234,6 +279,59 @@ export default function UserAuthForm({
     );
   }
 
+  const googleButton = (
+    /* Google Sign-In branding: white button, official multicolor G, grey border. */
+    <Button
+      className={PROVIDER_BUTTON}
+      variant='outline'
+      type='button'
+      disabled={pending}
+      onClick={signInWithGoogle}
+    >
+      <Icons.googleColor size={20} />
+      Continuer avec Google
+    </Button>
+  );
+  const passkeyButton = (
+    <Button
+      className={PROVIDER_BUTTON}
+      variant='outline'
+      type='button'
+      disabled={pending}
+      onClick={signInWithPasskey}
+    >
+      <Icons.passkey className='size-5' aria-hidden />
+      Continuer avec une passkey
+    </Button>
+  );
+
+  if (preferred) {
+    return (
+      <div className='space-y-4'>
+        <div className='relative rounded-[calc(var(--radius)+4px)] p-1 ring-2 ring-primary/40'>
+          {preferred === 'google' ? googleButton : passkeyButton}
+          <LastUsedBadge />
+        </div>
+        {notice && (
+          <p role='status' className='text-muted-foreground text-sm'>
+            {notice}
+          </p>
+        )}
+        <TurnstileWidget {...captcha.widgetProps} />
+        <Button
+          variant='ghost'
+          type='button'
+          className='text-muted-foreground w-full'
+          disabled={pending}
+          onClick={() => setShowAll(true)}
+        >
+          Autres méthodes de connexion
+          <Icons.chevronDown className='size-4' aria-hidden />
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-4'>
       {mode === 'sign-up' && <AuthSteps current={0} />}
@@ -241,29 +339,16 @@ export default function UserAuthForm({
         <>
           <div className='grid gap-2'>
             {showGoogle && (
-              /* Google Sign-In branding: white button, official multicolor G, grey border. */
-              <Button
-                className='h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]'
-                variant='outline'
-                type='button'
-                disabled={pending}
-                onClick={signInWithGoogle}
-              >
-                <Icons.googleColor size={20} />
-                Continuer avec Google
-              </Button>
+              <div className='relative'>
+                {googleButton}
+                {mode === 'sign-in' && lastMethod === 'google' && <LastUsedBadge />}
+              </div>
             )}
             {showPasskey && (
-              <Button
-                className='h-11 w-full gap-3 text-[15px] font-medium'
-                variant='outline'
-                type='button'
-                disabled={pending}
-                onClick={signInWithPasskey}
-              >
-                <Icons.passkey className='size-5' aria-hidden />
-                Se connecter avec une passkey
-              </Button>
+              <div className='relative'>
+                {passkeyButton}
+                {mode === 'sign-in' && lastMethod === 'passkey' && <LastUsedBadge />}
+              </div>
             )}
           </div>
           <div className='relative'>

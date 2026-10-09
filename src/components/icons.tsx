@@ -1,7 +1,7 @@
 import {
   IconAdjustmentsHorizontal,
   IconDevices,
-  IconFingerprint,
+  IconUserKey,
   IconShieldCheck,
   IconMailCheck,
   IconShieldLock,
@@ -286,7 +286,8 @@ export const Icons = {
   shield: IconShieldLock,
   shieldCheck: IconShieldCheck,
   devices: IconDevices,
-  passkey: IconFingerprint,
+  // Passkey: person with a key (same idea as Vercel's "Continue with Passkey").
+  passkey: IconUserKey,
 
   // Data / Charts
   trendingDown: IconTrendingDown,
