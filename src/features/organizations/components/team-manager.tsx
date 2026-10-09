@@ -98,7 +98,7 @@ export function TeamManager() {
   const assignable = (Object.keys(ROLES) as OrgRole[]).filter((r) => r !== 'owner' || isOwner);
 
   return (
-    <div className='grid gap-6 lg:grid-cols-[1fr_360px]'>
+    <div className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]'>
       <Card>
         <CardHeader>
           <CardTitle>Membres ({members.length})</CardTitle>

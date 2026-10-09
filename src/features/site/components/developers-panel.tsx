@@ -52,7 +52,7 @@ export function DevelopersPanel() {
   const installed = !!lastSeen && Date.now() - lastSeen.getTime() < INSTALLED_WITHIN_MS;
 
   return (
-    <div className='grid gap-6 xl:grid-cols-[1fr_380px]'>
+    <div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]'>
       <div className='space-y-6'>
         <Card>
           <CardHeader>
@@ -66,8 +66,9 @@ export function DevelopersPanel() {
           <CardContent className='space-y-3'>
             <CodeBlock code={snippet} />
             <p className='text-muted-foreground text-xs'>
-              Identifiant public du site : <code>{site.id}</code>. Il n’est pas secret : il ne donne
-              accès qu’au contenu déjà public et ne fonctionne que sur les domaines autorisés.
+              Identifiant public du site : <code className='break-all'>{site.id}</code>. Il n’est
+              pas secret : il ne donne accès qu’au contenu déjà public et ne fonctionne que sur les
+              domaines autorisés.
             </p>
           </CardContent>
         </Card>
