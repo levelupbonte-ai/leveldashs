@@ -12,26 +12,32 @@ import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { slugify } from '@/features/site/api/service';
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useMemo, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { createOrganization } from '../api/service';
-
-const ROLE_LABEL: Record<string, string> = {
-  owner: 'Propriétaire',
-  admin: 'Administrateur',
-  editor: 'Éditeur',
-  viewer: 'Lecture seule'
-};
-
-const createSchema = z.object({
-  name: z.string().trim().min(2, { message: 'Nom requis' }).max(120)
-});
 
 export function WorkspacesView() {
   const { organizations, activeOrg } = useDashboardSession();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const t = useTranslations('workspaces');
+  const tRole = useTranslations('common.roles');
+  const tv = useTranslations('validation');
+  const errorMessage = useErrorMessage();
+  const createSchema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(2, { message: tv('nameRequired') })
+          .max(120)
+      }),
+    [tv]
+  );
 
   const open = (id: string, href = '/dashboard/site') =>
     startTransition(async () => {
@@ -47,10 +53,10 @@ export function WorkspacesView() {
       try {
         const slug = `${slugify(value.name).slice(0, 40)}-${Math.random().toString(36).slice(2, 6)}`;
         const org = await createOrganization(createClient(), value.name.trim(), slug);
-        toast.success('Organisation créée');
+        toast.success(t('created'));
         open(org.id, '/dashboard/workspaces/team');
       } catch (e) {
-        toast.error((e as Error).message);
+        toast.error(errorMessage(e));
       }
     }
   });
@@ -59,10 +65,7 @@ export function WorkspacesView() {
     <div className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]'>
       <div className='space-y-3'>
         {organizations.length === 0 && (
-          <p className='text-muted-foreground text-sm'>
-            Vous n’êtes membre d’aucune organisation. Si LevelUp gère votre site, demandez-nous de
-            vous y ajouter avec l’e-mail de ce compte.
-          </p>
+          <p className='text-muted-foreground text-sm'>{t('empty')}</p>
         )}
         {organizations.map((org) => (
           <Card key={org.id}>
@@ -78,14 +81,14 @@ export function WorkspacesView() {
               <div className='min-w-0 flex-1'>
                 <p className='truncate font-medium'>{org.name}</p>
                 <p className='text-muted-foreground text-xs'>
-                  {org.role ? ROLE_LABEL[org.role] : 'Accès LevelUp admin'}
+                  {org.role ? tRole(org.role) : t('staffAccess')}
                 </p>
               </div>
               {org.id === activeOrg?.id ? (
-                <Badge>Active</Badge>
+                <Badge>{t('active')}</Badge>
               ) : (
                 <Button size='sm' variant='outline' disabled={pending} onClick={() => open(org.id)}>
-                  Ouvrir
+                  {t('open')}
                 </Button>
               )}
             </CardContent>
@@ -94,10 +97,8 @@ export function WorkspacesView() {
       </div>
       <Card className='h-fit'>
         <CardHeader>
-          <CardTitle>Nouvelle organisation</CardTitle>
-          <CardDescription>
-            Pour votre entreprise. Le site y est relié ensuite par l’équipe LevelUp.
-          </CardDescription>
+          <CardTitle>{t('newTitle')}</CardTitle>
+          <CardDescription>{t('newDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -110,14 +111,16 @@ export function WorkspacesView() {
             <FieldGroup>
               <form.AppField
                 name='name'
-                children={(field) => <field.TextField label='Nom' placeholder='Mon entreprise' />}
+                children={(field) => (
+                  <field.TextField label={t('name')} placeholder={t('namePlaceholder')} />
+                )}
               />
             </FieldGroup>
             <form.Subscribe
               selector={(s) => s.isSubmitting}
               children={(submitting) => (
                 <LoadingButton type='submit' loading={submitting || pending} className='w-full'>
-                  Créer
+                  {t('create')}
                 </LoadingButton>
               )}
             />

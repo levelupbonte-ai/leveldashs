@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { useFormatter, useTranslations } from 'next-intl';
 import { Suspense, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSiteMutations } from '../api/mutations';
@@ -24,34 +25,18 @@ import { NotesDialog } from './notes-dialog';
 import { StatusSelect } from './status-select';
 import { useSiteScope } from './use-site-scope';
 
-const STATUS: Record<AppointmentStatus, string> = {
-  pending: 'En attente',
-  confirmed: 'Confirmé',
-  completed: 'Terminé',
-  cancelled: 'Annulé',
-  no_show: 'Absent'
-};
-
-function formatDate(date: string, time: string) {
-  const d = new Date(`${date}T${time}`);
-  return d.toLocaleString('fr-FR', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-}
+const STATUSES: AppointmentStatus[] = ['pending', 'confirmed', 'completed', 'cancelled', 'no_show'];
 
 export function AppointmentsTable() {
   const [tab, setTab] = useState<AppointmentView>('upcoming');
+  const t = useTranslations('site.appointments');
   return (
     <div className='space-y-4'>
       <Tabs value={tab} onValueChange={(v) => setTab(v as AppointmentView)}>
         <TabsList>
-          <TabsTrigger value='upcoming'>À venir</TabsTrigger>
-          <TabsTrigger value='past'>Passés</TabsTrigger>
-          <TabsTrigger value='all'>Tous</TabsTrigger>
+          <TabsTrigger value='upcoming'>{t('upcoming')}</TabsTrigger>
+          <TabsTrigger value='past'>{t('past')}</TabsTrigger>
+          <TabsTrigger value='all'>{t('all')}</TabsTrigger>
         </TabsList>
       </Tabs>
       <Suspense fallback={<Skeleton className='h-64 w-full' />}>
@@ -69,16 +54,31 @@ function AppointmentsList({ view }: { view: AppointmentView }) {
   const rows = data.pages.flat();
   const { updateAppointment } = useSiteMutations(scope);
   const [notesFor, setNotesFor] = useState<Appointment | null>(null);
+  const t = useTranslations('site.appointments');
+  const tc = useTranslations('site.content');
+  const format = useFormatter();
+  const statusLabels = Object.fromEntries(STATUSES.map((s) => [s, t(`status.${s}`)])) as Record<
+    AppointmentStatus,
+    string
+  >;
+  // Wall-clock time of the booking, shown as entered (no time-zone shift).
+  const formatDate = (date: string, time: string) =>
+    format.dateTime(new Date(`${date}T${time}Z`), {
+      timeZone: 'UTC',
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
 
   return (
     <div className='space-y-4'>
       {rows.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
-            <EmptyTitle>Aucun rendez-vous</EmptyTitle>
-            <EmptyDescription>
-              Les réservations faites sur votre site apparaîtront ici.
-            </EmptyDescription>
+            <EmptyTitle>{t('emptyTitle')}</EmptyTitle>
+            <EmptyDescription>{t('emptyDescription')}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -86,10 +86,10 @@ function AppointmentsList({ view }: { view: AppointmentView }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Service</TableHead>
-                <TableHead>Statut</TableHead>
+                <TableHead>{t('date')}</TableHead>
+                <TableHead>{t('customer')}</TableHead>
+                <TableHead>{t('service')}</TableHead>
+                <TableHead>{t('statusLabel')}</TableHead>
                 <TableHead className='w-10' />
               </TableRow>
             </TableHeader>
@@ -121,9 +121,9 @@ function AppointmentsList({ view }: { view: AppointmentView }) {
                   </TableCell>
                   <TableCell>
                     <StatusSelect
-                      label='Statut du rendez-vous'
+                      label={t('statusAria')}
                       value={a.status}
-                      options={STATUS}
+                      options={statusLabels}
                       disabled={!scope.canEdit}
                       onChange={(status) =>
                         updateAppointment.mutate({ id: a.id, patch: { status } })
@@ -134,7 +134,7 @@ function AppointmentsList({ view }: { view: AppointmentView }) {
                     <Button
                       size='icon'
                       variant='ghost'
-                      aria-label='Notes internes'
+                      aria-label={tc('notes')}
                       disabled={!scope.canEdit}
                       onClick={() => setNotesFor(a)}
                     >
@@ -149,14 +149,14 @@ function AppointmentsList({ view }: { view: AppointmentView }) {
       )}
       {hasNextPage && (
         <Button variant='outline' disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
-          {isFetchingNextPage ? 'Chargement…' : 'Charger plus'}
+          {isFetchingNextPage ? tc('loading') : tc('loadMore')}
         </Button>
       )}
       {notesFor && (
         <NotesDialog
           key={notesFor.id}
           open
-          title={`Notes · ${notesFor.customer_name}`}
+          title={tc('notesFor', { name: notesFor.customer_name })}
           initial={notesFor.staff_notes ?? ''}
           onOpenChange={(o) => !o && setNotesFor(null)}
           onSave={(staff_notes) =>

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
 import * as z from 'zod';
 import { FieldGroup } from '@/components/ui/field';
 import { useAppForm } from '@/lib/form';
@@ -8,12 +9,22 @@ import { createClient } from '@/lib/supabase/client';
 import { EmailSent } from './email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
-const schema = z.object({ email: z.string().trim().email({ message: 'Adresse e-mail invalide' }) });
-
 const redirectTo = () =>
   `${window.location.origin}/auth/callback?next=${encodeURIComponent('/auth/reset-password')}`;
 
 export default function ForgotPasswordForm() {
+  const t = useTranslations('auth.forgot');
+  const tv = useTranslations('validation');
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .email({ message: tv('email') })
+      }),
+    [tv]
+  );
   const captcha = useCaptcha();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -33,7 +44,7 @@ export default function ForgotPasswordForm() {
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       if (!captcha.ready) {
-        setNotice('Confirmez que vous n’êtes pas un robot.');
+        setNotice(t('captcha'));
         return;
       }
       setNotice(null);
@@ -41,7 +52,7 @@ export default function ForgotPasswordForm() {
         await send(value.email.trim(), captcha.captchaToken);
         setSentTo(value.email.trim());
       } catch {
-        setNotice('Trop de demandes pour le moment. Réessayez dans quelques minutes.');
+        setNotice(t('rateLimited'));
       } finally {
         captcha.reset();
       }
@@ -52,8 +63,8 @@ export default function ForgotPasswordForm() {
     return (
       <EmailSent
         email={sentTo}
-        title='Lien envoyé'
-        description='Si un compte LevelUp existe pour cette adresse, un lien de réinitialisation vient d’être envoyé à'
+        title={t('sentTitle')}
+        description={t('sentDescription')}
         onResend={(token) => send(sentTo, token)}
         onChangeEmail={() => setSentTo(null)}
       />
@@ -73,10 +84,10 @@ export default function ForgotPasswordForm() {
           name='email'
           children={(field) => (
             <field.TextField
-              label='E-mail du compte'
+              label={t('emailLabel')}
               type='email'
               autoComplete='email'
-              placeholder='vous@exemple.com'
+              placeholder={t('emailPlaceholder')}
             />
           )}
         />
@@ -88,11 +99,11 @@ export default function ForgotPasswordForm() {
         </p>
       )}
       <form.AppForm>
-        <form.SubmitButton className='w-full'>Envoyer le lien</form.SubmitButton>
+        <form.SubmitButton className='w-full'>{t('submit')}</form.SubmitButton>
       </form.AppForm>
       <p className='text-muted-foreground text-center text-sm'>
         <Link href='/auth/sign-in' className='hover:text-primary underline underline-offset-4'>
-          Retour à la connexion
+          {t('backToSignIn')}
         </Link>
       </p>
     </form>

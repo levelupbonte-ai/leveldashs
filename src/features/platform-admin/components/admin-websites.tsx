@@ -15,6 +15,7 @@ import { setActiveWebsite } from '@/lib/auth/actions';
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { allWebsitesQueryOptions } from '../api/queries';
 
@@ -22,6 +23,7 @@ import { allWebsitesQueryOptions } from '../api/queries';
 export function AdminWebsites() {
   const { data } = useSuspenseQuery(allWebsitesQueryOptions(createClient()));
   const router = useRouter();
+  const t = useTranslations('admin.websites');
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState('');
   const rows = useMemo(() => {
@@ -38,7 +40,7 @@ export function AdminWebsites() {
   return (
     <div className='space-y-4'>
       <Input
-        placeholder='Rechercher un client, un domaine…'
+        placeholder={t('search')}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         className='max-w-sm'
@@ -47,10 +49,10 @@ export function AdminWebsites() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Site</TableHead>
-              <TableHead>Organisation</TableHead>
-              <TableHead>Statut</TableHead>
-              <TableHead>Fonctions</TableHead>
+              <TableHead>{t('website')}</TableHead>
+              <TableHead>{t('organization')}</TableHead>
+              <TableHead>{t('status')}</TableHead>
+              <TableHead>{t('features')}</TableHead>
               <TableHead />
             </TableRow>
           </TableHeader>
@@ -89,7 +91,7 @@ export function AdminWebsites() {
                       })
                     }
                   >
-                    Gérer
+                    {t('manage')}
                   </Button>
                 </TableCell>
               </TableRow>

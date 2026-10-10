@@ -12,27 +12,41 @@ import { hasRole, type OrgRole } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { MfaStepNotice } from '@/components/mfa-step-notice';
+import { useErrorMessage } from '@/hooks/use-error-message';
+import { errorCode } from '@/lib/errors';
 import { invitationsQueryOptions, membersQueryOptions, orgKeys } from '../api/queries';
 import { addMember, cancelInvitation, removeMember, updateMemberRole } from '../api/service';
 
-const ROLES: Record<OrgRole, string> = {
-  owner: 'Propriétaire',
-  admin: 'Administrateur',
-  editor: 'Éditeur',
-  viewer: 'Lecture seule'
-};
-
-const onError = (e: Error) => toast.error(e.message);
-
-const inviteSchema = z.object({
-  email: z.string().trim().email({ message: 'Adresse e-mail invalide' }),
-  role: z.enum(['viewer', 'editor', 'admin', 'owner'])
-});
+const ROLES: OrgRole[] = ['owner', 'admin', 'editor', 'viewer'];
 
 export function TeamManager() {
   const { activeOrg, user, isPlatformAdmin } = useDashboardSession();
+  const t = useTranslations('team');
+  const tRole = useTranslations('common.roles');
+  const tv = useTranslations('validation');
+  const errorMessage = useErrorMessage();
+  // The database asked for two-step verification first: calm notice, not an error.
+  const [mfaBlocked, setMfaBlocked] = useState(false);
+  const onError = (e: unknown) => {
+    if (errorCode(e) === 'mfaRequired') setMfaBlocked(true);
+    else toast.error(errorMessage(e));
+  };
+  const inviteSchema = useMemo(
+    () =>
+      z.object({
+        email: z
+          .string()
+          .trim()
+          .email({ message: tv('email') }),
+        role: z.enum(['viewer', 'editor', 'admin', 'owner'])
+      }),
+    [tv]
+  );
   const org = activeOrg!;
   const db = createClient();
   const queryClient = useQueryClient();
@@ -50,7 +64,7 @@ export function TeamManager() {
   const cancelMutation = useMutation({
     mutationFn: (id: string) => cancelInvitation(db, id),
     onSuccess: () => {
-      toast.success('Invitation annulée');
+      toast.success(t('invitationCancelled'));
       refresh();
     },
     onError
@@ -60,7 +74,7 @@ export function TeamManager() {
     mutationFn: ({ userId, role }: { userId: string; role: OrgRole }) =>
       updateMemberRole(db, org.id, userId, role),
     onSuccess: () => {
-      toast.success('Rôle mis à jour');
+      toast.success(t('roleUpdated'));
       refresh();
     },
     onError
@@ -68,7 +82,7 @@ export function TeamManager() {
   const removeMutation = useMutation({
     mutationFn: (userId: string) => removeMember(db, org.id, userId),
     onSuccess: () => {
-      toast.success('Membre retiré');
+      toast.success(t('memberRemoved'));
       refresh();
     },
     onError
@@ -82,30 +96,28 @@ export function TeamManager() {
         const result = await addMember(db, org.id, value.email, value.role);
         toast.success(
           result === 'invited'
-            ? 'Invitation enregistrée : la personne rejoindra l’équipe en créant son compte avec cet e-mail.'
+            ? t('invited')
             : result === 'added'
-              ? 'Membre ajouté'
-              : 'Rôle mis à jour'
+              ? t('memberAdded')
+              : t('roleUpdated')
         );
         formApi.reset();
         refresh();
       } catch (e) {
-        toast.error((e as Error).message);
+        onError(e);
       }
     }
   });
 
-  const assignable = (Object.keys(ROLES) as OrgRole[]).filter((r) => r !== 'owner' || isOwner);
+  const assignable = ROLES.filter((r) => r !== 'owner' || isOwner);
 
   return (
     <div className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]'>
+      {mfaBlocked && <MfaStepNotice className='lg:col-span-2' />}
       <Card>
         <CardHeader>
-          <CardTitle>Membres ({members.length})</CardTitle>
-          <CardDescription>
-            Propriétaire et administrateur gèrent l’équipe ; éditeur modifie le contenu ; lecture
-            seule consulte.
-          </CardDescription>
+          <CardTitle>{t('members', { count: members.length })}</CardTitle>
+          <CardDescription>{t('membersDescription')}</CardDescription>
         </CardHeader>
         <CardContent className='divide-y'>
           {members.map((m) => {
@@ -120,15 +132,17 @@ export function TeamManager() {
                 </Avatar>
                 <div className='min-w-0 flex-1'>
                   <p className='truncate font-medium'>
-                    {m.fullName || m.email || 'Membre'}
-                    {m.userId === user.id && <span className='text-muted-foreground'> (vous)</span>}
+                    {m.fullName || m.email || t('member')}
+                    {m.userId === user.id && (
+                      <span className='text-muted-foreground'> {t('you')}</span>
+                    )}
                   </p>
                   <p className='text-muted-foreground truncate text-xs'>{m.email}</p>
                 </div>
                 {editable ? (
                   <>
                     <NativeSelect
-                      aria-label='Rôle'
+                      aria-label={t('role')}
                       className='h-8 text-xs'
                       value={m.role}
                       onChange={(e) =>
@@ -137,17 +151,17 @@ export function TeamManager() {
                     >
                       {assignable.map((r) => (
                         <NativeSelectOption key={r} value={r}>
-                          {ROLES[r]}
+                          {tRole(r)}
                         </NativeSelectOption>
                       ))}
                     </NativeSelect>
                     <Button
                       size='icon'
                       variant='ghost'
-                      aria-label='Retirer'
+                      aria-label={t('remove')}
                       onClick={() => {
                         if (
-                          window.confirm(`Retirer ${m.fullName || m.email} de l’organisation ?`)
+                          window.confirm(t('removeConfirm', { name: m.fullName || m.email || '' }))
                         ) {
                           removeMutation.mutate(m.userId);
                         }
@@ -157,7 +171,7 @@ export function TeamManager() {
                     </Button>
                   </>
                 ) : (
-                  <span className='text-muted-foreground text-sm'>{ROLES[m.role]}</span>
+                  <span className='text-muted-foreground text-sm'>{tRole(m.role)}</span>
                 )}
               </div>
             );
@@ -170,13 +184,13 @@ export function TeamManager() {
               <div className='min-w-0 flex-1'>
                 <p className='truncate font-medium'>{inv.email}</p>
                 <p className='text-muted-foreground text-xs'>
-                  Invitation en attente · {ROLES[inv.role]}
+                  {t('pendingInvitation', { role: tRole(inv.role) })}
                 </p>
               </div>
               <Button
                 size='icon'
                 variant='ghost'
-                aria-label='Annuler l’invitation'
+                aria-label={t('cancelInvitation')}
                 onClick={() => cancelMutation.mutate(inv.id)}
               >
                 <Icons.close className='size-4' />
@@ -189,10 +203,8 @@ export function TeamManager() {
       {canManage && (
         <Card className='h-fit'>
           <CardHeader>
-            <CardTitle>Ajouter un membre</CardTitle>
-            <CardDescription>
-              La personne doit d’abord avoir créé son compte LevelUp.
-            </CardDescription>
+            <CardTitle>{t('addTitle')}</CardTitle>
+            <CardDescription>{t('addDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -205,14 +217,14 @@ export function TeamManager() {
               <FieldGroup>
                 <form.AppField
                   name='email'
-                  children={(field) => <field.TextField label='E-mail' type='email' />}
+                  children={(field) => <field.TextField label={t('email')} type='email' />}
                 />
                 <form.AppField
                   name='role'
                   children={(field) => (
                     <field.SelectField
-                      label='Rôle'
-                      options={assignable.map((r) => ({ value: r, label: ROLES[r] }))}
+                      label={t('role')}
+                      options={assignable.map((r) => ({ value: r, label: tRole(r) }))}
                     />
                   )}
                 />
@@ -221,7 +233,7 @@ export function TeamManager() {
                 selector={(s) => s.isSubmitting}
                 children={(submitting) => (
                   <LoadingButton type='submit' loading={submitting} className='w-full'>
-                    Ajouter
+                    {t('add')}
                   </LoadingButton>
                 )}
               />

@@ -5,24 +5,24 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { useSiteMutations } from '../api/mutations';
 import { waitlistQueryOptions } from '../api/queries';
 import type { WaitlistStatus } from '../api/types';
 import { StatusSelect } from './status-select';
 import { useSiteScope } from './use-site-scope';
 
-const STATUS: Record<WaitlistStatus, string> = {
-  waiting: 'En attente',
-  called: 'Appelé',
-  in_chair: 'En cours',
-  served: 'Servi',
-  cancelled: 'Annulé'
-};
+const STATUSES: WaitlistStatus[] = ['waiting', 'called', 'in_chair', 'served', 'cancelled'];
 
 export function WaitlistBoard() {
   const scope = useSiteScope();
   const { data } = useSuspenseQuery(waitlistQueryOptions(createClient(), scope.websiteId));
   const { updateWaitlist } = useSiteMutations(scope);
+  const t = useTranslations('site.waitlist');
+  const statusLabels = Object.fromEntries(STATUSES.map((s) => [s, t(`status.${s}`)])) as Record<
+    WaitlistStatus,
+    string
+  >;
   const active = data
     .filter((e) => ['waiting', 'called', 'in_chair'].includes(e.status))
     .toSorted((a, b) => a.position - b.position);
@@ -43,9 +43,9 @@ export function WaitlistBoard() {
           </p>
         </div>
         <StatusSelect
-          label='Statut'
+          label={t('statusLabel')}
           value={e.status}
-          options={STATUS}
+          options={statusLabels}
           disabled={!scope.canEdit}
           onChange={(status) => updateWaitlist.mutate({ id: e.id, status })}
         />
@@ -56,7 +56,7 @@ export function WaitlistBoard() {
     <div className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
       <Card>
         <CardHeader>
-          <CardTitle>File actuelle ({active.length})</CardTitle>
+          <CardTitle>{t('current', { count: active.length })}</CardTitle>
         </CardHeader>
         <CardContent>
           {active.length ? (
@@ -64,10 +64,8 @@ export function WaitlistBoard() {
           ) : (
             <Empty>
               <EmptyHeader>
-                <EmptyTitle>Personne en attente</EmptyTitle>
-                <EmptyDescription>
-                  Ouvrez ou fermez la liste d’attente dans Paramètres du site (clé « waitlist »).
-                </EmptyDescription>
+                <EmptyTitle>{t('emptyTitle')}</EmptyTitle>
+                <EmptyDescription>{t('emptyDescription')}</EmptyDescription>
               </EmptyHeader>
             </Empty>
           )}
@@ -75,7 +73,7 @@ export function WaitlistBoard() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Récemment</CardTitle>
+          <CardTitle>{t('recent')}</CardTitle>
         </CardHeader>
         <CardContent>
           {done.length ? list(done) : <p className='text-muted-foreground text-sm'>—</p>}

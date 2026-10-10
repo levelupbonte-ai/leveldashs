@@ -1,5 +1,10 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// i18n without locale-prefixed routes: the locale comes from the NEXT_LOCALE cookie
+// (see src/i18n/request.ts and docs/i18n.md).
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
@@ -45,7 +50,7 @@ const baseConfig: NextConfig = {
   }
 };
 
-let configWithPlugins = baseConfig;
+let configWithPlugins = withNextIntl(baseConfig);
 
 // Conditionally enable Sentry configuration
 if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {

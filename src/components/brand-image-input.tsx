@@ -1,6 +1,8 @@
 'use client';
 import { useRef, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { uploadBrandImage } from '@/lib/brand-images';
@@ -24,6 +26,8 @@ export function BrandImageInput({
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const t = useTranslations('brandImage');
+  const errorMessage = useErrorMessage();
 
   async function pick(file: File | undefined) {
     if (!file) return;
@@ -31,7 +35,7 @@ export function BrandImageInput({
     try {
       await onChange(await uploadBrandImage(file, folder));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Envoi impossible.');
+      toast.error(errorMessage(e, 'uploadFailed'));
     } finally {
       setBusy(false);
       if (input.current) input.current.value = '';
@@ -68,7 +72,7 @@ export function BrandImageInput({
             ) : (
               <Icons.upload className='size-4' />
             )}
-            {value ? 'Changer' : 'Importer'}
+            {value ? t('change') : t('upload')}
           </Button>
           {value && (
             <Button
@@ -78,13 +82,11 @@ export function BrandImageInput({
               disabled={busy}
               onClick={() => void onChange(null)}
             >
-              Retirer
+              {t('remove')}
             </Button>
           )}
         </div>
-        <p className='text-muted-foreground text-xs'>
-          PNG, JPG ou WebP, redimensionné automatiquement.
-        </p>
+        <p className='text-muted-foreground text-xs'>{t('hint')}</p>
       </div>
       <input
         ref={input}

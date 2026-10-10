@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
@@ -6,10 +7,10 @@ import { safeNext } from '@/lib/auth/redirect';
 import { createClient } from '@/lib/supabase/server';
 import SignInViewPage from '@/features/auth/components/sign-in-view';
 
-export const metadata: Metadata = {
-  title: 'Connexion',
-  description: 'Connexion au tableau de bord LevelUp.'
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.signIn');
+  return { title: t('title'), description: t('metaDescription') };
+}
 
 export default async function Page(props: {
   searchParams: Promise<{ next?: string; error?: string }>;

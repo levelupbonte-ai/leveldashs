@@ -11,6 +11,7 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 /** Edits one JSON value; validates before saving. */
@@ -35,6 +36,7 @@ export function JsonEditorCard({
   const [text, setText] = useState(initial);
   const [error, setError] = useState<string | null>(null);
   const dirty = text !== initial;
+  const t = useTranslations('site.content');
 
   return (
     <Card>
@@ -70,15 +72,15 @@ export function JsonEditorCard({
                 if (text.length > 64000) throw new Error('too large');
                 onSave(parsed);
               } catch {
-                setError('Format invalide : vérifiez les guillemets, virgules et accolades.');
+                setError(t('invalidJson'));
               }
             }}
           >
-            Enregistrer
+            {t('save')}
           </Button>
           {dirty && (
             <Button size='sm' variant='ghost' onClick={() => setText(initial)}>
-              Annuler
+              {t('cancel')}
             </Button>
           )}
         </CardFooter>

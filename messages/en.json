@@ -1,0 +1,1120 @@
+{
+  "metadata": {
+    "app": {
+      "description": "Manage your website, bookings and customers in one place with LevelUp Ecosystem.",
+      "ogImageAlt": "LevelUp Dashboard — the LevelUp star"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "description": "Your LevelUp Ecosystem dashboard"
+    }
+  },
+  "common": {
+    "search": "Search…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "close": "Close",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "back": "Back",
+    "continue": "Continue",
+    "retry": "Try again",
+    "loading": "Loading…",
+    "copy": "Copy",
+    "copied": "Copied",
+    "none": "—",
+    "optional": "optional",
+    "skipToContent": "Skip to content",
+    "genericError": "Something went wrong. Please try again.",
+    "language": {
+      "label": "Language"
+    },
+    "userMenu": {
+      "profile": "Profile",
+      "billing": "Billing",
+      "notifications": "Notifications",
+      "siteSettings": "Website settings",
+      "signOut": "Sign out"
+    },
+    "kbar": {
+      "navigation": "Navigation",
+      "goTo": "Go to {page}",
+      "navigate": "navigate",
+      "open": "open",
+      "close": "close"
+    },
+    "theme": {
+      "label": "Theme",
+      "themes": "Themes",
+      "select": "Select a theme",
+      "toggle": "Toggle theme",
+      "switch": "Switch theme",
+      "toggleMode": "Toggle dark/light mode",
+      "setLight": "Use light mode",
+      "setDark": "Use dark mode"
+    },
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "editor": "Editor",
+      "viewer": "Viewer"
+    },
+    "noAccess": "You don’t have access to this page."
+  },
+  "orgSwitcher": {
+    "switchFailed": "Couldn’t switch. Please try again.",
+    "noOrganization": "No organization",
+    "getStarted": "Get started",
+    "staff": "LevelUp team",
+    "websites": "Websites",
+    "organizations": "Organizations",
+    "organizationsStaff": "Organizations (LevelUp team)",
+    "manage": "Manage organizations"
+  },
+  "nav": {
+    "groups": {
+      "mySite": "My website",
+      "overview": "Overview",
+      "elements": "Elements"
+    },
+    "items": {
+      "siteOverview": "Overview",
+      "assistant": "AI assistant",
+      "appointments": "Appointments",
+      "waitlist": "Waitlist",
+      "requests": "Requests",
+      "content": "Content",
+      "services": "Services",
+      "team": "Team",
+      "gallery": "Gallery",
+      "reviews": "Reviews",
+      "announcements": "Announcements",
+      "faq": "FAQ",
+      "media": "Media library",
+      "seo": "SEO",
+      "developers": "Developers",
+      "siteSettings": "Website settings",
+      "dashboard": "Dashboard",
+      "organizations": "Organizations",
+      "teamAccess": "Team & access",
+      "product": "Product",
+      "users": "Users",
+      "kanban": "Kanban",
+      "chat": "Chat",
+      "aiChat": "AI Chat",
+      "forms": "Forms",
+      "basicForm": "Basic form",
+      "multiStepForm": "Multi-step form",
+      "sheetDialog": "Sheet & dialog",
+      "advancedPatterns": "Advanced patterns",
+      "reactQuery": "React Query",
+      "icons": "Icons",
+      "account": "Account",
+      "profile": "Profile",
+      "notifications": "Notifications",
+      "billing": "Billing",
+      "home": "Home"
+    }
+  },
+  "admin": {
+    "nav": {
+      "levelupAdmin": "LevelUp admin",
+      "allClients": "All clients"
+    },
+    "page": {
+      "title": "All clients",
+      "description": "Websites managed by LevelUp"
+    },
+    "accessRequests": {
+      "title": "Access requests",
+      "description": "Approving a request creates the client’s organization (in their name) and makes them its owner. You can then add a website for them below.",
+      "empty": "No requests yet.",
+      "approved": "Access approved. The client has been notified by email.",
+      "rejected": "Request declined.",
+      "approve": "Approve",
+      "reject": "Decline",
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Declined"
+      }
+    },
+    "websites": {
+      "search": "Search a client or a domain…",
+      "website": "Website",
+      "organization": "Organization",
+      "status": "Status",
+      "features": "Features",
+      "manage": "Manage"
+    },
+    "newClient": {
+      "title": "New client",
+      "description": "Creates the organization, the website and its features, and invites the owner: they become owner as soon as they create their account with this (verified) email.",
+      "invalidDomain": "Invalid domain (e.g. salon.com)",
+      "invalidSiteType": "Lowercase letters and _ only (e.g. barbershop)",
+      "created": "Client created",
+      "siteCreated": "Website created: <id></id>",
+      "ownerInvited": "Invitation saved: the client needs to create their account with this email.",
+      "ownerAdded": "The owner has been added.",
+      "noOwner": "No owner invited.",
+      "tagHint": "The install snippet is under “Developers” once the website is selected.",
+      "business": "Business",
+      "businessPlaceholder": "Salon Élégance",
+      "websiteName": "Website name",
+      "domain": "Domain",
+      "siteType": "Website type",
+      "ownerEmail": "Owner’s email",
+      "features": "Features",
+      "submit": "Create client"
+    },
+    "ai": {
+      "title": "Artificial intelligence",
+      "description": "Models used by the LevelUp apps, from most to least used, and where each one runs. Every task tries the models in order and falls back to the next one on quota limits or outages. DeepSeek is the only paid provider.",
+      "offCatalog": "Not in catalog",
+      "paid": "Paid",
+      "free": "Free",
+      "calls": "{count, plural, one {# call} other {# calls}}",
+      "calls30d": "{count, plural, one {# call} other {# calls}} (30 d)",
+      "rankingDetail": "{provider} · {model} · 24 h: {day} · 7 d: {week}",
+      "lastCall": "last call {date}",
+      "last24h": "Last 24 hours",
+      "last7d": "Last 7 days",
+      "last30d": "Last 30 days",
+      "allTime": "All time",
+      "topModels": "Most used models (30 days)",
+      "noCalls": "No calls recorded yet.",
+      "neverCalled": "Never called so far: {models}.",
+      "whereUsed": "Where each AI is used",
+      "otherCalls": "Other recorded calls (not in catalog)",
+      "apps": {
+        "dashboard": "Dashboard",
+        "studio": "LevelStudio",
+        "showcase": "levelup-ecosystem.com",
+        "site": "Client website"
+      },
+      "tasks": {
+        "agents": "Assistant",
+        "writing": "Writing",
+        "reports": "Reports",
+        "site": "Brief summary",
+        "studio_chat": "Conversation",
+        "studio_build": "Page building",
+        "studio_review": "Review",
+        "vision": "Images and PDFs"
+      }
+    },
+    "projects": {
+      "title": "Project requests",
+      "description": "“Start a project” form on levelup-ecosystem.com. The AI gives an indicative score and opinion: check the links before offering a demo.",
+      "scoreTitle": "AI qualification score (0 to 100)",
+      "updated": "Request updated.",
+      "linkWebsite": "Website",
+      "linkSocial": "Social",
+      "linkProof": "Proof",
+      "contact": "Contact:",
+      "budget": "Budget / timeline:",
+      "registration": "Registration no.:",
+      "language": "Language:",
+      "fullBrief": "Full brief",
+      "statusLabel": "Follow-up status",
+      "notes": "Internal notes",
+      "notesPlaceholder": "Internal notes (visible to the LevelUp team)",
+      "save": "Save",
+      "lastReview": "Last follow-up {date}",
+      "aiModel": "AI review: {model}",
+      "empty": "No requests here.",
+      "tabs": {
+        "qualified": "Qualified",
+        "review": "To review",
+        "rejected": "Dismissed"
+      },
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "demo": "Demo",
+        "won": "Won",
+        "lost": "Lost",
+        "rejected": "Declined"
+      }
+    }
+  },
+  "mfaStep": {
+    "title": "Complete this step first",
+    "description": "Confirm your two-step verification code to make this change.",
+    "action": "Verify now"
+  },
+  "validation": {
+    "email": "Enter a valid email address.",
+    "nameRequired": "Enter a name.",
+    "required": "This field is required.",
+    "passwordRequired": "Enter your password.",
+    "fullName": "Enter your name.",
+    "passwordMin": "Use at least {min} characters.",
+    "passwordMax": "Use {max} characters or fewer.",
+    "passwordsMatch": "Passwords don’t match.",
+    "commonPassword": "This password is too common. Please choose another one.",
+    "url": "Enter a valid URL (https://…).",
+    "phone": "Enter a valid phone number.",
+    "code": "Enter the 6-digit code.",
+    "maxLength": "{max} characters maximum.",
+    "invalidJson": "Invalid JSON."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "loadFailed": "We couldn’t load this data. Please refresh the page.",
+    "loadMembers": "We couldn’t load the team members.",
+    "mfaRequired": "Confirm your two-step verification code first.",
+    "forbidden": "You don’t have permission to do this.",
+    "addMemberFailed": "We couldn’t add this person. Please try again.",
+    "keepOneOwner": "An organization must keep at least one owner.",
+    "updateRoleFailed": "We couldn’t change this role.",
+    "removeMemberFailed": "We couldn’t remove this member.",
+    "slugTaken": "This name is already taken. Try another one.",
+    "orgLimit": "You’ve reached the maximum number of organizations.",
+    "createOrgFailed": "We couldn’t create the organization. Please try again.",
+    "domainTaken": "This domain is already used by another website.",
+    "invalidDomain": "This domain or website type isn’t valid.",
+    "createFailed": "We couldn’t create it. Please try again.",
+    "cancelInvitationFailed": "We couldn’t cancel this invitation.",
+    "saveFailed": "We couldn’t save your changes. Please try again.",
+    "deleteFailed": "We couldn’t delete it. Please try again.",
+    "uploadFailed": "The upload didn’t work. Please try again.",
+    "network": "Connection problem. Check your internet and try again.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "imageUnreadable": "We couldn’t read this image.",
+    "imageFormat": "Accepted formats: PNG, JPG or WebP.",
+    "imageTooLarge": "This image is too large (8 MB max).",
+    "mfaEnrollFailed": "We couldn’t start the setup right now. Please try again.",
+    "mfaWrongCode": "Incorrect code. Enter the current code from your app.",
+    "mfaVerifyFailed": "We couldn’t verify the code. Please try again.",
+    "passkeyExists": "This device already has a passkey for this account.",
+    "passkeyDisabled": "Passkeys aren’t available right now.",
+    "alreadyExists": "This item already exists.",
+    "invalidValues": "Some values aren’t valid. Please check the form.",
+    "mediaFormat": "Unsupported format (images, PDF, MP4, WebM).",
+    "mediaTooLarge": "This file is too large (10 MB max).",
+    "uploadForbidden": "Upload failed: you need editor access to add files.",
+    "invalidOrigin": "One of the domains isn’t valid (use https://example.com)."
+  },
+  "workspaces": {
+    "title": "Organizations",
+    "description": "Your businesses and the websites linked to them",
+    "created": "Organization created",
+    "empty": "You’re not a member of any organization yet. If LevelUp manages your website, ask us to add you using this account’s email.",
+    "staffAccess": "LevelUp team access",
+    "active": "Active",
+    "open": "Open",
+    "newTitle": "New organization",
+    "newDescription": "For your business. The LevelUp team then links your website to it.",
+    "name": "Name",
+    "namePlaceholder": "My business",
+    "create": "Create"
+  },
+  "team": {
+    "title": "Team & access",
+    "description": "Who can manage {name}",
+    "descriptionNoOrg": "Members of your organization",
+    "invitationCancelled": "Invitation cancelled",
+    "roleUpdated": "Role updated",
+    "memberRemoved": "Member removed",
+    "memberAdded": "Member added",
+    "invited": "Invitation saved: they’ll join the team when they create their account with this email.",
+    "members": "Members ({count})",
+    "membersDescription": "Owners and admins manage the team, editors update content, viewers have read-only access.",
+    "member": "Member",
+    "you": "(you)",
+    "role": "Role",
+    "remove": "Remove",
+    "removeConfirm": "Remove {name} from the organization?",
+    "pendingInvitation": "Pending invitation · {role}",
+    "cancelInvitation": "Cancel invitation",
+    "addTitle": "Add a member",
+    "addDescription": "They need a LevelUp account first.",
+    "email": "Email",
+    "add": "Add"
+  },
+  "billing": {
+    "title": "Billing",
+    "description": "Subscription",
+    "descriptionOrg": "{name}’s subscription",
+    "cardTitle": "Your LevelUp subscription",
+    "cardDescription": "Billing is handled directly by the LevelUp team.",
+    "contact": "To change your plan, add a feature to your website or get an invoice, email us at <email></email>."
+  },
+  "info": {
+    "workspaces": {
+      "title": "Organizations",
+      "principleTitle": "How it works",
+      "principle": "An organization represents your business. Your websites, team and files belong to it, and nobody outside the organization can see them.",
+      "switchTitle": "Switching organizations",
+      "switch": "Use the switcher at the top of the sidebar to move between organizations and websites."
+    },
+    "team": {
+      "title": "Team & access",
+      "rolesTitle": "Roles",
+      "roles": "Owner: full access, including making other people owners. Admin: manages the team and settings. Editor: updates content, appointments and requests. Viewer: read-only.",
+      "addTitle": "Adding someone",
+      "add": "They first create their LevelUp account (Create an account page), then an admin adds them here with their email."
+    },
+    "billing": {
+      "title": "Billing",
+      "subscriptionTitle": "Subscription",
+      "subscription": "Your subscription and your website’s features are managed by the LevelUp team. Contact us for any change.",
+      "contact": "Email LevelUp"
+    }
+  },
+  "emails": {
+    "buttonFallback": "Button not working? Copy this link into your browser:",
+    "auth": {
+      "signup": {
+        "subject": "Confirm your LevelUp account",
+        "title": "Welcome to LevelUp",
+        "intro": "Confirm your email address to activate your account.",
+        "cta": "Confirm my email",
+        "outro": "If you didn’t create an account, you can safely ignore this email."
+      },
+      "magiclink": {
+        "subject": "Your LevelUp sign-in link",
+        "title": "Sign in to LevelUp",
+        "intro": "Click the button below to sign in. The link can only be used once.",
+        "cta": "Sign in",
+        "outro": "If you didn’t request this link, you can ignore this email: your account is still secure."
+      },
+      "recovery": {
+        "subject": "Reset your LevelUp password",
+        "title": "Choose a new password",
+        "intro": "You asked to change your password. Choose a new one here:",
+        "cta": "Choose a new password",
+        "outro": "If you didn’t request this, you can ignore this email: nothing will change."
+      },
+      "invite": {
+        "subject": "You’ve been invited to LevelUp",
+        "title": "LevelUp invitation",
+        "intro": "You’ve been invited to join a LevelUp workspace. Accept the invitation to get started.",
+        "cta": "Accept invitation",
+        "outro": "If you weren’t expecting this invitation, you can ignore this email."
+      },
+      "email_change": {
+        "subject": "Confirm your new email address",
+        "title": "Email address change",
+        "intro": "Confirm this email address change for your LevelUp account.",
+        "cta": "Confirm the change",
+        "outro": "If you didn’t make this change, contact us right away."
+      },
+      "reauthentication": {
+        "subject": "Your LevelUp verification code",
+        "title": "Verification code",
+        "intro": "Use this code to confirm your action:",
+        "outro": "If you didn’t request anything, change your password."
+      },
+      "password_changed_notification": {
+        "subject": "Your LevelUp password was changed",
+        "title": "Password changed",
+        "intro": "The password of your LevelUp account was just changed.",
+        "outro": "If this wasn’t you, reset your password and contact us right away."
+      },
+      "email_changed_notification": {
+        "subject": "Your LevelUp account email has changed",
+        "title": "Email address changed",
+        "intro": "The email address linked to your LevelUp account has been changed.",
+        "outro": "If this wasn’t you, contact us right away."
+      }
+    },
+    "accessApproved": {
+      "subject": "Your LevelUp dashboard access is approved",
+      "title": "Welcome to your dashboard",
+      "line1": "The LevelUp team has approved your request.",
+      "line2": "You can now sign in to manage your website, appointments and requests.",
+      "cta": "Open my dashboard"
+    },
+    "accessRejected": {
+      "subject": "Your LevelUp access request",
+      "title": "We couldn’t approve your request",
+      "line1": "We can’t open dashboard access for this request at the moment.",
+      "line2": "If you think this is a mistake, or if you’d like a website with LevelUp, just email contact@levelup-ecosystem.com."
+    },
+    "accessRequestTeam": {
+      "subject": "Dashboard access request: {business}",
+      "title": "New access request",
+      "business": "Business: {value}",
+      "account": "Account: {value}",
+      "website": "Website: {value}",
+      "phone": "Phone: {value}",
+      "message": "Message: {value}",
+      "cta": "Review the request"
+    }
+  },
+  "brandImage": {
+    "change": "Change",
+    "upload": "Upload",
+    "remove": "Remove",
+    "hint": "PNG, JPG or WebP, resized automatically."
+  },
+  "auth": {
+    "shell": {
+      "quote": "Everything your business needs online, managed in one place."
+    },
+    "signIn": {
+      "title": "Sign in",
+      "description": "Access your website’s dashboard.",
+      "metaDescription": "Sign in to your LevelUp dashboard.",
+      "noAccount": "Don’t have an account?",
+      "createAccount": "Create an account"
+    },
+    "signUp": {
+      "title": "Create an account",
+      "description": "Your LevelUp account to manage your website, bookings and requests.",
+      "metaDescription": "Create your LevelUp account.",
+      "haveAccount": "Already have an account?",
+      "signIn": "Sign in"
+    },
+    "form": {
+      "lastUsed": "Last used",
+      "callbackFailed": "Sign-in didn’t work. Please try again.",
+      "captcha": "Please confirm you’re not a robot (check above).",
+      "emailNotConfirmed": "Confirm your email address (check the link we sent you), then sign in again.",
+      "wrongCredentials": "Incorrect email or password.",
+      "weakPassword": "This password is too weak. Choose a longer one.",
+      "signUpFailed": "We couldn’t create your account. Please check your details.",
+      "passkeyNotFound": "No passkey found for this account. Sign in with your password, then add a passkey in Profile → Security.",
+      "passkeyFailed": "Passkey sign-in didn’t work. Try again or use your password.",
+      "googleFailed": "Google sign-in didn’t work. Please try again.",
+      "googleUnavailable": "Google sign-in is unavailable right now.",
+      "passkey": "Continue with a passkey",
+      "otherMethods": "Other sign-in options",
+      "orEmail": "or with email",
+      "fullName": "Full name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "signIn": "Sign in",
+      "signUp": "Create my account",
+      "forgot": "Forgot your password?"
+    },
+    "google": {
+      "continue": "Continue with Google",
+      "loading": "Loading Google sign-in…"
+    },
+    "steps": {
+      "label": "Account setup steps",
+      "account": "Account",
+      "email": "Email",
+      "profile": "Profile",
+      "approval": "Approval",
+      "waiting": "(waiting)"
+    },
+    "signOut": {
+      "label": "Sign out",
+      "loading": "Signing out…"
+    },
+    "captcha": {
+      "unavailable": "Bot check unavailable. Please reload the page."
+    },
+    "emailSent": {
+      "tipValidity": "The link is valid for one hour and works only once.",
+      "tipSpam": "Nothing yet? Check your spam or promotions folder.",
+      "tipSender": "The email comes from LevelUp Ecosystem (levelup-ecosystem.com).",
+      "resendIn": "Resend email in {seconds} s",
+      "resend": "Resend email",
+      "resent": "We’ve just sent a new email.",
+      "changeEmail": "Use a different email",
+      "backToSignIn": "Back to sign in"
+    },
+    "signupSent": {
+      "verified": "Email verified",
+      "next": "Moving to the next step…",
+      "title": "Confirm your email address",
+      "description": "To activate your account, click the link we just sent to",
+      "waiting": "You can open the link on your phone: this page will continue on its own.",
+      "stopped": "Automatic checking has stopped. Did you click the link?",
+      "signInToContinue": "Sign in with your new password to continue.",
+      "checkNow": "Check now"
+    },
+    "verified": {
+      "metaTitle": "Email verified",
+      "title": "Congratulations, your email is verified",
+      "description": "Your LevelUp account is active.",
+      "goBack": "Go back to the device where you started signing up to continue.",
+      "goBackHint": "The sign-up page you left open moves on to the next step (your profile) by itself. You can close this window.",
+      "continueHere": "Continue here"
+    },
+    "forgot": {
+      "title": "Forgot your password",
+      "description": "Enter your account’s email and we’ll send you a link to choose a new password.",
+      "metaDescription": "Get a link to choose a new password.",
+      "captcha": "Please confirm you’re not a robot.",
+      "rateLimited": "Too many requests right now. Please try again in a few minutes.",
+      "sentTitle": "Link sent",
+      "sentDescription": "If a LevelUp account exists for this address, we’ve sent a reset link to",
+      "emailLabel": "Account email",
+      "emailPlaceholder": "you@example.com",
+      "submit": "Send the link",
+      "backToSignIn": "Back to sign in"
+    },
+    "reset": {
+      "title": "New password",
+      "metaDescription": "Choose a new password for your LevelUp account.",
+      "descriptionFor": "Choose a new password for {email}.",
+      "expiredTitle": "Link expired",
+      "expiredDescription": "This reset link is no longer valid. Request a new one.",
+      "backToSignIn": "Back to sign in",
+      "samePassword": "Choose a password different from your current one.",
+      "weakPassword": "This password is too weak. Choose a longer, less common one.",
+      "failed": "We couldn’t change your password. Request a new link.",
+      "updated": "Password updated.",
+      "newPassword": "New password",
+      "confirm": "Confirm password",
+      "submit": "Save password"
+    },
+    "mfa": {
+      "title": "Two-step verification",
+      "description": "Enter the 6-digit code from your authenticator app.",
+      "metaDescription": "Confirm your sign-in with your authenticator app.",
+      "noFactor": "No authenticator app found. Please sign in again.",
+      "wrongCode": "Incorrect or expired code. Try again with the current code.",
+      "failed": "We couldn’t verify the code right now. Please try again.",
+      "codeLabel": "Verification code",
+      "submit": "Verify",
+      "otherAccount": "Use another account",
+      "lostAccess": "Lost access to your app? Email <email></email>."
+    },
+    "onboarding": {
+      "metaTitle": "Finish setting up",
+      "metaDescription": "Your profile and your access to the LevelUp dashboard.",
+      "title": "Finish setting up your account",
+      "description": "A few details to personalize your workspace.",
+      "editTitle": "Edit your request",
+      "editDescription": "Update the details sent to the LevelUp team.",
+      "businessRequired": "Enter your business name.",
+      "saveFailed": "We couldn’t save this. Please try again.",
+      "unverified": "Confirm your email address first.",
+      "sendFailed": "We couldn’t send your request. Please try again.",
+      "alreadyPending": "Your request is already being reviewed: your changes update it, you don’t start over.",
+      "accessIntro": "The dashboard is for LevelUp clients. Tell us about your business and we’ll review your access quickly.",
+      "business": "Business name",
+      "website": "Current website (optional)",
+      "phone": "Phone (optional)",
+      "project": "Your project (optional)",
+      "update": "Update my request",
+      "requestAccess": "Request access",
+      "cancel": "Cancel",
+      "photo": "Photo or logo (optional)",
+      "fullName": "Full name",
+      "finish": "Finish",
+      "continue": "Continue",
+      "signedInAs": "Signed in as {email}.",
+      "switchAccount": "Switch account"
+    },
+    "pending": {
+      "metaTitle": "Account under review",
+      "metaDescription": "Your request to access the LevelUp dashboard.",
+      "title": "Your account is being reviewed",
+      "description": "Thanks for your request. The LevelUp team reviews every dashboard account before opening access.",
+      "yourBusiness": "Your business",
+      "submittedOn": "Request sent on {date}",
+      "submitted": "Request sent",
+      "delayTitle": "Typical review time",
+      "delay": "Usually within 1 business day (Monday to Friday).",
+      "emailTitle": "What happens next",
+      "email": "You’ll receive an email at <email></email> as soon as your access is ready.",
+      "edit": "Edit request",
+      "question": "Questions?"
+    },
+    "rejected": {
+      "title": "We couldn’t approve your request",
+      "description": "The dashboard is reserved for LevelUp clients. If you’d like a website with LevelUp or think this is a mistake, get in touch and we’ll reply quickly.",
+      "yourBusiness": "Your business",
+      "contact": "Contact LevelUp"
+    }
+  },
+  "profile": {
+    "title": "My profile",
+    "description": "Your name, password and account security",
+    "saveFailed": "We couldn’t save this. Please try again.",
+    "photoUpdated": "Photo updated",
+    "photoRemoved": "Photo removed",
+    "logoUpdated": "Logo updated",
+    "logoRemoved": "Logo removed",
+    "profileUpdated": "Profile updated",
+    "samePassword": "Choose a password different from your current one.",
+    "weakPassword": "This password is too weak.",
+    "passwordFailed": "We couldn’t change your password. Sign in again and retry.",
+    "passwordChanged": "Password changed",
+    "resetHint": "Choose your new password below.",
+    "info": "Details",
+    "photo": "Profile photo",
+    "fullName": "Full name",
+    "save": "Save",
+    "logoTitle": "{name} logo",
+    "logoDescription": "Shown at the top of the dashboard for your whole team.",
+    "logo": "Logo",
+    "password": "Password",
+    "passwordHint": "At least 10 characters.",
+    "newPassword": "New password",
+    "confirm": "Confirm password",
+    "changePassword": "Change password",
+    "security": {
+      "title": "Security",
+      "description": "Two-step verification with an authenticator app (6-digit code) and your active sessions.",
+      "enabledToast": "Two-step verification is on",
+      "removedToast": "Authenticator app removed",
+      "step1": "Open your authenticator app (Google Authenticator, 1Password, Microsoft Authenticator…).",
+      "step2": "Scan this QR code or enter the key manually.",
+      "step3": "Enter the 6-digit code it shows to confirm.",
+      "qrAlt": "QR code to scan with your authenticator app",
+      "setupKey": "Setup key",
+      "keyCopied": "Key copied",
+      "copyKey": "Copy key",
+      "codeLabel": "Verification code",
+      "enable": "Turn on",
+      "cancel": "Cancel",
+      "factorName": "Authenticator app ({date})",
+      "twoStep": "Two-step verification",
+      "on": "On",
+      "off": "Off",
+      "addApp": "Add an app",
+      "setUp": "Set up",
+      "loadFailed": "We couldn’t load your security settings. Please refresh the page.",
+      "app": "Authenticator app",
+      "addedOn": "Added on {date}",
+      "remove": "Remove",
+      "offHint": "Add a second step to your sign-in: even with your password, nobody can sign in without the code from your phone.",
+      "sessions": "Sessions",
+      "sessionsHint": "Signs this account out on all your devices and every LevelUp app.",
+      "signOutAll": "Sign out of all devices",
+      "removeTitle": "Remove this app?",
+      "removeOther": "It will no longer be used to confirm your sign-ins.",
+      "removeLast": "This is your only app: two-step verification will be turned off.",
+      "signOutAllTitle": "Sign out of all your devices?",
+      "signOutAllDescription": "All your sessions will end, including this one. You’ll need to sign in again.",
+      "signOutAllConfirm": "Sign out everywhere"
+    },
+    "passkeys": {
+      "renamed": "Passkey renamed",
+      "renameTitle": "Rename passkey",
+      "renameDescription": "A name to recognize it (e.g. “iPhone”, “MacBook”).",
+      "name": "Name",
+      "cancel": "Cancel",
+      "save": "Save",
+      "added": "Passkey added",
+      "deleted": "Passkey deleted",
+      "description": "Sign in without a password using Face ID, Touch ID, Windows Hello or your phone’s screen lock.",
+      "add": "Add a passkey",
+      "unsupported": "This browser doesn’t support passkeys.",
+      "loadFailed": "We couldn’t load your passkeys.",
+      "empty": "No passkeys yet. Add one on each device you use.",
+      "addedOn": "Added on {date}",
+      "usedOn": "used on {date}",
+      "neverUsed": "never used",
+      "rename": "Rename",
+      "delete": "Delete",
+      "deleteTitle": "Delete this passkey?",
+      "deleteDescription": "It can no longer be used to sign in. Also remove it from the device’s password manager."
+    }
+  },
+  "setup": {
+    "title": "Finish setting up your account",
+    "description": "A few quick steps to get the most out of your dashboard.",
+    "progress": "{done} of {total} done",
+    "done": "Done",
+    "todo": "To do",
+    "dismiss": "Hide this step",
+    "tasks": {
+      "profile": {
+        "title": "Complete your profile",
+        "description": "Add your name so your team knows who made each change.",
+        "action": "Edit profile"
+      },
+      "logo": {
+        "title": "Add your logo",
+        "description": "Shown at the top of the dashboard for your whole team.",
+        "action": "Add logo"
+      },
+      "mfa": {
+        "title": "Enable two-step verification",
+        "description": "Confirm each sign-in with a 6-digit code from an authenticator app.",
+        "action": "Set up"
+      }
+    }
+  },
+  "site": {
+    "pages": {
+      "overview": {
+        "title": "My website",
+        "description": "Overview"
+      },
+      "appointments": {
+        "title": "Appointments",
+        "description": "Bookings made on your website"
+      },
+      "waitlist": {
+        "title": "Waitlist",
+        "description": "Customers waiting in line"
+      },
+      "requests": {
+        "title": "Requests",
+        "description": "Contact, quote and sign-up forms"
+      },
+      "media": {
+        "title": "Media library",
+        "description": "Your website’s images and files"
+      },
+      "seo": {
+        "title": "SEO",
+        "description": "Google visibility and link previews"
+      },
+      "settings": {
+        "title": "Website settings",
+        "description": "Contact details, hours and texts"
+      },
+      "developers": {
+        "title": "Developers",
+        "description": "Connect your website to LevelUp"
+      },
+      "assistant": {
+        "title": "AI assistant",
+        "description": "Questions, copywriting and help with your website"
+      }
+    },
+    "unavailable": {
+      "noWebsiteTitle": "No website yet",
+      "noWebsite": "The LevelUp team will connect your website to this dashboard.",
+      "disabledTitle": "Feature not enabled",
+      "disabled": "This feature isn’t enabled for this website. Contact LevelUp to add it."
+    },
+    "overview": {
+      "pendingAppointments": "Appointments to confirm",
+      "upcoming": "{count} upcoming",
+      "waiting": "In the waitlist",
+      "waitingHint": "Live updates",
+      "newRequests": "New requests",
+      "newRequestsHint": "Contact, quotes, sign-ups",
+      "files": "Files",
+      "filesHint": "Media library"
+    },
+    "content": {
+      "search": "Search…",
+      "add": "Add",
+      "noResults": "No results",
+      "nothingYet": "Nothing here yet",
+      "tryAnother": "Try another search.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleted": "Deleted",
+      "deleteTitle": "Delete this item?",
+      "deleteDescription": "“{name}” will be removed from your website. To hide it without deleting it, set it to draft.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Changes saved",
+      "added": "Item added",
+      "editTitle": "Edit: {name}",
+      "tagsPlaceholder": "Type, then press Enter…",
+      "choose": "Choose",
+      "imageHint": "Upload a file (10 MB max) or paste an https link.",
+      "upload": "Upload",
+      "chooseImage": "Choose an image",
+      "notes": "Internal notes",
+      "notesFor": "Notes · {name}",
+      "notesDescription": "Internal notes, visible only to your team.",
+      "loading": "Loading…",
+      "loadMore": "Load more",
+      "invalidJson": "Invalid format: check the quotes, commas and braces."
+    },
+    "validation": {
+      "https": "Enter an https:// link.",
+      "number": "Enter a valid number.",
+      "amount": "Enter a valid amount.",
+      "required": "Required",
+      "date": "Enter a valid date.",
+      "tooLong": "Too long."
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "commonFields": {
+      "status": "Status",
+      "sort_order": "Display order",
+      "sort_orderHint": "Lower numbers appear first."
+    },
+    "collections": {
+      "services": {
+        "title": "Services",
+        "description": "Your services, prices and durations shown on your website.",
+        "addTitle": "Add a service",
+        "empty": "Add your first service: it will appear on your website once published.",
+        "fields": {
+          "name": "Name",
+          "category": "Category",
+          "description": "Description",
+          "price_cents": "Price",
+          "price_label": "Displayed price",
+          "duration_minutes": "Duration (minutes)",
+          "badge": "Badge",
+          "featured": "Featured",
+          "inclusions": "Included",
+          "image_url": "Image"
+        },
+        "hints": {
+          "price_cents": "Used for bookings.",
+          "price_label": "E.g. “From $35”."
+        }
+      },
+      "team": {
+        "title": "Team",
+        "description": "The team members featured on your website.",
+        "addTitle": "Add a team member",
+        "empty": "Add your first team member: they’ll appear on your website once published.",
+        "fields": {
+          "name": "Name",
+          "role": "Role",
+          "bio": "Bio",
+          "phone": "Phone",
+          "email": "Email",
+          "tags": "Specialties",
+          "image_url": "Photo"
+        },
+        "hints": {}
+      },
+      "gallery": {
+        "title": "Gallery",
+        "description": "The photos in your gallery.",
+        "addTitle": "Add a photo",
+        "empty": "Add your first photo: it will appear on your website once published.",
+        "fields": {
+          "image_url": "Image",
+          "title": "Title",
+          "description": "Description",
+          "category": "Category",
+          "tags": "Keywords"
+        },
+        "hints": {}
+      },
+      "reviews": {
+        "title": "Reviews",
+        "description": "The testimonials shown on your website.",
+        "addTitle": "Add a review",
+        "empty": "Add your first review: it will appear on your website once published.",
+        "fields": {
+          "author": "Author",
+          "rating": "Rating",
+          "comment": "Comment",
+          "review_date": "Date",
+          "source": "Source"
+        },
+        "hints": {
+          "source": "E.g. Google, Yelp."
+        }
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Frequently asked questions.",
+        "addTitle": "Add a question",
+        "empty": "Add your first question: it will appear on your website once published.",
+        "fields": {
+          "question": "Question",
+          "answer": "Answer",
+          "category": "Category"
+        },
+        "hints": {}
+      },
+      "announcements": {
+        "title": "Announcements",
+        "description": "News, promotions and articles.",
+        "addTitle": "Add an announcement",
+        "empty": "Add your first announcement: it will appear on your website once published.",
+        "fields": {
+          "title": "Title",
+          "content": "Content",
+          "image_url": "Image",
+          "published_at": "Published on",
+          "expires_at": "Expires on"
+        },
+        "hints": {}
+      }
+    },
+    "appointments": {
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "all": "All",
+      "emptyTitle": "No appointments",
+      "emptyDescription": "Bookings made on your website will appear here.",
+      "date": "Date",
+      "customer": "Customer",
+      "service": "Service",
+      "statusLabel": "Status",
+      "statusAria": "Appointment status",
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "no_show": "No-show"
+      }
+    },
+    "waitlist": {
+      "statusLabel": "Status",
+      "current": "Current line ({count})",
+      "emptyTitle": "No one is waiting",
+      "emptyDescription": "Open or close the waitlist in Website settings (“waitlist” key).",
+      "recent": "Recent",
+      "status": {
+        "waiting": "Waiting",
+        "called": "Called",
+        "in_chair": "In progress",
+        "served": "Served",
+        "cancelled": "Cancelled"
+      }
+    },
+    "requests": {
+      "open": "To handle",
+      "all": "All",
+      "emptyTitle": "No requests",
+      "emptyDescription": "Forms sent from your website (contact, quotes, sign-ups) arrive here.",
+      "noName": "No name",
+      "note": "Note: {note}",
+      "statusAria": "Request status",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "in_progress": "In progress",
+        "quoted": "Quote sent",
+        "won": "Won",
+        "lost": "Lost",
+        "closed": "Closed",
+        "spam": "Spam"
+      },
+      "types": {
+        "contact": "Contact",
+        "quote": "Quote",
+        "vip_signup": "VIP",
+        "newsletter": "Newsletter",
+        "registration": "Sign-up",
+        "preview_request": "Preview request"
+      }
+    },
+    "media": {
+      "linkCopied": "Link copied",
+      "rejected": "File rejected: unsupported format or larger than 10 MB.",
+      "uploading": "Uploading ({count})…",
+      "drop": "Drop your files here or click to browse",
+      "formats": "Images, PDF, MP4/WebM videos · 10 MB max.",
+      "emptyTitle": "No files",
+      "emptyDescription": "Your website’s images will be stored here.",
+      "copyLink": "Copy link",
+      "deleteConfirm": "Delete this file? It will disappear from the pages that use it.",
+      "deleted": "File deleted"
+    },
+    "settings": {
+      "settingsTab": "Settings",
+      "contentTab": "Page texts",
+      "hint": "Only change the values inside quotes. Changes go live as soon as you save.",
+      "private": "private",
+      "saved": "Saved",
+      "noSettings": "No settings.",
+      "mustBeObject": "The content must be a JSON object.",
+      "noContent": "No content.",
+      "help": {
+        "contact": "Phone numbers, address and Google Maps link.",
+        "hours": "Opening hours shown on your website.",
+        "booking": "Booking slots and minimum notice.",
+        "waitlist": "{open} opens the waitlist.",
+        "social": "Links to your social profiles.",
+        "branding": "Name, logo and colors.",
+        "seo": "Title and description for Google."
+      }
+    },
+    "seo": {
+      "invalidCode": "Invalid code",
+      "saved": "SEO saved",
+      "title": "Google search",
+      "description": "Applied automatically by the LevelUp tag on your website: title, description, link preview and business profile (schema.org) with your contact details, hours and reviews.",
+      "enabled": "Enable LevelUp SEO",
+      "enabledHint": "Turn off if your website already manages its own tags.",
+      "metaTitle": "Title (Google)",
+      "metaTitlePlaceholder": "Barber in San Diego | Final Stop",
+      "metaTitleHint": "50 to 60 characters: business + city + name.",
+      "metaDescription": "Description",
+      "metaDescriptionHint": "140 to 160 characters, with a call to action.",
+      "keywords": "Keywords",
+      "keywordsPlaceholder": "Type, then press Enter…",
+      "image": "Share image",
+      "imageHint": "1200 × 630 px. Copy a link from the Media library.",
+      "businessName": "Business name",
+      "businessType": "Business type",
+      "verification": "Google Search Console code",
+      "verificationHint": "The content of the google-site-verification tag.",
+      "save": "Save",
+      "tagNotice": "The LevelUp tag must be installed on your website (Developers tab). Google reads these tags; some social networks (Facebook, WhatsApp) only read the original HTML.",
+      "pages": "Pages",
+      "pagesHint": "Title and description per page, e.g. {example}",
+      "pagesFormat": "Expected format: {example}"
+    },
+    "developers": {
+      "installTitle": "1. Install the LevelUp tag",
+      "installDescription": "Paste this line once, right before <code></code>, on every page of your website (WordPress, Wix, Shopify, Webflow: “custom code” field). Then SEO, content and forms are managed from here.",
+      "siteId": "Public website ID: <id></id>. It isn’t secret: it only gives access to content that is already public and only works on allowed domains.",
+      "formsTitle": "2. Forms",
+      "formsDescription": "Add <code>data-lu-form</code> to an existing form: submissions arrive in “Requests”. Types: contact, quote, newsletter, vip_signup, registration.",
+      "contentTitle": "3. Content and badge",
+      "contentDescription": "An element with <code>data-lu</code> shows a value managed in the dashboard (text only). <code>data-lu-badge</code> shows the “Built by LevelUp” credit.",
+      "statusTitle": "Installation status",
+      "active": "Active",
+      "notDetected": "Not detected",
+      "lastSeen": "Last visit detected on {date} on {origin}{version}.",
+      "neverSeen": "No visit detected yet. Open your website after installing the tag, then refresh this page.",
+      "check": "Check",
+      "originsTitle": "Allowed domains",
+      "originsDescription": "Only these domains can send forms, bookings and sign-ups for this website.",
+      "originsContact": "Contact LevelUp to change them.",
+      "originsSaved": "Domains saved",
+      "save": "Save",
+      "allOrigins": "All domains (unrestricted).",
+      "serverKeysTitle": "Server keys",
+      "serverKeysDescription": "To connect a back office or an app to LevelUp from a server, ask LevelUp for a secret key. It must never appear in a web page’s code."
+    }
+  },
+  "assistant": {
+    "noAnswer": "I don’t have an answer right now.",
+    "title": "{name} assistant",
+    "intro": "Ask about your business, request a text or get help with the dashboard. The assistant never sees your customers’ contact details.",
+    "suggestions": {
+      "week": "Summarize my week",
+      "service": "Write a better description for my main service",
+      "seo": "Suggest a Google title and description for my website",
+      "team": "How do I add a member to my team?"
+    },
+    "thinking": "The assistant is thinking…",
+    "message": "Your message",
+    "placeholder": "Type your question…",
+    "send": "Send",
+    "remaining": "{count, plural, one {# message} other {# messages}} left today",
+    "limit": "You’ve reached today’s assistant limit. Please try again tomorrow.",
+    "unavailable": "The assistant is temporarily unavailable. Please try again in a moment.",
+    "applied": "Change saved.",
+    "appliedBadge": "Applied",
+    "applying": "Saving…",
+    "apply": "Apply",
+    "proposal": {
+      "service": "Service: {name}",
+      "faq": "New FAQ question",
+      "seo": "Website SEO",
+      "description": "Description",
+      "priceLabel": "Displayed price",
+      "question": "Question",
+      "answer": "Answer",
+      "title": "Title"
+    },
+    "weekly": {
+      "title": "This week",
+      "description": "Your last 7 days in a few lines. Only numbers are analyzed, never your customers’ contact details.",
+      "refresh": "Refresh",
+      "generate": "Generate",
+      "limit": "You’ve reached today’s AI limit. Please try again tomorrow.",
+      "unavailable": "The summary is temporarily unavailable. Please try again in a moment."
+    }
+  }
+}

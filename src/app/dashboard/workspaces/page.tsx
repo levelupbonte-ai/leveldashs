@@ -1,15 +1,21 @@
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import PageContainer from '@/components/layout/page-container';
-import { workspacesInfoContent } from '@/config/infoconfig';
+import { getWorkspacesInfoContent } from '@/config/infoconfig';
 import { WorkspacesView } from '@/features/organizations/components/workspaces-view';
 
-export const metadata = { title: 'Organisations' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('workspaces');
+  return { title: t('title') };
+}
 
-export default function WorkspacesPage() {
+export default async function WorkspacesPage() {
+  const t = await getTranslations('workspaces');
   return (
     <PageContainer
-      pageTitle='Organisations'
-      pageDescription='Vos entreprises et les sites qui y sont reliés'
-      infoContent={workspacesInfoContent}
+      pageTitle={t('title')}
+      pageDescription={t('description')}
+      infoContent={await getWorkspacesInfoContent()}
     >
       <WorkspacesView />
     </PageContainer>

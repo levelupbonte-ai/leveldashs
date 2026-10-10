@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ export function EmailSent({
   description,
   onResend,
   backHref = '/auth/sign-in',
-  backLabel = 'Retour à la connexion',
+  backLabel,
   onChangeEmail,
   captcha: sharedCaptcha,
   children
@@ -34,6 +35,7 @@ export function EmailSent({
   /** Extra content under the description (e.g. automatic verification status). */
   children?: React.ReactNode;
 }) {
+  const t = useTranslations('auth.emailSent');
   const ownCaptcha = useCaptcha();
   const captcha = sharedCaptcha ?? ownCaptcha;
   const [wait, setWait] = useState(COOLDOWN_SECONDS);
@@ -72,9 +74,9 @@ export function EmailSent({
       </div>
       {children}
       <ul className='text-muted-foreground space-y-1.5 rounded-lg border p-3 text-xs'>
-        <li>Le lien est valable une heure et ne fonctionne qu’une fois.</li>
-        <li>Rien reçu ? Regardez dans les courriers indésirables ou les promotions.</li>
-        <li>L’e-mail vient de LevelUp Ecosystem (levelup-ecosystem.com).</li>
+        <li>{t('tipValidity')}</li>
+        <li>{t('tipSpam')}</li>
+        <li>{t('tipSender')}</li>
       </ul>
       <TurnstileWidget {...captcha.widgetProps} />
       <Button
@@ -87,16 +89,12 @@ export function EmailSent({
         {sending ? (
           <Icons.spinner className='size-4 animate-spin' aria-hidden />
         ) : wait > 0 ? (
-          `Renvoyer l’e-mail dans ${wait} s`
+          t('resendIn', { seconds: wait })
         ) : (
-          'Renvoyer l’e-mail'
+          t('resend')
         )}
       </Button>
-      {resent && (
-        <p className='text-muted-foreground text-center text-xs'>
-          Un nouvel e-mail vient d’être envoyé.
-        </p>
-      )}
+      {resent && <p className='text-muted-foreground text-center text-xs'>{t('resent')}</p>}
       <div className='flex items-center justify-between text-sm'>
         {onChangeEmail ? (
           <button
@@ -104,7 +102,7 @@ export function EmailSent({
             onClick={onChangeEmail}
             className='text-muted-foreground hover:text-primary underline underline-offset-4'
           >
-            Changer d’adresse
+            {t('changeEmail')}
           </button>
         ) : (
           <span />
@@ -113,7 +111,7 @@ export function EmailSent({
           href={backHref}
           className='text-muted-foreground hover:text-primary underline underline-offset-4'
         >
-          {backLabel}
+          {backLabel ?? t('backToSignIn')}
         </Link>
       </div>
     </div>

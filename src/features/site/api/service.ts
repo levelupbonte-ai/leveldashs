@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { AppError, isMfaError } from '@/lib/errors';
 import type { CollectionDef } from '../config/collections';
 import type {
   Appointment,
@@ -25,25 +26,15 @@ export interface SiteScope {
   organizationId: string;
 }
 
-export class SiteServiceError extends Error {
-  constructor(
-    message: string,
-    readonly code?: string
-  ) {
-    super(message);
-  }
-}
-
+// Database errors become message keys (`errors.*`): the raw message never
+// reaches the screen.
 function fail(error: { message: string; code?: string } | null): never {
   const code = error?.code;
-  if (code === '42501' || code === 'PGRST301') {
-    throw new SiteServiceError('Vous n’avez pas les droits pour cette action.', code);
-  }
-  if (code === '23505') throw new SiteServiceError('Cet élément existe déjà.', code);
-  if (code === '23514' || code === '22023') {
-    throw new SiteServiceError('Certaines valeurs ne sont pas valides.', code);
-  }
-  throw new SiteServiceError('Une erreur est survenue. Réessayez.', code);
+  if (isMfaError(error)) throw new AppError('mfaRequired', { cause: error });
+  if (code === '42501' || code === 'PGRST301') throw new AppError('forbidden', { cause: error });
+  if (code === '23505') throw new AppError('alreadyExists', { cause: error });
+  if (code === '23514' || code === '22023') throw new AppError('invalidValues', { cause: error });
+  throw new AppError('generic', { cause: error });
 }
 
 // ---------------------------------------------------------------- collections
@@ -105,7 +96,7 @@ export async function createCollectionItem(
     if (!error) return data as ContentRow;
     if (!(base && error.code === '23505')) fail(error);
   }
-  throw new SiteServiceError('Impossible de générer un identifiant unique.');
+  throw new AppError('generic');
 }
 
 export async function updateCollectionItem(
@@ -127,7 +118,7 @@ export async function updateCollectionItem(
 export async function deleteCollectionItem(db: SupabaseClient, def: CollectionDef, id: string) {
   const { error, count } = await db.from(def.table).delete({ count: 'exact' }).eq('id', id);
   if (error) fail(error);
-  if (!count) throw new SiteServiceError('Vous n’avez pas les droits pour cette action.');
+  if (!count) throw new AppError('forbidden');
 }
 
 // ---------------------------------------------------------------- inbox
@@ -266,21 +257,20 @@ export async function uploadMedia(
   altText?: string
 ): Promise<MediaItem> {
   const ext = MEDIA_TYPES[file.type];
-  if (!ext) throw new SiteServiceError('Format non pris en charge (images, PDF, MP4, WebM).');
-  if (file.size > MEDIA_MAX_BYTES)
-    throw new SiteServiceError('Fichier trop lourd (10 Mo maximum).');
+  if (!ext) throw new AppError('mediaFormat');
+  if (file.size > MEDIA_MAX_BYTES) throw new AppError('mediaTooLarge');
 
   const {
     data: { user }
   } = await db.auth.getUser();
-  if (!user) throw new SiteServiceError('Session expirée. Reconnectez-vous.');
+  if (!user) throw new AppError('sessionExpired');
 
   const path = `${scope.organizationId}/${scope.websiteId}/${crypto.randomUUID()}.${ext}`;
   const upload = await db.storage
     .from(MEDIA_BUCKET)
     .upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false });
   if (upload.error) {
-    throw new SiteServiceError('Envoi impossible : vérifiez vos droits (éditeur requis).');
+    throw new AppError('uploadForbidden', { cause: upload.error });
   }
 
   const { data, error } = await db
@@ -313,7 +303,7 @@ export async function deleteMedia(
   item: Pick<MediaItem, 'id' | 'storage_path'>
 ) {
   const removed = await db.storage.from(MEDIA_BUCKET).remove([item.storage_path]);
-  if (removed.error) throw new SiteServiceError('Suppression impossible.');
+  if (removed.error) throw new AppError('deleteFailed', { cause: removed.error });
   const { error } = await db.from('media').delete().eq('id', item.id);
   if (error) fail(error);
 }
@@ -433,8 +423,7 @@ export async function adminUpdateWebsite(
     p_primary_domain: patch.primaryDomain ?? null
   });
   if (error) {
-    if (error.code === '22023')
-      throw new SiteServiceError(error.message.replace(/^Invalid origin: /, 'Domaine invalide : '));
+    if (error.code === '22023') throw new AppError('invalidOrigin', { cause: error });
     fail(error);
   }
 }

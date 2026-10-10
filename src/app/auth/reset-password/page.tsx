@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
@@ -6,10 +7,10 @@ import ResetPasswordForm from '@/features/auth/components/reset-password-form';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = {
-  title: 'Nouveau mot de passe',
-  description: 'Choisissez un nouveau mot de passe pour votre compte LevelUp.'
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.reset');
+  return { title: t('title'), description: t('metaDescription') };
+}
 
 // Reached from the reset e-mail: /auth/callback verifies the link (recovery
 // token) and opens a session, then sends the user here.
@@ -23,17 +24,15 @@ export default async function Page() {
     redirect(mfaChallengeUrl('/auth/reset-password'));
   }
 
+  const t = await getTranslations('auth.reset');
   if (!user) {
     return (
-      <AuthShell
-        title='Lien expiré'
-        description='Ce lien de réinitialisation n’est plus valide. Demandez-en un nouveau.'
-      >
+      <AuthShell title={t('expiredTitle')} description={t('expiredDescription')}>
         <Link
           href='/auth/sign-in'
           className='hover:text-primary text-center text-sm underline underline-offset-4'
         >
-          Retour à la connexion
+          {t('backToSignIn')}
         </Link>
       </AuthShell>
     );
@@ -41,8 +40,8 @@ export default async function Page() {
 
   return (
     <AuthShell
-      title='Nouveau mot de passe'
-      description={`Choisissez un nouveau mot de passe pour ${user.email ?? 'votre compte'}.`}
+      title={t('title')}
+      description={user.email ? t('descriptionFor', { email: user.email }) : t('metaDescription')}
     >
       <ResetPasswordForm />
     </AuthShell>

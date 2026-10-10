@@ -1,5 +1,6 @@
 'use client';
 
+import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 /**
@@ -80,6 +81,8 @@ export function TurnstileWidget({
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   const [failed, setFailed] = useState(false);
+  const locale = useLocale();
+  const t = useTranslations('auth.captcha');
 
   useEffect(() => {
     onTokenRef.current = onToken;
@@ -101,7 +104,7 @@ export function TurnstileWidget({
         widgetIdRef.current = turnstile.render(containerRef.current, {
           sitekey: TURNSTILE_SITE_KEY,
           theme: 'auto',
-          language: 'fr',
+          language: locale,
           size: 'flexible',
           callback: (token) => onTokenRef.current(token),
           'expired-callback': () => onTokenRef.current(null),
@@ -114,17 +117,13 @@ export function TurnstileWidget({
       if (widgetIdRef.current && window.turnstile) window.turnstile.remove(widgetIdRef.current);
       widgetIdRef.current = null;
     };
-  }, []);
+  }, [locale]);
 
   if (!CAPTCHA_ENABLED) return null;
   return (
     <div className='space-y-1'>
       <div ref={containerRef} className='min-h-[65px]' />
-      {failed && (
-        <p className='text-destructive text-xs'>
-          Vérification anti-robot indisponible. Rechargez la page.
-        </p>
-      )}
+      {failed && <p className='text-muted-foreground text-xs'>{t('unavailable')}</p>}
     </div>
   );
 }

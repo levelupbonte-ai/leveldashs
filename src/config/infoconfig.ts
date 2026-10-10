@@ -1,52 +1,42 @@
+import { getTranslations } from 'next-intl/server';
 import type { InfobarContent } from '@/components/ui/infobar';
 
-export const workspacesInfoContent: InfobarContent = {
-  title: 'Organisations',
-  sections: [
-    {
-      title: 'Principe',
-      description:
-        'Une organisation représente votre entreprise. Vos sites, votre équipe et vos fichiers y sont rattachés, et personne en dehors de l’organisation ne peut les voir.',
-      links: []
-    },
-    {
-      title: 'Changer d’organisation',
-      description:
-        'Utilisez le sélecteur en haut de la barre latérale pour passer d’une organisation ou d’un site à l’autre.',
-      links: []
-    }
-  ]
-};
+// Help panels of the LevelUp pages, translated on the server (`info.*` messages).
+export async function getWorkspacesInfoContent(): Promise<InfobarContent> {
+  const t = await getTranslations('info.workspaces');
+  return {
+    title: t('title'),
+    sections: [
+      { title: t('principleTitle'), description: t('principle'), links: [] },
+      { title: t('switchTitle'), description: t('switch'), links: [] }
+    ]
+  };
+}
 
-export const teamInfoContent: InfobarContent = {
-  title: 'Équipe & accès',
-  sections: [
-    {
-      title: 'Rôles',
-      description:
-        'Propriétaire : tous les droits, y compris nommer d’autres propriétaires. Administrateur : gère l’équipe et les paramètres. Éditeur : modifie le contenu, les rendez-vous et les demandes. Lecture seule : consulte.',
-      links: []
-    },
-    {
-      title: 'Ajouter quelqu’un',
-      description:
-        'La personne crée d’abord son compte LevelUp (page Créer un compte), puis un administrateur l’ajoute ici avec son e-mail.',
-      links: []
-    }
-  ]
-};
+export async function getTeamInfoContent(): Promise<InfobarContent> {
+  const t = await getTranslations('info.team');
+  return {
+    title: t('title'),
+    sections: [
+      { title: t('rolesTitle'), description: t('roles'), links: [] },
+      { title: t('addTitle'), description: t('add'), links: [] }
+    ]
+  };
+}
 
-export const billingInfoContent: InfobarContent = {
-  title: 'Facturation',
-  sections: [
-    {
-      title: 'Abonnement',
-      description:
-        'Votre abonnement et les fonctions de votre site sont gérés par l’équipe LevelUp. Contactez-nous pour toute modification.',
-      links: [{ title: 'Écrire à LevelUp', url: 'mailto:contact@levelup-ecosystem.com' }]
-    }
-  ]
-};
+export async function getBillingInfoContent(): Promise<InfobarContent> {
+  const t = await getTranslations('info.billing');
+  return {
+    title: t('title'),
+    sections: [
+      {
+        title: t('subscriptionTitle'),
+        description: t('subscription'),
+        links: [{ title: t('contact'), url: 'mailto:contact@levelup-ecosystem.com' }]
+      }
+    ]
+  };
+}
 
 export const productInfoContent: InfobarContent = {
   title: 'Product Management',

@@ -100,3 +100,13 @@ export interface ProjectRequestUpdate {
   status: ProjectStatus;
   notes: string;
 }
+
+export interface AdminWebsiteRow {
+  id: string;
+  name: string;
+  primaryDomain: string | null;
+  status: string;
+  organizationId: string;
+  organizationName: string;
+  features: string[];
+}

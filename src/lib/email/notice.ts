@@ -17,6 +17,8 @@ const FROM = process.env.AUTH_EMAIL_FROM || 'LevelUp Ecosystem <account@levelup-
 
 export async function sendNotice(input: {
   to: string;
+  /** Language of the e-mail (`lang` attribute); the caller translates the text. */
+  locale?: string;
   subject: string;
   title: string;
   lines: string[];
@@ -30,7 +32,7 @@ export async function sendNotice(input: {
   const button = input.cta
     ? `<p style="margin:24px 0 0"><a href="${escapeHtml(input.cta.url)}" style="background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600;display:inline-block">${escapeHtml(input.cta.label)}</a></p>`
     : '';
-  const html = `<!doctype html><html lang="fr"><body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0a0a0a">
+  const html = `<!doctype html><html lang="${input.locale === 'fr' ? 'fr' : 'en'}"><body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0a0a0a">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;padding:32px"><tr><td>
 <p style="font-weight:800;font-size:18px;margin:0 0 24px"><img src="https://dashboard.levelup-ecosystem.com/apple-icon.png" width="32" height="32" alt="" style="vertical-align:middle;margin-right:8px;border-radius:8px">LevelUp<span style="color:#71717a;font-weight:600"> Ecosystem</span></p>

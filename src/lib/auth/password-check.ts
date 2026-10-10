@@ -1,6 +1,3 @@
-/** Shown when a new password is on the list of widely used passwords. */
-export const COMMON_PASSWORD_MESSAGE = 'Ce mot de passe est trop courant. Choisissez-en un autre.';
-
 const RANGE_URL = 'https://api.pwnedpasswords.com/range/';
 const TIMEOUT_MS = 3000;
 
@@ -41,12 +38,15 @@ export async function isCommonPassword(password: string): Promise<boolean> {
 }
 
 /**
- * Form-level async `onSubmit` validator for TanStack Form: puts the message on
- * the `password` field when the password is too common.
+ * Form-level async `onSubmit` validator for TanStack Form: puts `message`
+ * (translated `validation.commonPassword`) on the `password` field when the
+ * password is too common.
  */
-export async function commonPasswordValidator({ value }: { value: { password: string } }) {
-  if (await isCommonPassword(value.password)) {
-    return { fields: { password: { message: COMMON_PASSWORD_MESSAGE } } };
-  }
-  return undefined;
+export function commonPasswordValidator(message: string) {
+  return async ({ value }: { value: { password: string } }) => {
+    if (await isCommonPassword(value.password)) {
+      return { fields: { password: { message } } };
+    }
+    return undefined;
+  };
 }

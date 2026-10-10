@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/client';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSiteMutations } from '../api/mutations';
@@ -16,12 +17,12 @@ import { useSiteScope } from './use-site-scope';
 export const TAG_URL = 'https://levelup-ecosystem.com/sdk/v1/levelup.js';
 const INSTALLED_WITHIN_MS = 7 * 24 * 3600 * 1000;
 
-async function copy(text: string) {
-  await navigator.clipboard.writeText(text);
-  toast.success('Copié');
-}
-
 function CodeBlock({ code }: { code: string }) {
+  const t = useTranslations('common');
+  const copy = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    toast.success(t('copied'));
+  };
   return (
     <div className='relative'>
       <pre className='bg-muted overflow-x-auto rounded-md p-3 pr-12 text-xs'>
@@ -31,7 +32,7 @@ function CodeBlock({ code }: { code: string }) {
         size='icon'
         variant='ghost'
         className='absolute top-1.5 right-1.5 size-7'
-        aria-label='Copier'
+        aria-label={t('copy')}
         onClick={() => copy(code)}
       >
         <Icons.copy className='size-3.5' />
@@ -40,12 +41,16 @@ function CodeBlock({ code }: { code: string }) {
   );
 }
 
+const code = (chunks: React.ReactNode) => <code>{chunks}</code>;
+
 export function DevelopersPanel() {
   const scope = useSiteScope();
   const queryClient = useQueryClient();
   const { data: site } = useSuspenseQuery(integrationQueryOptions(createClient(), scope.websiteId));
   const { adminUpdateWebsite } = useSiteMutations(scope);
   const [origins, setOrigins] = useState(site.allowed_origins.join('\n'));
+  const t = useTranslations('site.developers');
+  const format = useFormatter();
 
   const snippet = `<script src="${TAG_URL}" data-site="${site.id}" defer></script>`;
   const lastSeen = site.tag_last_seen_at ? new Date(site.tag_last_seen_at) : null;
@@ -56,30 +61,23 @@ export function DevelopersPanel() {
       <div className='space-y-6'>
         <Card>
           <CardHeader>
-            <CardTitle>1. Installer le tag LevelUp</CardTitle>
+            <CardTitle>{t('installTitle')}</CardTitle>
             <CardDescription>
-              Collez cette ligne une seule fois, juste avant <code>&lt;/body&gt;</code>, sur toutes
-              les pages du site (WordPress, Wix, Shopify, Webflow : champ « code personnalisé »).
-              Ensuite, SEO, contenus et formulaires se gèrent d’ici.
+              {t.rich('installDescription', { code: () => <code>&lt;/body&gt;</code> })}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-3'>
             <CodeBlock code={snippet} />
             <p className='text-muted-foreground text-xs'>
-              Identifiant public du site : <code className='break-all'>{site.id}</code>. Il n’est
-              pas secret : il ne donne accès qu’au contenu déjà public et ne fonctionne que sur les
-              domaines autorisés.
+              {t.rich('siteId', { id: () => <code className='break-all'>{site.id}</code> })}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>2. Formulaires</CardTitle>
-            <CardDescription>
-              Ajoutez <code>data-lu-form</code> à un formulaire existant : les demandes arrivent
-              dans « Demandes ». Types : contact, quote, newsletter, vip_signup, registration.
-            </CardDescription>
+            <CardTitle>{t('formsTitle')}</CardTitle>
+            <CardDescription>{t.rich('formsDescription', { code })}</CardDescription>
           </CardHeader>
           <CardContent>
             <CodeBlock
@@ -88,7 +86,7 @@ export function DevelopersPanel() {
   <input name="email" type="email" required>
   <textarea name="message"></textarea>
   <input name="_hp" style="display:none" tabindex="-1" autocomplete="off">
-  <button type="submit">Envoyer</button>
+  <button type="submit">Send</button>
   <p data-lu-status></p>
 </form>`}
             />
@@ -97,11 +95,8 @@ export function DevelopersPanel() {
 
         <Card>
           <CardHeader>
-            <CardTitle>3. Contenus et badge</CardTitle>
-            <CardDescription>
-              Un élément avec <code>data-lu</code> affiche une valeur gérée dans le tableau de bord
-              (texte uniquement). <code>data-lu-badge</code> affiche le crédit « Built by LevelUp ».
-            </CardDescription>
+            <CardTitle>{t('contentTitle')}</CardTitle>
+            <CardDescription>{t.rich('contentDescription', { code })}</CardDescription>
           </CardHeader>
           <CardContent className='space-y-3'>
             <CodeBlock
@@ -110,7 +105,7 @@ export function DevelopersPanel() {
 <footer><span data-lu-badge></span></footer>
 
 <script>
-  // API JavaScript (optionnelle)
+  // JavaScript API (optional)
   LevelUp.ready.then((site) => console.log(site.services));
   LevelUp.submitForm('quote', { name, email, message });
 </script>`}
@@ -123,13 +118,21 @@ export function DevelopersPanel() {
         <Card>
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
-              État de l’installation
-              {installed ? <Badge>Actif</Badge> : <Badge variant='secondary'>Non détecté</Badge>}
+              {t('statusTitle')}
+              {installed ? (
+                <Badge>{t('active')}</Badge>
+              ) : (
+                <Badge variant='secondary'>{t('notDetected')}</Badge>
+              )}
             </CardTitle>
             <CardDescription>
               {lastSeen
-                ? `Dernière visite détectée le ${lastSeen.toLocaleString('fr-FR')} sur ${site.tag_last_seen_origin}${site.tag_version ? ` (v${site.tag_version})` : ''}.`
-                : 'Aucune visite détectée pour le moment. Ouvrez votre site après l’installation, puis actualisez cette page.'}
+                ? t('lastSeen', {
+                    date: format.dateTime(lastSeen, { dateStyle: 'medium', timeStyle: 'short' }),
+                    origin: site.tag_last_seen_origin ?? '',
+                    version: site.tag_version ? ` (v${site.tag_version})` : ''
+                  })
+                : t('neverSeen')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -140,17 +143,17 @@ export function DevelopersPanel() {
                 queryClient.invalidateQueries({ queryKey: siteKeys.integration(scope.websiteId) })
               }
             >
-              <Icons.check className='mr-2 size-4' /> Vérifier
+              <Icons.check className='mr-2 size-4' /> {t('check')}
             </Button>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Domaines autorisés</CardTitle>
+            <CardTitle>{t('originsTitle')}</CardTitle>
             <CardDescription>
-              Seuls ces domaines peuvent envoyer des formulaires, réservations et inscriptions pour
-              ce site.{!scope.isPlatformAdmin && ' Contactez LevelUp pour les modifier.'}
+              {t('originsDescription')}
+              {!scope.isPlatformAdmin && ` ${t('originsContact')}`}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-3'>
@@ -174,11 +177,11 @@ export function DevelopersPanel() {
                           .map((o) => o.trim())
                           .filter(Boolean)
                       },
-                      { onSuccess: () => toast.success('Domaines enregistrés') }
+                      { onSuccess: () => toast.success(t('originsSaved')) }
                     )
                   }
                 >
-                  Enregistrer
+                  {t('save')}
                 </Button>
               </>
             ) : site.allowed_origins.length ? (
@@ -188,18 +191,15 @@ export function DevelopersPanel() {
                 ))}
               </ul>
             ) : (
-              <p className='text-muted-foreground text-sm'>Tous les domaines (non restreint).</p>
+              <p className='text-muted-foreground text-sm'>{t('allOrigins')}</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Clés serveur</CardTitle>
-            <CardDescription>
-              Pour connecter un back-office ou une application à LevelUp côté serveur, demandez une
-              clé secrète à LevelUp. Elle ne doit jamais apparaître dans le code d’une page web.
-            </CardDescription>
+            <CardTitle>{t('serverKeysTitle')}</CardTitle>
+            <CardDescription>{t('serverKeysDescription')}</CardDescription>
           </CardHeader>
         </Card>
       </div>

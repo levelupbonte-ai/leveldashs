@@ -13,43 +13,26 @@ import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useMemo, useState } from 'react';
+import { userLocale } from '@/i18n/config';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { markPendingMethod, saveLastMethod, useLastMethod } from '../lib/last-method';
 import { AuthSteps } from './auth-steps';
+import { GoogleSignInButton } from './google-sign-in-button';
 import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
-const signInSchema = z.object({
-  fullName: z.string(),
-  email: z.string().email({ message: 'Adresse e-mail invalide' }),
-  password: z.string().min(1, { message: 'Mot de passe requis' })
-});
-
-const signUpSchema = signInSchema.extend({
-  fullName: z.string().trim().min(2, { message: 'Votre nom' }).max(120),
-  password: z
-    .string()
-    .min(10, { message: '10 caractères minimum' })
-    .max(72, { message: '72 caractères maximum' })
-});
-
-const CAPTCHA_NOTICE = 'Confirmez que vous n’êtes pas un robot (vérification ci-dessus).';
-const EMAIL_NOT_CONFIRMED_NOTICE =
-  'Confirmez votre adresse e-mail (lien reçu par e-mail) puis reconnectez-vous.';
-const PASSKEY_NOT_FOUND_NOTICE =
-  'Aucune passkey trouvée pour ce compte. Connectez-vous avec votre mot de passe puis ajoutez une passkey dans Profil → Sécurité.';
-
-// Google and passkey buttons share one look (outline, full width, 44 px), the
-// Google one keeping the white background and grey border of Google's branding.
+// Passkey button: outline, full width, 44 px, same height as Google's button.
 const PROVIDER_BUTTON =
   'h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]';
 
 function LastUsedBadge() {
+  const t = useTranslations('auth.form');
   return (
     <span className='bg-primary text-primary-foreground pointer-events-none absolute -top-2 right-3 rounded-full px-2 py-0.5 text-[10px] leading-none font-medium shadow-sm'>
-      Dernière méthode utilisée
+      {t('lastUsed')}
     </span>
   );
 }
@@ -72,6 +55,30 @@ export default function UserAuthForm({
 }) {
   const router = useRouter();
   const destination = safeNext(next);
+  const t = useTranslations('auth.form');
+  const tv = useTranslations('validation');
+  const locale = useLocale();
+  const { signInSchema, signUpSchema } = useMemo(() => {
+    const signIn = z.object({
+      fullName: z.string(),
+      email: z.string().email({ message: tv('email') }),
+      password: z.string().min(1, { message: tv('passwordRequired') })
+    });
+    return {
+      signInSchema: signIn,
+      signUpSchema: signIn.extend({
+        fullName: z
+          .string()
+          .trim()
+          .min(2, { message: tv('fullName') })
+          .max(120),
+        password: z
+          .string()
+          .min(10, { message: tv('passwordMin', { min: 10 }) })
+          .max(72, { message: tv('passwordMax', { max: 72 }) })
+      })
+    };
+  }, [tv]);
 
   // Another LevelUp app (LevelStudio, main site) gets a full page load.
   function goTo(target: string) {
@@ -104,7 +111,7 @@ export default function UserAuthForm({
   }, []);
   const showGoogle = methods.google && !googleLinked;
   // Sign-in only: the method used last time in this browser comes first and the
-  // others fold behind "Autres méthodes de connexion".
+  // others fold behind "Other sign-in options".
   const lastMethod = useLastMethod();
   const [showAll, setShowAll] = useState(false);
   const preferred =
@@ -115,9 +122,7 @@ export default function UserAuthForm({
           ? 'passkey'
           : null
       : null;
-  const [notice, setNotice] = useState<string | null>(
-    initialError ? 'La connexion a échoué. Réessayez.' : null
-  );
+  const [notice, setNotice] = useState<string | null>(initialError ? t('callbackFailed') : null);
   // Sign-up waiting for the e-mail link. The password stays in memory (React
   // state only, never stored) so this tab can sign in once the link is clicked,
   // even on another device.
@@ -135,11 +140,11 @@ export default function UserAuthForm({
     validators: {
       onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema,
       // New passwords only: refuse very common ones (runs once the schema passes).
-      onSubmitAsync: mode === 'sign-up' ? commonPasswordValidator : undefined
+      onSubmitAsync: mode === 'sign-up' ? commonPasswordValidator(tv('commonPassword')) : undefined
     },
     onSubmit: async ({ value }) => {
       if (!captcha.ready) {
-        setNotice(CAPTCHA_NOTICE);
+        setNotice(t('captcha'));
         return;
       }
       setPending(true);
@@ -154,9 +159,7 @@ export default function UserAuthForm({
           });
           if (error) {
             setNotice(
-              error.code === 'email_not_confirmed'
-                ? EMAIL_NOT_CONFIRMED_NOTICE
-                : 'E-mail ou mot de passe incorrect.'
+              error.code === 'email_not_confirmed' ? t('emailNotConfirmed') : t('wrongCredentials')
             );
             return;
           }
@@ -167,17 +170,14 @@ export default function UserAuthForm({
             email: value.email,
             password: value.password,
             options: {
-              data: { full_name: value.fullName.trim() },
+              // The language of the sign-up, for LevelUp's e-mails (confirmation first).
+              data: { full_name: value.fullName.trim(), locale },
               emailRedirectTo: signUpRedirect(),
               captchaToken: captcha.captchaToken
             }
           });
           if (error) {
-            setNotice(
-              error.code === 'weak_password'
-                ? 'Mot de passe trop faible : choisissez-en un plus long.'
-                : 'Inscription impossible. Vérifiez vos informations.'
-            );
+            setNotice(error.code === 'weak_password' ? t('weakPassword') : t('signUpFailed'));
             return;
           }
           if (data.session) {
@@ -196,6 +196,11 @@ export default function UserAuthForm({
   // Same path for every sign-in method: second factor first, then the destination
   // (the dashboard layout sends accounts without access to onboarding).
   async function afterSignIn(supabase: ReturnType<typeof createClient>) {
+    // Keep the language in use on the account when none was chosen yet.
+    const { data } = await supabase.auth.getUser();
+    if (data.user && !userLocale(data.user)) {
+      void supabase.auth.updateUser({ data: { locale } }).catch(() => undefined);
+    }
     // A verified authenticator app: the second factor comes next.
     if (await needsMfaChallenge(supabase)) {
       router.replace(mfaChallengeUrl(destination));
@@ -206,7 +211,7 @@ export default function UserAuthForm({
 
   async function signInWithPasskey() {
     if (!captcha.ready) {
-      setNotice(CAPTCHA_NOTICE);
+      setNotice(t('captcha'));
       return;
     }
     setPending(true);
@@ -224,15 +229,13 @@ export default function UserAuthForm({
             setPasskeyDisabled(true);
             return;
           case 'not_found':
-            setNotice(PASSKEY_NOT_FOUND_NOTICE);
+            setNotice(t('passkeyNotFound'));
             return;
           case 'email_not_confirmed':
-            setNotice(EMAIL_NOT_CONFIRMED_NOTICE);
+            setNotice(t('emailNotConfirmed'));
             return;
           default:
-            setNotice(
-              'Connexion par passkey impossible. Réessayez ou utilisez votre mot de passe.'
-            );
+            setNotice(t('passkeyFailed'));
             return;
         }
       }
@@ -244,7 +247,31 @@ export default function UserAuthForm({
     }
   }
 
-  async function signInWithGoogle() {
+  // Google Identity Services: the ID token from Google's popup is exchanged for a
+  // Supabase session here, no redirect through the Supabase domain.
+  async function signInWithGoogleToken(token: string, rawNonce: string) {
+    setPending(true);
+    setNotice(null);
+    const supabase = createClient();
+    try {
+      const { error } = await supabase.auth.signInWithIdToken({
+        provider: 'google',
+        token,
+        nonce: rawNonce
+      });
+      if (error) {
+        setNotice(t('googleFailed'));
+        return;
+      }
+      saveLastMethod('google');
+      await afterSignIn(supabase);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  // Fallback when Google's script cannot load: the OAuth redirect flow.
+  async function signInWithGoogleRedirect() {
     setPending(true);
     // Confirmed (saved as the last method) once a signed-in page loads.
     markPendingMethod('google');
@@ -254,7 +281,7 @@ export default function UserAuthForm({
     });
     if (error) {
       setPending(false);
-      toast.error('Connexion Google indisponible pour le moment.');
+      toast.error(t('googleUnavailable'));
     }
   }
 
@@ -280,17 +307,14 @@ export default function UserAuthForm({
   }
 
   const googleButton = (
-    /* Google Sign-In branding: white button, official multicolor G, grey border. */
-    <Button
-      className={PROVIDER_BUTTON}
-      variant='outline'
-      type='button'
+    /* Official Google Identity Services button (falls back to our own if blocked). */
+    <GoogleSignInButton
+      mode={mode}
+      oneTap={mode === 'sign-in'}
       disabled={pending}
-      onClick={signInWithGoogle}
-    >
-      <Icons.googleColor size={20} />
-      Continuer avec Google
-    </Button>
+      onCredential={signInWithGoogleToken}
+      onFallback={signInWithGoogleRedirect}
+    />
   );
   const passkeyButton = (
     <Button
@@ -301,7 +325,7 @@ export default function UserAuthForm({
       onClick={signInWithPasskey}
     >
       <Icons.passkey className='size-5' aria-hidden />
-      Continuer avec une passkey
+      {t('passkey')}
     </Button>
   );
 
@@ -325,7 +349,7 @@ export default function UserAuthForm({
           disabled={pending}
           onClick={() => setShowAll(true)}
         >
-          Autres méthodes de connexion
+          {t('otherMethods')}
           <Icons.chevronDown className='size-4' aria-hidden />
         </Button>
       </div>
@@ -356,7 +380,7 @@ export default function UserAuthForm({
               <span className='w-full border-t' />
             </div>
             <div className='relative flex justify-center text-xs uppercase'>
-              <span className='bg-background text-muted-foreground px-2'>ou par e-mail</span>
+              <span className='bg-background text-muted-foreground px-2'>{t('orEmail')}</span>
             </div>
           </div>
         </>
@@ -373,7 +397,7 @@ export default function UserAuthForm({
             <form.AppField
               name='fullName'
               children={(field) => (
-                <field.TextField label='Nom complet' autoComplete='name' disabled={pending} />
+                <field.TextField label={t('fullName')} autoComplete='name' disabled={pending} />
               )}
             />
           )}
@@ -381,10 +405,10 @@ export default function UserAuthForm({
             name='email'
             children={(field) => (
               <field.TextField
-                label='E-mail'
+                label={t('email')}
                 type='email'
                 autoComplete={showPasskey ? 'username webauthn' : 'email'}
-                placeholder='vous@exemple.com'
+                placeholder={t('emailPlaceholder')}
                 disabled={pending}
               />
             )}
@@ -393,7 +417,7 @@ export default function UserAuthForm({
             name='password'
             children={(field) => (
               <field.TextField
-                label='Mot de passe'
+                label={t('password')}
                 type='password'
                 autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
                 disabled={pending}
@@ -408,7 +432,7 @@ export default function UserAuthForm({
           </p>
         )}
         <LoadingButton loading={pending} type='submit' className='mt-2 w-full'>
-          {mode === 'sign-in' ? 'Se connecter' : 'Créer mon compte'}
+          {mode === 'sign-in' ? t('signIn') : t('signUp')}
         </LoadingButton>
         {mode === 'sign-in' && (
           <Link
@@ -418,7 +442,7 @@ export default function UserAuthForm({
               className: 'text-muted-foreground w-full'
             })}
           >
-            Mot de passe oublié ?
+            {t('forgot')}
           </Link>
         )}
       </form>

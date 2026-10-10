@@ -1,19 +1,19 @@
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import OnboardingFlow from '@/features/auth/components/onboarding-flow';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
 import { getAccessRequest, hasDashboardAccess, PENDING_PATH } from '@/lib/auth/access';
-import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { getDashboardSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = {
-  title: 'Finaliser mon compte',
-  description: 'Votre profil et votre accès au tableau de bord LevelUp.'
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.onboarding');
+  return { title: t('metaTitle'), description: t('metaDescription') };
+}
 
 export default async function Page(props: {
   searchParams: Promise<{ next?: string; edit?: string }>;
@@ -42,23 +42,17 @@ export default async function Page(props: {
     if (request?.status === 'pending' || request?.status === 'rejected') redirect(PENDING_PATH);
   }
 
-  const { passkey } = await getAuthMethods();
+  const t = await getTranslations('auth.onboarding');
   return (
     <AuthShell
-      title={editing ? 'Modifier ma demande' : 'Finaliser votre compte'}
-      description={
-        editing
-          ? 'Mettez à jour les informations transmises à l’équipe LevelUp.'
-          : 'Quelques informations pour personnaliser votre espace.'
-      }
+      title={editing ? t('editTitle') : t('title')}
+      description={editing ? t('editDescription') : t('description')}
     >
       <RecordLastMethod />
       <OnboardingFlow
         user={session.user}
         destination={destination}
         hasAccess={hasAccess}
-        mfaEnabled={session.mfa.enabled}
-        passkeyEnabled={passkey}
         initialStep={editing ? 'access' : 'profile'}
         request={
           request

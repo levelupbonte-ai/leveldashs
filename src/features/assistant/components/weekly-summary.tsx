@@ -1,14 +1,10 @@
 'use client';
 import { useMutation } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { Fragment } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-const ERRORS: Record<string, string> = {
-  limit: 'Limite quotidienne de l’IA atteinte. Réessayez demain.',
-  unavailable: 'Le résumé est momentanément indisponible. Réessayez dans un instant.'
-};
 
 /** **bold** only: the summary is short Markdown from our own prompt. */
 function inline(text: string) {
@@ -55,6 +51,7 @@ function SummaryText({ text }: { text: string }) {
 }
 
 export function WeeklySummaryCard() {
+  const t = useTranslations('assistant.weekly');
   const summary = useMutation({
     mutationFn: async () => {
       const res = await fetch('/api/assistant/weekly', {
@@ -72,11 +69,8 @@ export function WeeklySummaryCard() {
     <Card>
       <CardHeader className='flex flex-row items-start justify-between gap-4'>
         <div className='space-y-1'>
-          <CardTitle className='text-base'>Résumé de la semaine</CardTitle>
-          <CardDescription>
-            Vos 7 derniers jours en quelques lignes. Seuls des chiffres sont analysés, jamais les
-            coordonnées de vos clients.
-          </CardDescription>
+          <CardTitle className='text-base'>{t('title')}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </div>
         <Button
           size='sm'
@@ -89,7 +83,7 @@ export function WeeklySummaryCard() {
           ) : (
             <Icons.sparkles className='size-4' aria-hidden />
           )}
-          {summary.data ? 'Actualiser' : 'Générer'}
+          {summary.data ? t('refresh') : t('generate')}
         </Button>
       </CardHeader>
       {(summary.data || summary.isError) && (
@@ -98,7 +92,7 @@ export function WeeklySummaryCard() {
             <SummaryText text={summary.data} />
           ) : (
             <p className='text-muted-foreground text-sm'>
-              {ERRORS[summary.error?.message ?? ''] ?? ERRORS.unavailable}
+              {summary.error?.message === 'limit' ? t('limit') : t('unavailable')}
             </p>
           )}
         </CardContent>

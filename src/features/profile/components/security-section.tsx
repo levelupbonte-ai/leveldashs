@@ -22,7 +22,9 @@ import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { mfaStateQueryOptions, securityKeys } from '../api/queries';
@@ -35,14 +37,6 @@ import {
 } from '../api/service';
 import type { MfaFactor, TotpEnrollment } from '../api/types';
 
-const codeSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, { message: 'Code à 6 chiffres' })
-});
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
-}
-
 function EnrollTotp({
   enrollment,
   onDone,
@@ -52,17 +46,24 @@ function EnrollTotp({
   onDone: () => void;
   onCancel: () => void;
 }) {
+  const t = useTranslations('profile.security');
+  const tv = useTranslations('validation');
+  const errorMessage = useErrorMessage();
+  const codeSchema = useMemo(
+    () => z.object({ code: z.string().regex(/^\d{6}$/, { message: tv('code') }) }),
+    [tv]
+  );
   const form = useAppForm({
     defaultValues: { code: '' },
     validators: { onSubmit: codeSchema },
     onSubmit: async ({ value, formApi }) => {
       try {
         await verifyTotp(createClient(), enrollment.factorId, value.code);
-        toast.success('Vérification en deux étapes activée');
+        toast.success(t('enabledToast'));
         onDone();
       } catch (e) {
         formApi.setFieldValue('code', '');
-        toast.error(e instanceof Error ? e.message : 'Vérification impossible.');
+        toast.error(errorMessage(e, 'mfaVerifyFailed'));
       }
     }
   });
@@ -70,25 +71,22 @@ function EnrollTotp({
   return (
     <div className='space-y-4 rounded-lg border p-4'>
       <ol className='text-muted-foreground list-decimal space-y-1 ps-5 text-sm'>
-        <li>
-          Ouvrez votre application d’authentification (Google Authenticator, 1Password, Microsoft
-          Authenticator…).
-        </li>
-        <li>Scannez ce QR code ou saisissez la clé manuellement.</li>
-        <li>Entrez le code à 6 chiffres affiché pour confirmer.</li>
+        <li>{t('step1')}</li>
+        <li>{t('step2')}</li>
+        <li>{t('step3')}</li>
       </ol>
       <div className='flex flex-col items-center gap-3 sm:flex-row sm:items-start'>
         {/* Data-URL SVG returned by Supabase: next/image adds nothing here. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={enrollment.qrCode}
-          alt='QR code à scanner avec votre application d’authentification'
+          alt={t('qrAlt')}
           width={176}
           height={176}
           className='size-44 rounded-md border bg-white p-2'
         />
         <div className='min-w-0 space-y-1 text-sm'>
-          <p className='font-medium'>Clé de configuration</p>
+          <p className='font-medium'>{t('setupKey')}</p>
           <code className='bg-muted block rounded-md px-2 py-1 font-mono text-xs break-all select-all'>
             {enrollment.secret}
           </code>
@@ -99,11 +97,11 @@ function EnrollTotp({
             onClick={() => {
               void navigator.clipboard
                 ?.writeText(enrollment.secret)
-                .then(() => toast.success('Clé copiée'));
+                .then(() => toast.success(t('keyCopied')));
             }}
           >
             <Icons.copy className='mr-1 size-4' />
-            Copier la clé
+            {t('copyKey')}
           </Button>
         </div>
       </div>
@@ -117,7 +115,7 @@ function EnrollTotp({
         <FieldGroup>
           <form.AppField
             name='code'
-            children={(field) => <field.OtpField label='Code de vérification' />}
+            children={(field) => <field.OtpField label={t('codeLabel')} />}
           />
         </FieldGroup>
         <div className='flex flex-wrap gap-2'>
@@ -125,12 +123,12 @@ function EnrollTotp({
             selector={(s) => s.isSubmitting}
             children={(submitting) => (
               <LoadingButton type='submit' loading={submitting}>
-                Activer
+                {t('enable')}
               </LoadingButton>
             )}
           />
           <Button type='button' variant='outline' onClick={onCancel}>
-            Annuler
+            {t('cancel')}
           </Button>
         </div>
       </form>
@@ -139,6 +137,10 @@ function EnrollTotp({
 }
 
 export function SecuritySection() {
+  const t = useTranslations('profile.security');
+  const format = useFormatter();
+  const errorMessage = useErrorMessage();
+  const formatDate = (value: string) => format.dateTime(new Date(value), { dateStyle: 'medium' });
   const db = createClient();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -153,25 +155,31 @@ export function SecuritySection() {
   };
 
   const enrollMutation = useMutation({
-    mutationFn: () => enrollTotp(db),
+    mutationFn: () =>
+      enrollTotp(
+        db,
+        t('factorName', {
+          date: format.dateTime(new Date(), { dateStyle: 'short', timeStyle: 'short' })
+        })
+      ),
     onSuccess: setEnrollment,
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
 
   const removeMutation = useMutation({
     mutationFn: (factorId: string) => removeFactor(db, factorId),
     onSuccess: () => {
-      toast.success('Application d’authentification retirée');
+      toast.success(t('removedToast'));
       refresh();
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
 
   const globalSignOut = useMutation({
     mutationFn: () => signOutEverywhere(db),
     // Then clear the dashboard cookies and go to sign-in (server action).
     onSuccess: () => signOut(),
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
 
   const factors = data?.factors ?? [];
@@ -182,23 +190,20 @@ export function SecuritySection() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <Icons.shield className='size-5' />
-          Sécurité
+          {t('title')}
         </CardTitle>
-        <CardDescription>
-          Vérification en deux étapes avec une application d’authentification (code à 6 chiffres) et
-          gestion de vos sessions.
-        </CardDescription>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent className='space-y-6'>
         <section className='space-y-3'>
           <div className='flex flex-wrap items-center justify-between gap-2'>
             <div className='flex items-center gap-2'>
-              <h3 className='text-sm font-medium'>Vérification en deux étapes</h3>
+              <h3 className='text-sm font-medium'>{t('twoStep')}</h3>
               {!isPending &&
                 (enabled ? (
-                  <Badge>Activée</Badge>
+                  <Badge>{t('on')}</Badge>
                 ) : (
-                  <Badge variant='destructive'>Désactivée</Badge>
+                  <Badge variant='secondary'>{t('off')}</Badge>
                 ))}
             </div>
             {!enrollment && !isPending && (
@@ -209,15 +214,13 @@ export function SecuritySection() {
                 onClick={() => enrollMutation.mutate()}
               >
                 <Icons.add className='mr-1 size-4' />
-                {enabled ? 'Ajouter une application' : 'Activer'}
+                {enabled ? t('addApp') : t('setUp')}
               </LoadingButton>
             )}
           </div>
 
           {isPending && <Skeleton className='h-12 w-full' />}
-          {isError && (
-            <p className='text-destructive text-sm'>Impossible de charger la sécurité du compte.</p>
-          )}
+          {isError && <p className='text-muted-foreground text-sm'>{t('loadFailed')}</p>}
 
           {enrollment && (
             <EnrollTotp
@@ -241,10 +244,10 @@ export function SecuritySection() {
                     <Icons.shieldCheck className='text-primary size-5 shrink-0' />
                     <div className='min-w-0'>
                       <p className='truncate text-sm font-medium'>
-                        {factor.friendlyName || 'Application d’authentification'}
+                        {factor.friendlyName || t('app')}
                       </p>
                       <p className='text-muted-foreground text-xs'>
-                        Ajoutée le {formatDate(factor.createdAt)}
+                        {t('addedOn', { date: formatDate(factor.createdAt) })}
                       </p>
                     </div>
                   </div>
@@ -256,26 +259,21 @@ export function SecuritySection() {
                     onClick={() => setToRemove(factor)}
                   >
                     <Icons.trash className='mr-1 size-4' />
-                    Retirer
+                    {t('remove')}
                   </Button>
                 </li>
               ))}
             </ul>
           )}
           {!isPending && !enabled && !enrollment && (
-            <p className='text-muted-foreground text-sm'>
-              Protégez votre compte : même avec votre mot de passe, personne ne pourra se connecter
-              sans le code de votre téléphone.
-            </p>
+            <p className='text-muted-foreground text-sm'>{t('offHint')}</p>
           )}
         </section>
 
         <section className='flex flex-wrap items-center justify-between gap-3 border-t pt-4'>
           <div>
-            <h3 className='text-sm font-medium'>Sessions</h3>
-            <p className='text-muted-foreground text-sm'>
-              Déconnecte ce compte sur tous vos appareils et toutes les applications LevelUp.
-            </p>
+            <h3 className='text-sm font-medium'>{t('sessions')}</h3>
+            <p className='text-muted-foreground text-sm'>{t('sessionsHint')}</p>
           </div>
           <LoadingButton
             type='button'
@@ -284,7 +282,7 @@ export function SecuritySection() {
             onClick={() => setConfirmGlobal(true)}
           >
             <Icons.devices className='mr-1 size-4' />
-            Déconnecter tous mes appareils
+            {t('signOutAll')}
           </LoadingButton>
         </section>
       </CardContent>
@@ -292,15 +290,13 @@ export function SecuritySection() {
       <AlertDialog open={!!toRemove} onOpenChange={(o) => !o && setToRemove(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Retirer cette application ?</AlertDialogTitle>
+            <AlertDialogTitle>{t('removeTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {factors.length > 1
-                ? 'Elle ne pourra plus servir à confirmer vos connexions.'
-                : 'C’est votre seule application : la vérification en deux étapes sera désactivée.'}
+              {factors.length > 1 ? t('removeOther') : t('removeLast')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant='destructive'
               onClick={() => {
@@ -308,7 +304,7 @@ export function SecuritySection() {
                 setToRemove(null);
               }}
             >
-              Retirer
+              {t('remove')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -317,13 +313,11 @@ export function SecuritySection() {
       <AlertDialog open={confirmGlobal} onOpenChange={setConfirmGlobal}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Déconnecter tous vos appareils ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Toutes vos sessions seront fermées, y compris celle-ci. Vous devrez vous reconnecter.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('signOutAllTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('signOutAllDescription')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant='destructive'
               onClick={() => {
@@ -331,7 +325,7 @@ export function SecuritySection() {
                 globalSignOut.mutate();
               }}
             >
-              Tout déconnecter
+              {t('signOutAllConfirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

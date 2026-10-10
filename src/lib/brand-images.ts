@@ -1,3 +1,4 @@
+import { AppError } from '@/lib/errors';
 import { createClient } from '@/lib/supabase/client';
 
 const MAX_SIDE = 512;
@@ -14,7 +15,7 @@ async function toWebp(file: File): Promise<Blob> {
   const blob = await new Promise<Blob | null>((resolve) =>
     canvas.toBlob(resolve, 'image/webp', 0.9)
   );
-  if (!blob) throw new Error('Image illisible.');
+  if (!blob) throw new AppError('imageUnreadable');
   return blob;
 }
 
@@ -24,15 +25,14 @@ async function toWebp(file: File): Promise<Blob> {
  * and returns the public URL.
  */
 export async function uploadBrandImage(file: File, folder: string): Promise<string> {
-  if (!/^image\/(png|jpe?g|webp)$/.test(file.type))
-    throw new Error('Formats acceptés : PNG, JPG ou WebP.');
-  if (file.size > 8 * 1024 * 1024) throw new Error('Image trop lourde (8 Mo maximum).');
+  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new AppError('imageFormat');
+  if (file.size > 8 * 1024 * 1024) throw new AppError('imageTooLarge');
   const blob = await toWebp(file);
   const db = createClient();
   const path = `${folder}/${Date.now()}.webp`;
   const { error } = await db.storage
     .from('brand')
     .upload(path, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
-  if (error) throw new Error('Envoi de l’image impossible.');
+  if (error) throw new AppError('uploadFailed', { cause: error });
   return db.storage.from('brand').getPublicUrl(path).data.publicUrl;
 }

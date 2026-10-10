@@ -1,12 +1,14 @@
 import React from 'react';
 import { Heading } from '../ui/heading';
 import type { InfobarContent } from '@/components/ui/infobar';
+import { useTranslations } from 'next-intl';
 
 function PageSkeleton() {
+  const t = useTranslations('common');
   return (
     <div
       role='status'
-      aria-label='Loading page'
+      aria-label={t('loading')}
       className='flex flex-1 animate-pulse flex-col gap-4 p-4 md:px-6'
     >
       <div className='flex items-center justify-between'>
@@ -19,6 +21,11 @@ function PageSkeleton() {
       <div className='bg-muted h-40 w-full rounded-lg' />
     </div>
   );
+}
+
+function NoAccess() {
+  const t = useTranslations('common');
+  return <div className='text-muted-foreground text-center text-lg'>{t('noAccess')}</div>;
 }
 
 export default function PageContainer({
@@ -43,11 +50,7 @@ export default function PageContainer({
   if (!access) {
     return (
       <div role='status' className='flex flex-1 items-center justify-center p-4 md:px-6'>
-        {accessFallback ?? (
-          <div className='text-muted-foreground text-center text-lg'>
-            You do not have access to this page.
-          </div>
-        )}
+        {accessFallback ?? <NoAccess />}
       </div>
     );
   }

@@ -28,24 +28,14 @@ import { usePasskeySupport } from '@/lib/auth/passkey';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useFormatter, useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { passkeysQueryOptions, securityKeys } from '../api/queries';
 import { PasskeyCancelledError, addPasskey, deletePasskey, renamePasskey } from '../api/service';
 import type { Passkey } from '../api/types';
-
-const nameSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, { message: 'Un nom' })
-    .max(120, { message: '120 caractères maximum' })
-});
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString('fr-FR', { dateStyle: 'medium' });
-}
 
 function RenamePasskeyDialog({
   passkey,
@@ -54,16 +44,30 @@ function RenamePasskeyDialog({
   passkey: Passkey | null;
   onClose: () => void;
 }) {
+  const t = useTranslations('profile.passkeys');
+  const tv = useTranslations('validation');
+  const errorMessage = useErrorMessage();
+  const nameSchema = useMemo(
+    () =>
+      z.object({
+        name: z
+          .string()
+          .trim()
+          .min(1, { message: tv('nameRequired') })
+          .max(120, { message: tv('maxLength', { max: 120 }) })
+      }),
+    [tv]
+  );
   const db = createClient();
   const queryClient = useQueryClient();
   const renameMutation = useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) => renamePasskey(db, id, name),
     onSuccess: () => {
-      toast.success('Passkey renommée');
+      toast.success(t('renamed'));
       void queryClient.invalidateQueries({ queryKey: securityKeys.passkeys() });
       onClose();
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
 
   const form = useAppForm({
@@ -82,10 +86,8 @@ function RenamePasskeyDialog({
     <Dialog open={!!passkey} onOpenChange={(o) => !o && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Renommer la passkey</DialogTitle>
-          <DialogDescription>
-            Un nom pour la reconnaître (ex. « iPhone », « MacBook »).
-          </DialogDescription>
+          <DialogTitle>{t('renameTitle')}</DialogTitle>
+          <DialogDescription>{t('renameDescription')}</DialogDescription>
         </DialogHeader>
         <form
           id='rename-passkey-form'
@@ -97,20 +99,20 @@ function RenamePasskeyDialog({
           <FieldGroup>
             <form.AppField
               name='name'
-              children={(field) => <field.TextField label='Nom' maxLength={120} />}
+              children={(field) => <field.TextField label={t('name')} maxLength={120} />}
             />
           </FieldGroup>
         </form>
         <DialogFooter>
           <Button type='button' variant='outline' onClick={onClose}>
-            Annuler
+            {t('cancel')}
           </Button>
           <LoadingButton
             type='submit'
             form='rename-passkey-form'
             loading={renameMutation.isPending}
           >
-            Enregistrer
+            {t('save')}
           </LoadingButton>
         </DialogFooter>
       </DialogContent>
@@ -120,6 +122,10 @@ function RenamePasskeyDialog({
 
 /** Passkeys of the account: list, add (browser prompt), rename, delete. */
 export function PasskeysCard() {
+  const t = useTranslations('profile.passkeys');
+  const format = useFormatter();
+  const errorMessage = useErrorMessage();
+  const formatDate = (value: string) => format.dateTime(new Date(value), { dateStyle: 'medium' });
   const db = createClient();
   const queryClient = useQueryClient();
   const supported = usePasskeySupport();
@@ -132,22 +138,22 @@ export function PasskeysCard() {
   const addMutation = useMutation({
     mutationFn: () => addPasskey(db),
     onSuccess: () => {
-      toast.success('Passkey ajoutée');
+      toast.success(t('added'));
       void invalidate();
     },
     onError: (e) => {
       if (e instanceof PasskeyCancelledError) return;
-      toast.error(e.message);
+      toast.error(errorMessage(e));
     }
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deletePasskey(db, id),
     onSuccess: () => {
-      toast.success('Passkey supprimée');
+      toast.success(t('deleted'));
       void invalidate();
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
 
   const passkeys = data ?? [];
@@ -161,10 +167,7 @@ export function PasskeysCard() {
               <Icons.passkey className='size-5' />
               Passkeys
             </CardTitle>
-            <CardDescription>
-              Connectez-vous sans mot de passe avec Face ID, Touch ID, Windows Hello ou le code de
-              votre téléphone.
-            </CardDescription>
+            <CardDescription>{t('description')}</CardDescription>
           </div>
           {supported && (
             <LoadingButton
@@ -174,23 +177,17 @@ export function PasskeysCard() {
               onClick={() => addMutation.mutate()}
             >
               <Icons.add className='mr-1 size-4' />
-              Ajouter une passkey
+              {t('add')}
             </LoadingButton>
           )}
         </div>
       </CardHeader>
       <CardContent className='space-y-3'>
-        {!supported && (
-          <p className='text-muted-foreground text-sm'>
-            Ce navigateur ne prend pas en charge les passkeys.
-          </p>
-        )}
+        {!supported && <p className='text-muted-foreground text-sm'>{t('unsupported')}</p>}
         {isPending && <Skeleton className='h-12 w-full' />}
-        {isError && <p className='text-destructive text-sm'>Impossible de charger vos passkeys.</p>}
+        {isError && <p className='text-muted-foreground text-sm'>{t('loadFailed')}</p>}
         {!isPending && !isError && passkeys.length === 0 && (
-          <p className='text-muted-foreground text-sm'>
-            Aucune passkey pour l’instant. Ajoutez-en une sur chaque appareil que vous utilisez.
-          </p>
+          <p className='text-muted-foreground text-sm'>{t('empty')}</p>
         )}
         {passkeys.length > 0 && (
           <ul className='divide-y rounded-lg border'>
@@ -206,10 +203,11 @@ export function PasskeysCard() {
                       {passkey.friendlyName || 'Passkey'}
                     </p>
                     <p className='text-muted-foreground text-xs'>
-                      Ajoutée le {formatDate(passkey.createdAt)}
+                      {t('addedOn', { date: formatDate(passkey.createdAt) })}
+                      {' · '}
                       {passkey.lastUsedAt
-                        ? ` · utilisée le ${formatDate(passkey.lastUsedAt)}`
-                        : ' · jamais utilisée'}
+                        ? t('usedOn', { date: formatDate(passkey.lastUsedAt) })
+                        : t('neverUsed')}
                     </p>
                   </div>
                 </div>
@@ -221,7 +219,7 @@ export function PasskeysCard() {
                     onClick={() => setToRename(passkey)}
                   >
                     <Icons.edit className='mr-1 size-4' />
-                    Renommer
+                    {t('rename')}
                   </Button>
                   <Button
                     type='button'
@@ -231,7 +229,7 @@ export function PasskeysCard() {
                     onClick={() => setToDelete(passkey)}
                   >
                     <Icons.trash className='mr-1 size-4' />
-                    Supprimer
+                    {t('delete')}
                   </Button>
                 </div>
               </li>
@@ -249,14 +247,11 @@ export function PasskeysCard() {
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette passkey ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Elle ne pourra plus servir à vous connecter. Pensez aussi à la retirer du gestionnaire
-              de mots de passe de l’appareil.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deleteDescription')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant='destructive'
               onClick={() => {
@@ -264,7 +259,7 @@ export function PasskeysCard() {
                 setToDelete(null);
               }}
             >
-              Supprimer
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

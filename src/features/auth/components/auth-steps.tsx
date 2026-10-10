@@ -1,7 +1,8 @@
 import { Icons } from '@/components/icons';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
-const STEPS = ['Compte', 'E-mail', 'Profil', 'Validation'];
+const STEPS = ['account', 'email', 'profile', 'approval'] as const;
 
 /**
  * Where the visitor is in account creation: account, e-mail, profile, approval.
@@ -9,11 +10,12 @@ const STEPS = ['Compte', 'E-mail', 'Profil', 'Validation'];
  * (the confirmation link): its bar pulses.
  */
 export function AuthSteps({ current, waiting }: { current: 0 | 1 | 2 | 3; waiting?: boolean }) {
+  const t = useTranslations('auth.steps');
   return (
-    <ol className='flex items-center gap-2' aria-label='Étapes de création du compte'>
-      {STEPS.map((label, i) => (
+    <ol className='flex items-center gap-2' aria-label={t('label')}>
+      {STEPS.map((key, i) => (
         <li
-          key={label}
+          key={key}
           className='flex flex-1 flex-col gap-1.5'
           aria-current={i === current ? 'step' : undefined}
         >
@@ -32,8 +34,8 @@ export function AuthSteps({ current, waiting }: { current: 0 | 1 | 2 | 3; waitin
             )}
           >
             {i < current && <Icons.check className='text-primary size-3' aria-hidden />}
-            {label}
-            {i === current && waiting && <span className='sr-only'> (en attente)</span>}
+            {t(key)}
+            {i === current && waiting && <span className='sr-only'> {t('waiting')}</span>}
           </span>
         </li>
       ))}

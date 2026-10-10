@@ -1,37 +1,37 @@
 'use client';
 
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useFormatter, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
-import { accessRequestsQueryOptions, orgKeys } from '../api/queries';
-import { decideAccessRequest, type AccessRequest } from '../api/service';
+import { decideAccessRequest, type AccessRequest } from '../api/clients';
+import { accessRequestsQueryOptions, adminInsightKeys } from '../api/queries';
 
-const STATUS: Record<
-  AccessRequest['status'],
-  { label: string; variant: 'default' | 'secondary' | 'outline' }
-> = {
-  pending: { label: 'En attente', variant: 'default' },
-  approved: { label: 'Validée', variant: 'secondary' },
-  rejected: { label: 'Refusée', variant: 'outline' }
+const STATUS_VARIANT: Record<AccessRequest['status'], 'default' | 'secondary' | 'outline'> = {
+  pending: 'default',
+  approved: 'secondary',
+  rejected: 'outline'
 };
 
 /** LevelUp staff: who asked for dashboard access, approve (creates their organization) or reject. */
 export function AccessRequests() {
   const queryClient = useQueryClient();
+  const t = useTranslations('admin.accessRequests');
+  const format = useFormatter();
+  const errorMessage = useErrorMessage();
   const { data } = useSuspenseQuery(accessRequestsQueryOptions(createClient()));
   const decide = useMutation({
     mutationFn: decideAccessRequest,
     onSuccess: (_, vars) => {
-      toast.success(
-        vars.approve ? 'Accès validé, le client a été prévenu par e-mail.' : 'Demande refusée.'
-      );
-      void queryClient.invalidateQueries({ queryKey: orgKeys.accessRequests() });
-      void queryClient.invalidateQueries({ queryKey: orgKeys.allWebsites() });
+      toast.success(vars.approve ? t('approved') : t('rejected'));
+      void queryClient.invalidateQueries({ queryKey: adminInsightKeys.accessRequests() });
+      void queryClient.invalidateQueries({ queryKey: adminInsightKeys.allWebsites() });
     },
-    onError: (e) => toast.error(e.message)
+    onError: (e) => toast.error(errorMessage(e))
   });
   const pending = data.filter((r) => r.status === 'pending').length;
 
@@ -39,17 +39,12 @@ export function AccessRequests() {
     <Card>
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
-          Demandes d’accès {pending > 0 && <Badge>{pending}</Badge>}
+          {t('title')} {pending > 0 && <Badge>{pending}</Badge>}
         </CardTitle>
-        <CardDescription>
-          Valider une demande crée l’organisation du client (à son nom) et l’en rend propriétaire.
-          Vous pourrez ensuite lui ajouter un site ci-dessous.
-        </CardDescription>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent className='space-y-3'>
-        {data.length === 0 && (
-          <p className='text-muted-foreground text-sm'>Aucune demande pour le moment.</p>
-        )}
+        {data.length === 0 && <p className='text-muted-foreground text-sm'>{t('empty')}</p>}
         {data.map((r) => (
           <div
             key={r.user_id}
@@ -58,8 +53,8 @@ export function AccessRequests() {
             <div className='min-w-0 space-y-1 text-sm'>
               <p className='font-medium'>
                 {r.business_name}{' '}
-                <Badge variant={STATUS[r.status].variant} className='ml-1 align-middle'>
-                  {STATUS[r.status].label}
+                <Badge variant={STATUS_VARIANT[r.status]} className='ml-1 align-middle'>
+                  {t(`status.${r.status}`)}
                 </Badge>
               </p>
               <p className='text-muted-foreground'>
@@ -72,7 +67,10 @@ export function AccessRequests() {
                 <p className='text-muted-foreground whitespace-pre-wrap'>{r.message}</p>
               )}
               <p className='text-muted-foreground text-xs'>
-                {new Date(r.created_at).toLocaleString('fr-FR')}
+                {format.dateTime(new Date(r.created_at), {
+                  dateStyle: 'medium',
+                  timeStyle: 'short'
+                })}
               </p>
             </div>
             {r.status === 'pending' && (
@@ -82,7 +80,7 @@ export function AccessRequests() {
                   disabled={decide.isPending}
                   onClick={() => decide.mutate({ userId: r.user_id, approve: true })}
                 >
-                  Valider
+                  {t('approve')}
                 </Button>
                 <Button
                   size='sm'
@@ -90,7 +88,7 @@ export function AccessRequests() {
                   disabled={decide.isPending}
                   onClick={() => decide.mutate({ userId: r.user_id, approve: false })}
                 >
-                  Refuser
+                  {t('reject')}
                 </Button>
               </div>
             )}

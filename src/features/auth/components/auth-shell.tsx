@@ -1,8 +1,10 @@
+import { getTranslations } from 'next-intl/server';
 import { cn } from '@/lib/utils';
 import { BrandMark } from '@/components/brand-mark';
+import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
 import { InteractiveGridPattern } from './interactive-grid';
 
-export default function AuthShell({
+export default async function AuthShell({
   title,
   description,
   children
@@ -11,6 +13,7 @@ export default function AuthShell({
   description: string;
   children: React.ReactNode;
 }) {
+  const t = await getTranslations('auth.shell');
   return (
     <div className='relative flex min-h-screen flex-col items-center justify-center overflow-hidden md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
       <div className='relative hidden h-full flex-col p-10 lg:flex dark:border-r'>
@@ -27,9 +30,7 @@ export default function AuthShell({
         />
         <div className='text-sidebar-foreground relative z-20 mt-auto'>
           <blockquote className='space-y-2'>
-            <p className='text-lg'>
-              &ldquo;Tout ce dont votre entreprise a besoin en ligne, géré au même endroit.&rdquo;
-            </p>
+            <p className='text-lg'>&ldquo;{t('quote')}&rdquo;</p>
             <footer className='text-sidebar-foreground/70 text-sm'>LevelUp Ecosystem</footer>
           </blockquote>
         </div>
@@ -42,6 +43,7 @@ export default function AuthShell({
             <p className='text-muted-foreground text-sm'>{description}</p>
           </div>
           {children}
+          <LocaleSwitcher className='pt-2' />
         </div>
       </div>
     </div>

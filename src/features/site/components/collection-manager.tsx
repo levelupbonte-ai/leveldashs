@@ -19,18 +19,20 @@ import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useSiteMutations } from '../api/mutations';
 import { collectionQueryOptions } from '../api/queries';
 import type { ContentRow } from '../api/types';
-import { getCollection, STATUS_OPTIONS, type CollectionKey } from '../config/collections';
+import { getCollection, type CollectionKey } from '../config/collections';
 import { ItemSheet } from './item-sheet';
+import { useCollectionText } from './use-collection-text';
 import { useSiteScope } from './use-site-scope';
-
-const STATUS_LABEL = Object.fromEntries(STATUS_OPTIONS.map((o) => [o.value, o.label]));
 
 export function CollectionManager({ collection }: { collection: CollectionKey }) {
   const def = getCollection(collection)!;
+  const text = useCollectionText(def);
+  const t = useTranslations('site.content');
   const scope = useSiteScope();
   const { data: rows } = useSuspenseQuery(
     collectionQueryOptions(createClient(), def, scope.websiteId)
@@ -64,14 +66,14 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
     <div className='space-y-4'>
       <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
         <Input
-          placeholder='Rechercher…'
+          placeholder={t('search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className='sm:max-w-xs'
         />
         {scope.canEdit && (
           <Button onClick={() => openEditor(null)}>
-            <Icons.add className='mr-2 size-4' /> Ajouter
+            <Icons.add className='mr-2 size-4' /> {t('add')}
           </Button>
         )}
       </div>
@@ -79,12 +81,8 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
       {filtered.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
-            <EmptyTitle>{rows.length ? 'Aucun résultat' : 'Rien pour le moment'}</EmptyTitle>
-            <EmptyDescription>
-              {rows.length
-                ? 'Essayez une autre recherche.'
-                : `Ajoutez votre premier ${def.singular} : il apparaîtra sur votre site une fois publié.`}
-            </EmptyDescription>
+            <EmptyTitle>{rows.length ? t('noResults') : t('nothingYet')}</EmptyTitle>
+            <EmptyDescription>{rows.length ? t('tryAnother') : text.empty}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -111,7 +109,7 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
                   )}
                   {status && status !== 'published' && (
                     <Badge variant='secondary' className='mt-1'>
-                      {STATUS_LABEL[status] ?? status}
+                      {text.statusLabel(status)}
                     </Badge>
                   )}
                 </div>
@@ -119,7 +117,7 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
                   <Button
                     size='icon'
                     variant='ghost'
-                    aria-label='Modifier'
+                    aria-label={t('edit')}
                     onClick={() => openEditor(row)}
                   >
                     <Icons.edit className='size-4' />
@@ -128,7 +126,7 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
                     <Button
                       size='icon'
                       variant='ghost'
-                      aria-label='Supprimer'
+                      aria-label={t('delete')}
                       onClick={() => setToDelete(row)}
                     >
                       <Icons.trash className='size-4' />
@@ -146,26 +144,25 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cet élément ?</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              « {String(toDelete?.[def.titleField] ?? '')} » sera retiré de votre site. Pour le
-              masquer sans le supprimer, passez-le en brouillon.
+              {t('deleteDescription', { name: String(toDelete?.[def.titleField] ?? '') })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant='destructive'
               onClick={() => {
                 if (!toDelete) return;
                 deleteItem.mutate(
                   { def, id: toDelete.id },
-                  { onSuccess: () => toast.success('Supprimé') }
+                  { onSuccess: () => toast.success(t('deleted')) }
                 );
                 setToDelete(null);
               }}
             >
-              Supprimer
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { runAssistant } from '@/features/assistant/server/assistant';
+import { getLocale } from 'next-intl/server';
 import { guardAssistantRequest } from '@/features/assistant/server/guard';
 
 const Body = z.object({
@@ -32,10 +33,13 @@ export async function POST(request: NextRequest) {
       websiteId: guard.website.id,
       siteName: guard.website.name,
       canEdit: guard.canEdit,
+      locale: await getLocale(),
       messages
     });
     return NextResponse.json({ ...result, remaining: guard.remaining });
-  } catch {
+  } catch (error) {
+    // Provider details stay in the server logs; the browser only gets a code.
+    console.error('assistant failed', error instanceof Error ? error.name : 'error');
     return NextResponse.json({ error: 'unavailable' }, { status: 503 });
   }
 }
