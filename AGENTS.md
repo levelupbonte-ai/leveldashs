@@ -18,7 +18,7 @@ This file provides essential information for AI coding agents working on this pr
 - **Containerization**: Docker (Node.js & Bun Dockerfiles)
 - **Package Manager**: Bun (preferred) or npm
 
-The project follows a feature-based folder structure. The UI is in French (labels, toasts, page titles); code, comments and docs are in English.
+The project follows a feature-based folder structure. The UI is in English by default with a French translation (next-intl, see `docs/i18n.md`); every user-facing string lives in `messages/en.json` and `messages/fr.json`. Code, comments and docs are in English.
 
 ---
 
@@ -780,5 +780,5 @@ See "Theming System" section above or `docs/themes.md`.
 9. **Page headers** - Always use `PageContainer` props (`pageTitle`, `pageDescription`, `pageHeaderAction`) for page headers. Never import `<Heading>` manually in pages — `PageContainer` handles that internally.
 10. **Forms** - Use `useAppForm` from `@/lib/form` with `form.AppField` rendering the shared field components (`field.TextField`, `field.SelectField`, …) from `@/components/forms/fields`. Each component follows the official shadcn TanStack Form anatomy; drop down to raw `form.Field` render props for one-off custom fields. Never use `useState` inside a render prop — extract stateful controls into components.
 11. **Button loading** - Use `<Button isLoading={isPending}>` for loading states. Uses CSS Grid overlap trick for zero layout shift. When `isLoading` is not passed, button behaves as default shadcn. `SubmitButton` in forms handles this automatically via form `isSubmitting` state.
-12. **Supabase** - Use `@/lib/supabase/client` (browser) or `@/lib/supabase/server` (server) only; never the secret/service-role key. Schema changes go through `supabase/migrations` (see `docs/database.md`), never application code. User-facing text is French.
+12. **Supabase** - Use `@/lib/supabase/client` (browser) or `@/lib/supabase/server` (server) only; never the secret/service-role key. Schema changes go through `supabase/migrations` (see `docs/database.md`), never application code. User-facing text goes through next-intl messages (English default, French translation).
 13. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`. Never import from `@/constants/mock-api*` directly in components.
