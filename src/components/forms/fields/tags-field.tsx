@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,8 +17,10 @@ export function TagsField({
   label,
   description,
   required,
-  placeholder = 'Type and press Enter...'
+  placeholder
 }: BaseFieldProps & { placeholder?: string }) {
+  const t = useTranslations('forms');
+  placeholder ??= t('tagsPlaceholder');
   const field = useFieldContext<string[]>();
   const isInvalid = useFieldInvalid();
   const [tagInput, setTagInput] = React.useState('');
@@ -48,12 +51,12 @@ export function TagsField({
             }
           }}
           placeholder={placeholder}
-          aria-label={`Add a ${label.toLowerCase().replace(/ \*$/, '')}`}
+          aria-label={t('addTag', { label: label.replace(/ \*$/, '') })}
           aria-invalid={isInvalid}
           aria-describedby={isInvalid ? `${field.name}-error` : undefined}
         />
         <Button type='button' variant='secondary' onClick={addTag}>
-          Add
+          {t('add')}
         </Button>
       </div>
       {values.length > 0 && (
@@ -64,7 +67,7 @@ export function TagsField({
               <button
                 type='button'
                 onClick={() => field.removeValue(idx)}
-                aria-label={`Remove ${tag}`}
+                aria-label={t('removeTag', { tag })}
                 className='hover:text-destructive ml-0.5'
               >
                 <Icons.close className='h-3 w-3' />

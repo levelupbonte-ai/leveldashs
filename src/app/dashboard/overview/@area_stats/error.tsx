@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import { StatsErrorAlert } from '@/features/overview/components/stats-error';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useEffect, useTransition } from 'react';
 import * as Sentry from '@sentry/nextjs';
 
 export default function AreaStatsError({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
+  const t = useTranslations('statsError');
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -25,21 +27,21 @@ export default function AreaStatsError({ error, reset }: { error: Error; reset: 
 
   return (
     <StatsErrorAlert
-      message={`Failed to load area statistics: ${error.message}`}
+      message={t('loadFailed')}
       action={
         <>
           <Button variant='outline' size='sm' onClick={retry} disabled={isPending}>
             {isPending ? (
               <>
                 <Icons.spinner className='mr-2 h-4 w-4 animate-spin' aria-hidden='true' />
-                Retrying...
+                {t('retrying')}
               </>
             ) : (
-              'Try again'
+              t('retry')
             )}
           </Button>
           <span role='status' aria-live='polite' className='sr-only'>
-            {isPending ? 'Retrying' : ''}
+            {isPending ? t('retrying') : ''}
           </span>
         </>
       }

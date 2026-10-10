@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import {
   Select,
@@ -15,12 +16,14 @@ export function SelectField({
   label,
   description,
   required,
-  placeholder = 'Select',
+  placeholder,
   options
 }: BaseFieldProps & {
   placeholder?: string;
   options: { value: string; label: string; disabled?: boolean }[];
 }) {
+  const t = useTranslations('forms');
+  placeholder ??= t('select');
   const field = useFieldContext<string>();
   const isInvalid = useFieldInvalid();
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -21,12 +22,13 @@ export interface LoadingButtonProps extends Omit<React.ComponentProps<typeof But
  */
 export function LoadingButton({
   loading = false,
-  loadingLabel = 'Loading…',
+  loadingLabel,
   disabled,
   className,
   children,
   ...props
 }: LoadingButtonProps) {
+  const t = useTranslations('common');
   const gap = props.size === 'sm' || props.size === 'xs' ? 'gap-1' : 'gap-1.5';
   return (
     <>
@@ -42,7 +44,7 @@ export function LoadingButton({
         </span>
       </Button>
       <span role='status' aria-live='polite' className='sr-only'>
-        {loading ? loadingLabel : ''}
+        {loading ? (loadingLabel ?? t('loading')) : ''}
       </span>
     </>
   );

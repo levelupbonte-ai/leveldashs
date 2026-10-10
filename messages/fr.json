@@ -1116,5 +1116,29 @@
       "limit": "Limite quotidienne de l’IA atteinte. Réessayez demain.",
       "unavailable": "Le résumé est momentanément indisponible. Réessayez dans un instant."
     }
+  },
+  "forms": {
+    "selectOption": "Choisir une option",
+    "search": "Rechercher…",
+    "noResults": "Aucun résultat.",
+    "pickDate": "Choisir une date",
+    "pickDateRange": "Choisir une période",
+    "select": "Choisir",
+    "tagsPlaceholder": "Tapez puis Entrée…",
+    "addTag": "Ajouter à {label}",
+    "removeTag": "Retirer {tag}",
+    "add": "Ajouter"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "back": "Retour",
+    "home": "Retour au tableau de bord"
+  },
+  "statsError": {
+    "title": "Impossible de charger cette section",
+    "loadFailed": "Ces données ne sont pas disponibles pour le moment. Réessayez.",
+    "retry": "Réessayer",
+    "retrying": "Nouvel essai…"
   }
 }

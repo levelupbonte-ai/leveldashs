@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
@@ -15,12 +16,14 @@ export function DatePickerField({
   label,
   description,
   required,
-  placeholder = 'Pick a date',
+  placeholder,
   disabledDates
 }: BaseFieldProps & {
   placeholder?: string;
   disabledDates?: (date: Date) => boolean;
 }) {
+  const t = useTranslations('forms');
+  placeholder ??= t('pickDate');
   const field = useFieldContext<Date | undefined>();
   const isInvalid = useFieldInvalid();
 
@@ -69,8 +72,10 @@ export function DateRangeField({
   label,
   description,
   required,
-  placeholder = 'Pick a date range'
+  placeholder
 }: BaseFieldProps & { placeholder?: string }) {
+  const t = useTranslations('forms');
+  placeholder ??= t('pickDateRange');
   const field = useFieldContext<DateRange | undefined>();
   const isInvalid = useFieldInvalid();
   const range = field.state.value;

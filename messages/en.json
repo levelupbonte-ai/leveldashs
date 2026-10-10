@@ -1116,5 +1116,29 @@
       "limit": "You’ve reached today’s AI limit. Please try again tomorrow.",
       "unavailable": "The summary is temporarily unavailable. Please try again in a moment."
     }
+  },
+  "forms": {
+    "selectOption": "Select an option",
+    "search": "Search…",
+    "noResults": "No results found.",
+    "pickDate": "Pick a date",
+    "pickDateRange": "Pick a date range",
+    "select": "Select",
+    "tagsPlaceholder": "Type, then press Enter…",
+    "addTag": "Add to {label}",
+    "removeTag": "Remove {tag}",
+    "add": "Add"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you’re looking for doesn’t exist or has been moved.",
+    "back": "Go back",
+    "home": "Back to dashboard"
+  },
+  "statsError": {
+    "title": "Couldn’t load this section",
+    "loadFailed": "This data isn’t available right now. Please try again.",
+    "retry": "Try again",
+    "retrying": "Retrying…"
   }
 }
