@@ -1140,5 +1140,27 @@
     "loadFailed": "This data isn’t available right now. Please try again.",
     "retry": "Try again",
     "retrying": "Retrying…"
+  },
+  "breadcrumbs": {
+    "dashboard": "Dashboard",
+    "site": "My website",
+    "appointments": "Appointments",
+    "waitlist": "Waitlist",
+    "requests": "Requests",
+    "media": "Media library",
+    "seo": "SEO",
+    "settings": "Settings",
+    "developers": "Developers",
+    "assistant": "AI assistant",
+    "services": "Services",
+    "team": "Team",
+    "gallery": "Gallery",
+    "reviews": "Reviews",
+    "faq": "FAQ",
+    "announcements": "Announcements",
+    "workspaces": "Organizations",
+    "profile": "Profile",
+    "billing": "Billing",
+    "notifications": "Notifications"
   }
 }

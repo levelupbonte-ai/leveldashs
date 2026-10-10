@@ -24,9 +24,9 @@ import { GoogleSignInButton } from './google-sign-in-button';
 import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
-// Passkey button: outline, full width, 44 px, same height as Google's button.
+// Passkey button: outline, full width, 40 px, the height of Google's "large" button.
 const PROVIDER_BUTTON =
-  'h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]';
+  'h-10 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]';
 
 function LastUsedBadge() {
   const t = useTranslations('auth.form');

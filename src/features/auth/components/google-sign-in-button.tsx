@@ -124,7 +124,7 @@ export function GoogleSignInButton({
         disabled={disabled}
         onClick={onFallback}
         className={cn(
-          'h-11 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]',
+          'h-10 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]',
           className
         )}
       >
@@ -138,7 +138,7 @@ export function GoogleSignInButton({
     <div
       ref={wrapperRef}
       className={cn(
-        'relative flex min-h-11 w-full items-center justify-center',
+        'relative flex min-h-10 w-full items-center justify-center',
         disabled && 'pointer-events-none opacity-60',
         className
       )}

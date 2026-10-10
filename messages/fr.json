@@ -1140,5 +1140,27 @@
     "loadFailed": "Ces données ne sont pas disponibles pour le moment. Réessayez.",
     "retry": "Réessayer",
     "retrying": "Nouvel essai…"
+  },
+  "breadcrumbs": {
+    "dashboard": "Tableau de bord",
+    "site": "Mon site",
+    "appointments": "Rendez-vous",
+    "waitlist": "File d’attente",
+    "requests": "Demandes",
+    "media": "Médiathèque",
+    "seo": "SEO",
+    "settings": "Paramètres",
+    "developers": "Développeurs",
+    "assistant": "Assistant IA",
+    "services": "Services",
+    "team": "Équipe",
+    "gallery": "Galerie",
+    "reviews": "Avis clients",
+    "faq": "FAQ",
+    "announcements": "Annonces",
+    "workspaces": "Organisations",
+    "profile": "Profil",
+    "billing": "Facturation",
+    "notifications": "Notifications"
   }
 }
