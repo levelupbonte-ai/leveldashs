@@ -1,5 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { getLocale } from 'next-intl/server';
+import { userLocale } from '@/i18n/config';
+import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice, TEAM_INBOX } from '@/lib/email/notice';
 import { createClient } from '@/lib/supabase/server';
 
@@ -46,25 +49,34 @@ export async function POST(request: NextRequest) {
     p_message: parsed.data.message || null
   });
   if (error) {
+    console.error('submit_access_request failed', error.code);
     return NextResponse.json(
       { error: error.code === 'PT403' ? 'unverified' : 'invalid' },
       { status: error.code === 'PT403' ? 403 : 400 }
     );
   }
+  // Remember the applicant's language so the decision e-mail is in it.
+  if (!userLocale(user)) {
+    await db.auth.updateUser({ data: { locale: await getLocale() } }).catch(() => undefined);
+  }
   // One e-mail to the team per new request (not for edits of a pending one).
+  // Internal notice: always in English, the ecosystem's official language.
   if (status === 'pending' && !previous) {
+    const { t } = await getTranslatorFor('en');
+    const d = parsed.data;
     await sendNotice({
       to: TEAM_INBOX,
-      subject: `Demande d’accès au dashboard : ${parsed.data.businessName}`,
-      title: 'Nouvelle demande d’accès',
+      locale: 'en',
+      subject: t('emails.accessRequestTeam.subject', { business: d.businessName }),
+      title: t('emails.accessRequestTeam.title'),
       lines: [
-        `Entreprise : ${parsed.data.businessName}`,
-        `Compte : ${user.email ?? ''}`,
-        ...(parsed.data.website ? [`Site : ${parsed.data.website}`] : []),
-        ...(parsed.data.phone ? [`Téléphone : ${parsed.data.phone}`] : []),
-        ...(parsed.data.message ? [`Message : ${parsed.data.message}`] : [])
+        t('emails.accessRequestTeam.business', { value: d.businessName }),
+        t('emails.accessRequestTeam.account', { value: user.email ?? '' }),
+        ...(d.website ? [t('emails.accessRequestTeam.website', { value: d.website })] : []),
+        ...(d.phone ? [t('emails.accessRequestTeam.phone', { value: d.phone })] : []),
+        ...(d.message ? [t('emails.accessRequestTeam.message', { value: d.message })] : [])
       ],
-      cta: { label: 'Examiner la demande', url: `${DASHBOARD}/dashboard/exclusive` }
+      cta: { label: t('emails.accessRequestTeam.cta'), url: `${DASHBOARD}/dashboard/exclusive` }
     });
   }
   return NextResponse.json({ status });

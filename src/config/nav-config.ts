@@ -10,13 +10,17 @@ import { NavGroup } from '@/types';
  * - `role`: minimum organization role (viewer < editor < admin < owner)
  * - `feature`: website_features key(s) that must be enabled on the active website
  * - `platformAdmin`: LevelUp staff only
+ *
+ * `label` / `title` are keys of the `nav.groups` / `nav.items` messages (see
+ * docs/i18n.md). LevelUp staff entries are not here: they come from
+ * `src/config/admin-nav.ts` (server-only), so client bundles never list them.
  */
 export const navGroups: NavGroup[] = [
   {
-    label: 'Mon site',
+    label: 'mySite',
     items: [
       {
-        title: 'Vue d’ensemble',
+        title: 'siteOverview',
         url: '/dashboard/site',
         icon: 'world',
         isActive: false,
@@ -25,7 +29,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'Assistant IA',
+        title: 'assistant',
         url: '/dashboard/site/assistant',
         icon: 'sparkles',
         isActive: false,
@@ -33,7 +37,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'Rendez-vous',
+        title: 'appointments',
         url: '/dashboard/site/appointments',
         icon: 'calendar',
         isActive: false,
@@ -41,7 +45,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true, feature: 'bookings' }
       },
       {
-        title: 'File d’attente',
+        title: 'waitlist',
         url: '/dashboard/site/waitlist',
         icon: 'hourglass',
         isActive: false,
@@ -49,7 +53,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true, feature: 'waitlist' }
       },
       {
-        title: 'Demandes',
+        title: 'requests',
         url: '/dashboard/site/requests',
         icon: 'inbox',
         isActive: false,
@@ -57,47 +61,47 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'Contenu',
+        title: 'content',
         url: '#',
         icon: 'listDetails',
         isActive: true,
         access: { requireWebsite: true },
         items: [
           {
-            title: 'Services',
+            title: 'services',
             url: '/dashboard/site/services',
             icon: 'scissors',
             access: { feature: 'services' }
           },
           {
-            title: 'Équipe',
+            title: 'team',
             url: '/dashboard/site/team',
             icon: 'teams',
             access: { feature: 'team' }
           },
           {
-            title: 'Galerie',
+            title: 'gallery',
             url: '/dashboard/site/gallery',
             icon: 'photo',
             access: { feature: 'gallery' }
           },
           {
-            title: 'Avis clients',
+            title: 'reviews',
             url: '/dashboard/site/reviews',
             icon: 'star',
             access: { feature: 'reviews' }
           },
           {
-            title: 'Annonces',
+            title: 'announcements',
             url: '/dashboard/site/announcements',
             icon: 'speakerphone',
             access: { feature: ['announcements', 'promotions', 'blog'] }
           },
-          { title: 'FAQ', url: '/dashboard/site/faq', icon: 'help' }
+          { title: 'faq', url: '/dashboard/site/faq', icon: 'help' }
         ]
       },
       {
-        title: 'Médiathèque',
+        title: 'media',
         url: '/dashboard/site/media',
         icon: 'photo',
         isActive: false,
@@ -105,7 +109,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'SEO',
+        title: 'seo',
         url: '/dashboard/site/seo',
         icon: 'trendingUp',
         isActive: false,
@@ -113,7 +117,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'Développeurs',
+        title: 'developers',
         url: '/dashboard/site/developers',
         icon: 'code',
         isActive: false,
@@ -121,7 +125,7 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
-        title: 'Paramètres du site',
+        title: 'siteSettings',
         url: '/dashboard/site/settings',
         icon: 'settings',
         isActive: false,
@@ -131,10 +135,10 @@ export const navGroups: NavGroup[] = [
     ]
   },
   {
-    label: 'Overview',
+    label: 'overview',
     items: [
       {
-        title: 'Dashboard',
+        title: 'dashboard',
         url: '/dashboard/overview',
         icon: 'dashboard',
         isActive: false,
@@ -142,14 +146,14 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'Organisations',
+        title: 'organizations',
         url: '/dashboard/workspaces',
         icon: 'workspace',
         isActive: false,
         items: []
       },
       {
-        title: 'Équipe & accès',
+        title: 'teamAccess',
         url: '/dashboard/workspaces/team',
         icon: 'teams',
         isActive: false,
@@ -157,7 +161,7 @@ export const navGroups: NavGroup[] = [
         access: { requireOrg: true }
       },
       {
-        title: 'Product',
+        title: 'product',
         url: '/dashboard/product',
         icon: 'product',
         shortcut: ['p', 'p'],
@@ -165,7 +169,7 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'Users',
+        title: 'users',
         url: '/dashboard/users',
         icon: 'teams',
         shortcut: ['u', 'u'],
@@ -173,7 +177,7 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'Kanban',
+        title: 'kanban',
         url: '/dashboard/kanban',
         icon: 'kanban',
         shortcut: ['k', 'k'],
@@ -181,7 +185,7 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'Chat',
+        title: 'chat',
         url: '/dashboard/chat',
         icon: 'chat',
         shortcut: ['c', 'c'],
@@ -189,7 +193,7 @@ export const navGroups: NavGroup[] = [
         items: []
       },
       {
-        title: 'AI Chat',
+        title: 'aiChat',
         url: '/dashboard/ai-chat',
         icon: 'sparkles',
         shortcut: ['a', 'i'],
@@ -199,46 +203,46 @@ export const navGroups: NavGroup[] = [
     ]
   },
   {
-    label: 'Elements',
+    label: 'elements',
     items: [
       {
-        title: 'Forms',
+        title: 'forms',
         url: '#',
         icon: 'forms',
         isActive: true,
         items: [
           {
-            title: 'Basic Form',
+            title: 'basicForm',
             url: '/dashboard/forms/basic',
             icon: 'forms',
             shortcut: ['f', 'f']
           },
           {
-            title: 'Multi-Step Form',
+            title: 'multiStepForm',
             url: '/dashboard/forms/multi-step',
             icon: 'forms'
           },
           {
-            title: 'Sheet & Dialog',
+            title: 'sheetDialog',
             url: '/dashboard/forms/sheet-form',
             icon: 'forms'
           },
           {
-            title: 'Advanced Patterns',
+            title: 'advancedPatterns',
             url: '/dashboard/forms/advanced',
             icon: 'forms'
           }
         ]
       },
       {
-        title: 'React Query',
+        title: 'reactQuery',
         url: '/dashboard/react-query',
         icon: 'code',
         isActive: false,
         items: []
       },
       {
-        title: 'Icons',
+        title: 'icons',
         url: '/dashboard/elements/icons',
         icon: 'palette',
         isActive: false,
@@ -250,47 +254,32 @@ export const navGroups: NavGroup[] = [
     label: '',
     items: [
       {
-        title: 'LevelUp admin',
-        url: '#',
-        icon: 'pro',
-        isActive: false,
-        access: { platformAdmin: true },
-        items: [
-          {
-            title: 'Tous les clients',
-            url: '/dashboard/exclusive',
-            icon: 'exclusive',
-            shortcut: ['e', 'e']
-          }
-        ]
-      },
-      {
-        title: 'Account',
+        title: 'account',
         url: '#',
         icon: 'account',
         isActive: true,
         items: [
           {
-            title: 'Profile',
+            title: 'profile',
             url: '/dashboard/profile',
             icon: 'profile',
             shortcut: ['m', 'm']
           },
           {
-            title: 'Notifications',
+            title: 'notifications',
             url: '/dashboard/notifications',
             icon: 'notification',
             shortcut: ['n', 'n']
           },
           {
-            title: 'Billing',
+            title: 'billing',
             url: '/dashboard/billing',
             icon: 'billing',
             shortcut: ['b', 'b'],
             access: { requireOrg: true }
           },
           {
-            title: 'Accueil',
+            title: 'home',
             shortcut: ['l', 'l'],
             url: '/',
             icon: 'login'

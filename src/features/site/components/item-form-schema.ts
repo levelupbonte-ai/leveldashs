@@ -4,41 +4,50 @@ import type { ContentRow } from '../api/types';
 
 export type FormValues = Record<string, unknown>;
 
-const httpsUrl = z
-  .string()
-  .trim()
-  .max(2048)
-  .refine((v) => v === '' || /^https:\/\/[^\s]+$/.test(v), { message: 'Lien https:// requis' });
+/** Translated validation messages (`site.validation`). */
+export interface SchemaMessages {
+  https: string;
+  number: string;
+  amount: string;
+  required: string;
+  date: string;
+  tooLong: string;
+}
 
-function fieldSchema(field: FieldDef) {
+function fieldSchema(field: FieldDef, m: SchemaMessages) {
+  const httpsUrl = z
+    .string()
+    .trim()
+    .max(2048)
+    .refine((v) => v === '' || /^https:\/\/[^\s]+$/.test(v), { message: m.https });
   switch (field.kind) {
     case 'number':
-      return z.number({ error: 'Nombre invalide' }).int().min(0).max(100000).optional();
+      return z.number({ error: m.number }).int().min(0).max(100000).optional();
     case 'money':
-      return z.number({ error: 'Montant invalide' }).min(0).max(1000000).optional();
+      return z.number({ error: m.amount }).min(0).max(1000000).optional();
     case 'switch':
       return z.boolean();
     case 'tags':
       return z.array(z.string().trim().min(1).max(80)).max(30);
     case 'image':
     case 'url':
-      return field.required ? httpsUrl.refine((v) => v !== '', { message: 'Requis' }) : httpsUrl;
+      return field.required ? httpsUrl.refine((v) => v !== '', { message: m.required }) : httpsUrl;
     case 'date':
       return z.string().refine((v) => v === '' || /^\d{4}-\d{2}-\d{2}$/.test(v), {
-        message: 'Date invalide'
+        message: m.date
       });
     default: {
       const base = z
         .string()
         .trim()
-        .max(field.max ?? 20000, { message: 'Trop long' });
-      return field.required ? base.min(1, { message: 'Requis' }) : base;
+        .max(field.max ?? 20000, { message: m.tooLong });
+      return field.required ? base.min(1, { message: m.required }) : base;
     }
   }
 }
 
-export function buildSchema(def: CollectionDef) {
-  return z.object(Object.fromEntries(def.fields.map((f) => [f.name, fieldSchema(f)])));
+export function buildSchema(def: CollectionDef, messages: SchemaMessages) {
+  return z.object(Object.fromEntries(def.fields.map((f) => [f.name, fieldSchema(f, messages)])));
 }
 
 /** Database row -> form values */

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
+import { LOCALE_COOKIE, localeCookieOptions, userLocale } from '@/i18n/config';
 import { authCookieOptions } from './cookie-domain';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './env';
 
@@ -30,6 +31,17 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+
+  // Language saved on the account (switcher on another device): applied here when
+  // this browser has no NEXT_LOCALE cookie yet, for this request and the next ones.
+  const savedLocale = userLocale(user);
+  if (savedLocale && !request.cookies.get(LOCALE_COOKIE)) {
+    request.cookies.set(LOCALE_COOKIE, savedLocale);
+    const previous = response;
+    response = NextResponse.next({ request });
+    previous.cookies.getAll().forEach((cookie) => response.cookies.set(cookie));
+    response.cookies.set(LOCALE_COOKIE, savedLocale, localeCookieOptions);
+  }
 
   if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
     const url = request.nextUrl.clone();

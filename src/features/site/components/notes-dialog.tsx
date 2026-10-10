@@ -10,6 +10,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 /** Private staff notes (never shown to the customer). */
@@ -27,14 +28,13 @@ export function NotesDialog({
   onSave: (notes: string | null) => void;
 }) {
   const [value, setValue] = useState(initial);
+  const t = useTranslations('site.content');
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
-            Notes internes, visibles uniquement par votre équipe.
-          </DialogDescription>
+          <DialogDescription>{t('notesDescription')}</DialogDescription>
         </DialogHeader>
         <Textarea
           rows={5}
@@ -44,7 +44,7 @@ export function NotesDialog({
         />
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
-            Annuler
+            {t('cancel')}
           </Button>
           <Button
             onClick={() => {
@@ -52,7 +52,7 @@ export function NotesDialog({
               onOpenChange(false);
             }}
           >
-            Enregistrer
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

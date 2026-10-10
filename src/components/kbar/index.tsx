@@ -6,11 +6,22 @@ import { useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import RenderResults from './render-result';
 import useThemeSwitching from './use-theme-switching';
-import { useFilteredNavGroups } from '@/hooks/use-nav';
+import { useFilteredNavGroups, useNavGroups, useNavTitle } from '@/hooks/use-nav';
+import type { NavGroup } from '@/types';
+import { useTranslations } from 'next-intl';
 
-export default function KBar({ children }: { children: React.ReactNode }) {
+export default function KBar({
+  children,
+  adminNav
+}: {
+  children: React.ReactNode;
+  adminNav?: NavGroup | null;
+}) {
   const router = useRouter();
-  const filteredGroups = useFilteredNavGroups(navGroups);
+  const groups = useNavGroups(navGroups, adminNav);
+  const filteredGroups = useFilteredNavGroups(groups);
+  const navTitle = useNavTitle();
+  const t = useTranslations('common.kbar');
 
   // These action are for the navigation
   const actions = useMemo(() => {
@@ -27,11 +38,11 @@ export default function KBar({ children }: { children: React.ReactNode }) {
         navItem.url !== '#'
           ? {
               id: `${navItem.title.toLowerCase()}Action`,
-              name: navItem.title,
+              name: navTitle(navItem),
               shortcut: navItem.shortcut,
-              keywords: navItem.title.toLowerCase(),
-              section: 'Navigation',
-              subtitle: `Go to ${navItem.title}`,
+              keywords: navTitle(navItem).toLowerCase(),
+              section: t('navigation'),
+              subtitle: t('goTo', { page: navTitle(navItem) }),
               perform: () => navigateTo(navItem.url)
             }
           : null;
@@ -40,18 +51,18 @@ export default function KBar({ children }: { children: React.ReactNode }) {
       const childActions =
         navItem.items?.map((childItem) => ({
           id: `${childItem.title.toLowerCase()}Action`,
-          name: childItem.title,
+          name: navTitle(childItem),
           shortcut: childItem.shortcut,
-          keywords: childItem.title.toLowerCase(),
-          section: navItem.title,
-          subtitle: `Go to ${childItem.title}`,
+          keywords: navTitle(childItem).toLowerCase(),
+          section: navTitle(navItem),
+          subtitle: t('goTo', { page: navTitle(childItem) }),
           perform: () => navigateTo(childItem.url)
         })) ?? [];
 
       // Return only valid actions (ignoring null base actions for containers)
       return baseAction ? [baseAction, ...childActions] : childActions;
     });
-  }, [router, filteredGroups]);
+  }, [router, filteredGroups, navTitle, t]);
 
   return (
     <KBarProvider actions={actions}>
@@ -61,6 +72,7 @@ export default function KBar({ children }: { children: React.ReactNode }) {
 }
 const KBarComponent = ({ children }: { children: React.ReactNode }) => {
   useThemeSwitching();
+  const t = useTranslations('common.kbar');
 
   return (
     <>
@@ -76,13 +88,13 @@ const KBarComponent = ({ children }: { children: React.ReactNode }) => {
             <div className='text-muted-foreground flex items-center gap-3 border-t px-3 py-2 text-xs'>
               <span className='flex items-center gap-1'>
                 <Kbd>↑</Kbd>
-                <Kbd>↓</Kbd> navigate
+                <Kbd>↓</Kbd> {t('navigate')}
               </span>
               <span className='flex items-center gap-1'>
-                <Kbd>↵</Kbd> open
+                <Kbd>↵</Kbd> {t('open')}
               </span>
               <span className='flex items-center gap-1'>
-                <Kbd>esc</Kbd> close
+                <Kbd>esc</Kbd> {t('close')}
               </span>
             </div>
           </KBarAnimator>

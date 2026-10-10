@@ -9,7 +9,8 @@
  * Row Level Security in the database.
  */
 
-import { useMemo } from 'react';
+import { useTranslations } from 'next-intl';
+import { useCallback, useMemo } from 'react';
 import { useDashboardSession } from '@/lib/auth/session-context';
 import { hasRole, type OrgRole } from '@/lib/auth/types';
 import type { NavItem, NavGroup } from '@/types';
@@ -58,4 +59,32 @@ export function useFilteredNavGroups(groups: NavGroup[]) {
       }))
       .filter((group) => group.items.length > 0);
   }, [groups, filteredItems]);
+}
+
+/** Display text of a nav item (`nav.items.<title>`, or the title itself when `rawTitle`). */
+export function useNavTitle() {
+  const t = useTranslations('nav');
+  return useCallback(
+    (item: Pick<NavItem, 'title' | 'rawTitle'>) =>
+      item.rawTitle ? item.title : t(`items.${item.title}` as Parameters<typeof t>[0]),
+    [t]
+  );
+}
+
+/** Display text of a nav group label (`nav.groups.<label>`). */
+export function useNavGroupLabel() {
+  const t = useTranslations('nav');
+  return useCallback(
+    (label: string) => (label ? t(`groups.${label}` as Parameters<typeof t>[0]) : ''),
+    [t]
+  );
+}
+
+/** The client navigation plus the server-built staff group (platform admins only). */
+export function useNavGroups(base: NavGroup[], extra?: NavGroup | null) {
+  return useMemo(() => {
+    if (!extra) return base;
+    // Staff entries sit right before the last (account) group.
+    return [...base.slice(0, -1), extra, ...base.slice(-1)];
+  }, [base, extra]);
 }

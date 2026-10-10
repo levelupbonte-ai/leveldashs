@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,15 +23,19 @@ export function ComboboxField({
   description,
   required,
   options,
-  placeholder = 'Select an option',
-  searchPlaceholder = 'Search...',
-  emptyMessage = 'No results found.'
+  placeholder,
+  searchPlaceholder,
+  emptyMessage
 }: BaseFieldProps & {
   options: { value: string; label: string; disabled?: boolean }[];
   placeholder?: string;
   searchPlaceholder?: string;
   emptyMessage?: string;
 }) {
+  const t = useTranslations('forms');
+  placeholder ??= t('selectOption');
+  searchPlaceholder ??= t('search');
+  emptyMessage ??= t('noResults');
   const field = useFieldContext<string>();
   const isInvalid = useFieldInvalid();
   const [open, setOpen] = React.useState(false);

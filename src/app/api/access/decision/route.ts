@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice } from '@/lib/email/notice';
 import { createClient } from '@/lib/supabase/server';
 
@@ -33,36 +34,36 @@ export async function POST(request: NextRequest) {
     p_organization_id: parsed.data.organizationId ?? null
   });
   if (error) {
+    // Codes only: the database message stays in the server logs.
+    console.error('review_access_request failed', error.code);
     const mfa = error.message.includes('aal2');
     return NextResponse.json(
       { error: mfa ? 'mfa' : error.code === 'PT403' ? 'forbidden' : 'failed' },
       { status: mfa || error.code === 'PT403' ? 403 : 400 }
     );
   }
-  const result = data as { status: string; email?: string };
+  const result = data as { status: string; email?: string; locale?: string | null };
   if (result.email) {
+    // The applicant's language when they chose one, English otherwise.
+    const { locale, t } = await getTranslatorFor(result.locale);
     await sendNotice(
       parsed.data.approve
         ? {
             to: result.email,
-            subject: 'Votre accès au tableau de bord LevelUp est validé',
-            title: 'Bienvenue sur votre tableau de bord',
-            lines: [
-              'Votre demande a été validée par l’équipe LevelUp.',
-              'Vous pouvez maintenant vous connecter pour gérer votre site, vos rendez-vous et vos demandes.'
-            ],
-            cta: { label: 'Ouvrir mon tableau de bord', url: `${DASHBOARD}/dashboard/site` }
+            locale,
+            subject: t('emails.accessApproved.subject'),
+            title: t('emails.accessApproved.title'),
+            lines: [t('emails.accessApproved.line1'), t('emails.accessApproved.line2')],
+            cta: { label: t('emails.accessApproved.cta'), url: `${DASHBOARD}/dashboard/site` }
           }
         : {
             to: result.email,
-            subject: 'Votre demande d’accès LevelUp',
-            title: 'Votre demande n’a pas été retenue',
-            lines: [
-              'Nous ne pouvons pas ouvrir d’accès au tableau de bord pour cette demande pour le moment.',
-              'Si vous pensez qu’il s’agit d’une erreur ou si vous souhaitez un site avec LevelUp, répondez simplement à contact@levelup-ecosystem.com.'
-            ]
+            locale,
+            subject: t('emails.accessRejected.subject'),
+            title: t('emails.accessRejected.title'),
+            lines: [t('emails.accessRejected.line1'), t('emails.accessRejected.line2')]
           }
     );
   }
-  return NextResponse.json(result);
+  return NextResponse.json({ status: result.status });
 }

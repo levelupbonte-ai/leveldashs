@@ -6,6 +6,7 @@ import { useDashboardSession } from '@/lib/auth/session-context';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 import {
   DropdownMenu,
@@ -23,17 +24,12 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 
-const ROLE_LABEL: Record<string, string> = {
-  owner: 'Propriétaire',
-  admin: 'Administrateur',
-  editor: 'Éditeur',
-  viewer: 'Lecture seule'
-};
-
 export function OrgSwitcher() {
   const { isMobile, state } = useSidebar();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
+  const t = useTranslations('orgSwitcher');
+  const tRole = useTranslations('common.roles');
   const { organizations, activeOrg, websites, activeWebsite, isPlatformAdmin } =
     useDashboardSession();
 
@@ -43,7 +39,7 @@ export function OrgSwitcher() {
         await action();
         router.refresh();
       } catch {
-        toast.error('Changement impossible.');
+        toast.error(t('switchFailed'));
       }
     });
 
@@ -63,8 +59,8 @@ export function OrgSwitcher() {
             <div
               className={`grid flex-1 text-left text-sm leading-tight transition-all duration-200 ${collapsedClass}`}
             >
-              <span className='truncate font-medium'>Aucune organisation</span>
-              <span className='text-muted-foreground truncate text-xs'>Commencer</span>
+              <span className='truncate font-medium'>{t('noOrganization')}</span>
+              <span className='text-muted-foreground truncate text-xs'>{t('getStarted')}</span>
             </div>
           </SidebarMenuButton>
         </SidebarMenuItem>
@@ -75,8 +71,8 @@ export function OrgSwitcher() {
   const subtitle = activeWebsite
     ? activeWebsite.primaryDomain || activeWebsite.name
     : activeOrg.role
-      ? ROLE_LABEL[activeOrg.role]
-      : 'LevelUp admin';
+      ? tRole(activeOrg.role)
+      : t('staff');
 
   return (
     <SidebarMenu>
@@ -121,7 +117,7 @@ export function OrgSwitcher() {
               <>
                 <DropdownMenuGroup>
                   <DropdownMenuLabel className='text-muted-foreground text-xs'>
-                    Sites
+                    {t('websites')}
                   </DropdownMenuLabel>
                   {websites.map((site) => (
                     <DropdownMenuItem
@@ -142,7 +138,7 @@ export function OrgSwitcher() {
             )}
             <DropdownMenuGroup>
               <DropdownMenuLabel className='text-muted-foreground text-xs'>
-                {isPlatformAdmin ? 'Organisations (admin LevelUp)' : 'Organisations'}
+                {isPlatformAdmin ? t('organizationsStaff') : t('organizations')}
               </DropdownMenuLabel>
               {organizations.map((org) => (
                 <DropdownMenuItem
@@ -174,7 +170,7 @@ export function OrgSwitcher() {
                 <div className='flex size-6 items-center justify-center rounded-md border bg-transparent'>
                   <Icons.add className='size-4' />
                 </div>
-                <div className='text-muted-foreground font-medium'>Gérer les organisations</div>
+                <div className='text-muted-foreground font-medium'>{t('manage')}</div>
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

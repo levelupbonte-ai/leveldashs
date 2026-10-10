@@ -5,8 +5,8 @@ project (see [database.md](./database.md)). There is no separate auth provider a
 backend of our own in between: the browser and the server both talk to Supabase as the
 signed-in user, so **Row Level Security decides what every query can read or write**.
 
-The UI is in French (`Connexion`, `Inscription`, `Mot de passe oublié`, …); code and
-docs are in English.
+The UI is in English (official language) with a French translation (see
+[i18n.md](./i18n.md)); code and docs are in English.
 
 ## Environment
 
@@ -35,10 +35,10 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 | Route | What it does |
 |---|---|
-| `/auth/sign-in` | Email + password, "Continuer avec Google" (Google-branded button) and "Continuer avec une passkey" when enabled in Supabase, password reset link |
+| `/auth/sign-in` | Email + password, the official Google button (Google Identity Services) and "Continue with a passkey" when enabled in Supabase, password reset link |
 | `/auth/sign-up` | Email + password + full name (stored in `user_metadata.full_name`), Google when enabled |
-| `/auth/verified` | Landing page of the sign-up confirmation link: "Félicitations, votre adresse e-mail est vérifiée", go back to the first device or "Continuer ici" (`next`, default `/auth/onboarding`) |
-| `/auth/pending` | "Votre compte est en cours de vérification": status of the access request (timeline, typical delay, the e-mail to expect), "Modifier ma demande", "Se déconnecter"; rejected requests see "Demande non retenue" |
+| `/auth/verified` | Landing page of the sign-up confirmation link: "Congratulations, your email is verified", go back to the first device or "Continue here" (`next`, default `/auth/onboarding`) |
+| `/auth/pending` | "Your account is being reviewed": one paragraph, the request (business name + date), the typical delay, the e-mail to expect, "Edit request", "Sign out", contact link. Rejected requests: "We couldn’t approve your request", "Contact LevelUp", "Sign out" |
 | `/auth/mfa` | Second step for accounts with an authenticator app: 6-digit TOTP code (`mfa.challengeAndVerify`), keeps `next` |
 | `/auth/callback` | Route handler: exchanges the OAuth/PKCE `code` (`exchangeCodeForSession`) or verifies e-mail links (`token_hash` + `type` via `verifyOtp`), then redirects to `next` |
 
@@ -63,7 +63,7 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
    `lh3.googleusercontent.com` (allowed in `next.config.ts`).
 3. **Authentication → Emails** (optional): configure custom SMTP so confirmation and
    reset e-mails are sent from a LevelUp address instead of the rate-limited default
-   sender, and adapt the templates (French).
+   sender. Templates are ours (Send Email Hook, below).
 
 ## Session, organizations and websites
 
@@ -127,7 +127,8 @@ is managed by LevelUp (contact@levelup-ecosystem.com).
 
 Supabase does not send auth e-mails itself: the **Send Email Hook** calls
 `POST /api/auth/email-hook`, which verifies the Standard Webhooks signature and
-sends LevelUp-branded French e-mails through Resend (`src/lib/email/auth-emails.ts`).
+sends LevelUp-branded e-mails through Resend, in the recipient's language
+(`user_metadata.locale`, English when unknown; texts in `messages/*.json` → `emails`) (`src/lib/email/auth-emails.ts`).
 Links point to `/auth/callback?token_hash=…&type=…&next=…` on this dashboard.
 
 - Password reset → `/auth/reset-password` (new password form, `updateUser`).
@@ -145,7 +146,7 @@ secret, then set on Vercel (leveldashs): `SEND_EMAIL_HOOK_SECRET` (the
 
 Supabase native MFA, authenticator apps only (Google Authenticator, 1Password, …).
 
-- **Enroll** — Profile → *Sécurité* (`src/features/profile/components/security-section.tsx`,
+- **Enroll** — Profile → *Security* (`src/features/profile/components/security-section.tsx`,
   API in `src/features/profile/api`): `mfa.enroll({ factorType: 'totp' })` shows the QR code
   (SVG data URL) and the secret, `mfa.challengeAndVerify` confirms the first code (the session
   becomes `aal2`). Factors are listed with `mfa.listFactors()`; removing one
@@ -157,10 +158,16 @@ Supabase native MFA, authenticator apps only (Google Authenticator, 1Password, �
   `safeNext()`; other LevelUp apps are reached with `window.location.assign`.
 - **Proxy** — `src/lib/supabase/proxy.ts` redirects every `/dashboard/*` request of an
   `aal1` session that could be `aal2` to `/auth/mfa?next=<path>`.
-- **Required for managers** — platform admins and organization owners/admins without a
-  verified factor see a persistent banner (`MfaRequiredBanner`) linking to
-  `/dashboard/profile#securite` (`session.mfa.required` / `session.mfa.enabled`).
-- **Sessions** — *Déconnecter tous mes appareils* calls `auth.signOut({ scope: 'global' })`
+- **Setup checklist** — the dashboard home shows a calm "Finish setting up your account"
+  card (`src/components/layout/setup-checklist.tsx`): complete your profile, add your logo
+  (org admins), enable two-step verification (→ `/dashboard/profile#security`). Done steps
+  get a check, optional steps can be hidden (per browser); two-step verification cannot be
+  hidden for platform admins and organization owners/admins (`session.mfa.required`) until
+  it is on.
+- **Actions that need aal2** — when the database refuses a change because the session is
+  not aal2 (`AppError('mfaRequired')`), the page shows a neutral "Complete this step first"
+  notice with a "Verify now" button to `/auth/mfa?next=…` (`MfaStepNotice`), not an error.
+- **Sessions** — *Sign out of all devices* calls `auth.signOut({ scope: 'global' })`
   (revokes every refresh token, all LevelUp apps), then the `signOut` server action.
 - **Lost authenticator** — there are no recovery codes yet (experimental in Supabase): LevelUp
   staff removes the factor from the Supabase dashboard (Authentication → Users) after
@@ -246,11 +253,11 @@ People often sign up on a computer and open the confirmation e-mail on their pho
    limit; a 429 doubles the delay up to 60 s). Supabase answers `email_not_confirmed`
    until the link is clicked, then signs in on this device and the tab goes to
    `/auth/onboarding` by itself. It pauses while the tab is hidden (checks again on
-   `visibilitychange`), stops after 20 minutes ("Vérifier maintenant" restarts it), and
+   `visibilitychange`), stops after 20 minutes ("Check now" restarts it), and
    also listens to `onAuthStateChange` / `getSession` for a link opened in the same browser.
 3. The link (`/auth/callback?token_hash=…`) creates a session where it is opened and
    lands on `/auth/verified`: congratulations, "go back to the device where you started",
-   and a "Continuer ici" button.
+   and a "Continue here" button.
 
 Google sign-ups need no e-mail check.
 
@@ -265,29 +272,64 @@ onboarding and profile pages pass these flags down. Any error hides the buttons
 hides the buttons within five minutes, without a redeploy.
 
 Layout of the sign-in form: Google and passkey buttons stacked at the top (same
-outline style and height), then the "ou par e-mail" divider, then e-mail + password.
+outline style and height), then the "or with email" divider, then e-mail + password.
 
 **Last method.** After a successful sign-in the browser keeps the method name in
 `localStorage.lu_last_method` (`google` | `passkey` | `password`, nothing else;
-`src/features/auth/lib/last-method.ts`). Google is marked in `sessionStorage` before the
-OAuth redirect and confirmed by `RecordLastMethod` on the first signed-in page. When the
+`src/features/auth/lib/last-method.ts`). Google is saved right after
+`signInWithIdToken`; with the redirect fallback it is marked in `sessionStorage` before the
+redirect and confirmed by `RecordLastMethod` on the first signed-in page. When the
 last method is Google or passkey (and still available), the sign-in page shows only that
-button with a "Dernière méthode utilisée" badge; the rest folds behind "Autres méthodes de
-connexion".
+button with a "Last used" badge; the rest folds behind "Other sign-in options".
 
 **No Google for Google accounts.** `hasGoogleIdentity(user)` (`src/lib/auth/identities.ts`,
-`identities` or `app_metadata.providers`) hides "Continuer avec Google" when the browser
+`identities` or `app_metadata.providers`) hides the Google button when the browser
 session already belongs to a Google account. Signed-in visitors never see the sign-in /
 sign-up forms anyway (both pages redirect), and the onboarding, pending and MFA screens
 have no Google button.
 
-### Google button
+### Google button (Google Identity Services)
 
-"Continuer avec Google" (white button, official multicolor G — `Icons.googleColor` —
-per Google's sign-in branding guidelines) calls
-`signInWithOAuth({ provider: 'google' })` with `redirectTo` = `/auth/callback?next=…`;
-the callback sends users with an authenticator app to `/auth/mfa` first. It shows as
-soon as **Authentication → Providers → Google** is enabled in Supabase.
+The sign-in and sign-up pages render **Google's official "Continue with Google" button**
+(`src/features/auth/components/google-sign-in-button.tsx`, script
+`https://accounts.google.com/gsi/client`). Its popup runs on our own origin, so Google's
+consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project URL.
+
+- `google.accounts.id.initialize({ client_id, callback, nonce, ux_mode: 'popup',
+  use_fedcm_for_prompt: true, itp_support: true, context })`, then `renderButton` (theme
+  `outline` / `filled_black` with light/dark, `text: 'continue_with'`, `shape:
+  'rectangular'`, width = the auth card, `locale` = dashboard language).
+- **Nonce** (`src/features/auth/lib/google-identity.ts`): 32 random bytes
+  (`crypto.getRandomValues`), Google gets the SHA-256 **hex** of the raw value, Supabase
+  gets the raw value: `supabase.auth.signInWithIdToken({ provider: 'google', token:
+  credential, nonce: raw })`. A new nonce is generated after each attempt.
+- Success follows the same path as every method: `/auth/mfa` when a verified TOTP factor
+  exists, otherwise `safeNext(next)` (the dashboard layout sends accounts without access to
+  onboarding or the pending page); `lu_last_method = google`; `user_metadata.locale` saved
+  if missing.
+- **One Tap** is prompted on the sign-in page only (FedCM), not on sign-up.
+- **Fallback** — if the GIS script cannot load (network, blocker, 8 s timeout), a
+  LevelUp-styled "Continue with Google" button uses the old redirect flow
+  (`signInWithOAuth`, `/auth/callback`), so nobody is stuck.
+- Client id: `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, defaulting to the LevelUp web client
+  `338931284223-7smftc9ekset4seun2er2tc3k5cb83p3.apps.googleusercontent.com`
+  (`src/lib/auth/google.ts`; it is public, it appears in every Google popup).
+- The button shows as soon as **Authentication → Providers → Google** is enabled in Supabase.
+
+**Setup required (once):**
+
+1. **Google Cloud → Google Auth Platform → Clients →** the web client above →
+   **Authorized JavaScript origins**: `https://dashboard.levelup-ecosystem.com` and
+   `http://localhost:3000` (development; add preview domains if Google sign-in should work
+   there). Keep the existing redirect URI
+   `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback` for the fallback flow.
+2. **Supabase → Authentication → Providers → Google**: put this client id in
+   **Client IDs** (authorized client ids; the web client first if there are several) and
+   leave **Skip nonce check** off.
+3. Optional: **Google Auth Platform → Branding** (app name, logo, authorized domain
+   `levelup-ecosystem.com`) so the popup shows the LevelUp name and logo.
+4. If a Content-Security-Policy is added later: `script-src` and `frame-src`
+   `https://accounts.google.com/gsi/`, `connect-src https://accounts.google.com/gsi/`.
 
 ### Passkeys
 
@@ -298,7 +340,7 @@ supabase-js versions enable the API by default and ignore the flag).
 
 - **Enable** — Supabase → Authentication → Sign In / Providers → *Passkeys* (relying
   party = the dashboard domain). `passkeys_enabled` then turns true in the settings.
-- **Sign-in** — "Continuer avec une passkey" (icon: person with a key, `Icons.passkey` = Tabler `IconUserKey`) (`auth.signInWithPasskey()`, with the
+- **Sign-in** — "Continue with a passkey" (icon: person with a key, `Icons.passkey` = Tabler `IconUserKey`) (`auth.signInWithPasskey()`, with the
   Turnstile token when CAPTCHA is on), hidden when the browser has no
   `window.PublicKeyCredential`. Success follows the password path: `/auth/mfa` when a
   verified TOTP factor exists, otherwise `safeNext(next)` (the dashboard layout sends
@@ -306,12 +348,13 @@ supabase-js versions enable the API by default and ignore the flag).
   `webauthn_credential_not_found` explains how to add one; `passkey_disabled` hides the
   button. The e-mail input uses `autocomplete='username webauthn'` (no conditional
   mediation).
-- **Manage** — Profile → *Sécurité* → *Passkeys* card
+- **Manage** — Profile → *Security* → *Passkeys* card
   (`src/features/profile/components/passkeys-card.tsx`, API in
   `src/features/profile/api`): list (`auth.passkey.list()`), add
   (`auth.registerPasskey()`), rename (`auth.passkey.update`), delete
   (`auth.passkey.delete`, confirmation dialog).
-- **Onboarding** suggests adding one (link to Profil → Sécurité) when enabled.
+- Onboarding and the pending page no longer suggest passkeys or two-step verification
+  (kept lean); the dashboard setup checklist covers two-step verification.
 
 ## Common passwords
 

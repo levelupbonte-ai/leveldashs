@@ -12,12 +12,15 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { useAppForm } from '@/lib/form';
+import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import type { ContentRow } from '../api/types';
 import { useSiteMutations } from '../api/mutations';
 import type { CollectionDef, FieldDef } from '../config/collections';
 import { ImageInput } from './image-input';
 import { buildSchema, toFormValues, toRow, type FormValues } from './item-form-schema';
+import { useCollectionText } from './use-collection-text';
 import { useSiteScope } from './use-site-scope';
 
 export function ItemSheet({
@@ -31,16 +34,16 @@ export function ItemSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const text = useCollectionText(def);
+  const t = useTranslations('site.content');
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className='w-full overflow-y-auto sm:max-w-lg'>
         <SheetHeader>
           <SheetTitle>
-            {item
-              ? `Modifier : ${String(item[def.titleField] ?? def.singular)}`
-              : `Ajouter un ${def.singular}`}
+            {item ? t('editTitle', { name: String(item[def.titleField] ?? '') }) : text.addTitle}
           </SheetTitle>
-          <SheetDescription>{def.description}</SheetDescription>
+          <SheetDescription>{text.description}</SheetDescription>
         </SheetHeader>
         {/* key resets the form when switching between items */}
         <ItemForm
@@ -65,14 +68,29 @@ function ItemForm({
 }) {
   const scope = useSiteScope();
   const { saveItem, uploadMedia } = useSiteMutations(scope);
+  const text = useCollectionText(def);
+  const t = useTranslations('site.content');
+  const tv = useTranslations('site.validation');
+  const schema = useMemo(
+    () =>
+      buildSchema(def, {
+        https: tv('https'),
+        number: tv('number'),
+        amount: tv('amount'),
+        required: tv('required'),
+        date: tv('date'),
+        tooLong: tv('tooLong')
+      }),
+    [def, tv]
+  );
 
   const form = useAppForm({
     defaultValues: toFormValues(def, item),
-    validators: { onSubmit: buildSchema(def) },
+    validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       try {
         await saveItem.mutateAsync({ def, id: item?.id, values: toRow(def, value as FormValues) });
-        toast.success(item ? 'Modifications enregistrées' : 'Élément ajouté');
+        toast.success(item ? t('saved') : t('added'));
         onDone();
       } catch {
         // the mutation already shows an error toast
@@ -83,7 +101,11 @@ function ItemForm({
   const upload = async (file: File) => (await uploadMedia.mutateAsync({ file })).url;
 
   const renderField = (f: FieldDef) => {
-    const common = { label: f.label, description: f.description, required: f.required };
+    const common = {
+      label: text.fieldLabel(f),
+      description: text.fieldHint(f),
+      required: f.required
+    };
     switch (f.kind) {
       case 'textarea':
         return (
@@ -128,7 +150,7 @@ function ItemForm({
           <form.AppField
             key={f.name}
             name={f.name}
-            children={(field) => <field.TagsField {...common} placeholder='Tapez puis Entrée…' />}
+            children={(field) => <field.TagsField {...common} placeholder={t('tagsPlaceholder')} />}
           />
         );
       case 'select':
@@ -137,7 +159,7 @@ function ItemForm({
             key={f.name}
             name={f.name}
             children={(field) => (
-              <field.SelectField {...common} placeholder='Choisir' options={f.options ?? []} />
+              <field.SelectField {...common} placeholder={t('choose')} options={text.options(f)} />
             )}
           />
         );
@@ -159,7 +181,7 @@ function ItemForm({
               return (
                 <Field data-invalid={invalid}>
                   <FieldLabel htmlFor={field.name}>
-                    {f.label}
+                    {text.fieldLabel(f)}
                     {f.required && ' *'}
                   </FieldLabel>
                   <ImageInput
@@ -169,9 +191,7 @@ function ItemForm({
                     onUpload={upload}
                     invalid={invalid}
                   />
-                  <FieldDescription>
-                    Envoyez un fichier (10 Mo max.) ou collez un lien https.
-                  </FieldDescription>
+                  <FieldDescription>{t('imageHint')}</FieldDescription>
                   {invalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>
               );
@@ -203,12 +223,12 @@ function ItemForm({
           selector={(s) => s.isSubmitting}
           children={(submitting) => (
             <LoadingButton type='submit' loading={submitting} disabled={!scope.canEdit}>
-              Enregistrer
+              {t('save')}
             </LoadingButton>
           )}
         />
         <Button type='button' variant='outline' onClick={onDone}>
-          Annuler
+          {t('cancel')}
         </Button>
       </SheetFooter>
     </form>

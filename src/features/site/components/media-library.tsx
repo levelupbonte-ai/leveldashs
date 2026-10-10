@@ -7,6 +7,7 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/u
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { useSuspenseInfiniteQuery } from '@tanstack/react-query';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { toast } from 'sonner';
@@ -14,17 +15,6 @@ import { useSiteMutations } from '../api/mutations';
 import { mediaQueryOptions } from '../api/queries';
 import { MEDIA_MAX_BYTES, MEDIA_TYPES } from '../api/service';
 import { useSiteScope } from './use-site-scope';
-
-function formatSize(bytes: number) {
-  return bytes > 1024 * 1024
-    ? `${(bytes / 1024 / 1024).toFixed(1)} Mo`
-    : `${Math.ceil(bytes / 1024)} Ko`;
-}
-
-async function copy(url: string) {
-  await navigator.clipboard.writeText(url);
-  toast.success('Lien copié');
-}
 
 export function MediaLibrary() {
   const scope = useSiteScope();
@@ -34,13 +24,27 @@ export function MediaLibrary() {
   const media = data.pages.flat();
   const { uploadMedia, deleteMedia } = useSiteMutations(scope);
   const [uploading, setUploading] = useState(0);
+  const t = useTranslations('site.media');
+  const tc = useTranslations('site.content');
+  const format = useFormatter();
+  const formatSize = (bytes: number) =>
+    bytes > 1024 * 1024
+      ? format.number(bytes / 1024 / 1024, {
+          style: 'unit',
+          unit: 'megabyte',
+          maximumFractionDigits: 1
+        })
+      : format.number(Math.ceil(bytes / 1024), { style: 'unit', unit: 'kilobyte' });
+  const copy = async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    toast.success(t('linkCopied'));
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     disabled: !scope.canEdit,
     maxSize: MEDIA_MAX_BYTES,
     accept: Object.fromEntries(Object.keys(MEDIA_TYPES).map((t) => [t, []])),
-    onDropRejected: () =>
-      toast.error('Fichier refusé : format non pris en charge ou plus de 10 Mo.'),
+    onDropRejected: () => toast.error(t('rejected')),
     onDropAccepted: async (files) => {
       setUploading((n) => n + files.length);
       for (const file of files) {
@@ -72,19 +76,17 @@ export function MediaLibrary() {
             <Icons.upload className='text-muted-foreground size-8' />
           )}
           <p className='font-medium'>
-            {uploading > 0
-              ? `Envoi en cours (${uploading})…`
-              : 'Déposez vos fichiers ici ou cliquez'}
+            {uploading > 0 ? t('uploading', { count: uploading }) : t('drop')}
           </p>
-          <p className='text-muted-foreground text-xs'>Images, PDF, vidéos MP4/WebM · 10 Mo max.</p>
+          <p className='text-muted-foreground text-xs'>{t('formats')}</p>
         </div>
       )}
 
       {media.length === 0 ? (
         <Empty className='border'>
           <EmptyHeader>
-            <EmptyTitle>Aucun fichier</EmptyTitle>
-            <EmptyDescription>Les images de votre site seront stockées ici.</EmptyDescription>
+            <EmptyTitle>{t('emptyTitle')}</EmptyTitle>
+            <EmptyDescription>{t('emptyDescription')}</EmptyDescription>
           </EmptyHeader>
         </Empty>
       ) : (
@@ -114,7 +116,7 @@ export function MediaLibrary() {
                     size='icon'
                     variant='secondary'
                     className='size-7'
-                    aria-label='Copier le lien'
+                    aria-label={t('copyLink')}
                     onClick={() => copy(m.url)}
                   >
                     <Icons.copy className='size-3.5' />
@@ -124,15 +126,11 @@ export function MediaLibrary() {
                       size='icon'
                       variant='secondary'
                       className='size-7'
-                      aria-label='Supprimer'
+                      aria-label={tc('delete')}
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            'Supprimer ce fichier ? Il disparaîtra des pages qui l’utilisent.'
-                          )
-                        ) {
+                        if (window.confirm(t('deleteConfirm'))) {
                           deleteMedia.mutate(m, {
-                            onSuccess: () => toast.success('Fichier supprimé')
+                            onSuccess: () => toast.success(t('deleted'))
                           });
                         }
                       }}
@@ -154,7 +152,7 @@ export function MediaLibrary() {
       )}
       {hasNextPage && (
         <Button variant='outline' disabled={isFetchingNextPage} onClick={() => fetchNextPage()}>
-          {isFetchingNextPage ? 'Chargement…' : 'Charger plus'}
+          {isFetchingNextPage ? tc('loading') : tc('loadMore')}
         </Button>
       )}
     </div>

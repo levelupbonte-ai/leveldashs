@@ -125,7 +125,7 @@ export function useEmailVerificationWatch({
       if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) finish('verified');
     });
 
-    // "Vérifier maintenant" checks right away; the first run waits one interval.
+    // "Check now" checks right away; the first run waits one interval.
     if (run > 0) void check();
     else schedule();
     return () => {

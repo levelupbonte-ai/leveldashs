@@ -51,7 +51,7 @@ export async function SitePage({
   return (
     <PageContainer
       pageTitle={title}
-      pageDescription={`${description} — ${page.website.primaryDomain ?? page.website.name}`}
+      pageDescription={`${description} · ${page.website.primaryDomain ?? page.website.name}`}
     >
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense fallback={<ListSkeleton />}>{children}</Suspense>

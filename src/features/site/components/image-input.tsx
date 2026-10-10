@@ -3,6 +3,7 @@
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 
 /** URL input with an "Upload" button that stores the file in the site's media library. */
@@ -23,6 +24,7 @@ export function ImageInput({
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const t = useTranslations('site.content');
 
   return (
     <div className='space-y-2'>
@@ -50,12 +52,12 @@ export function ImageInput({
           ) : (
             <Icons.upload className='size-4' />
           )}
-          <span className='sr-only sm:not-sr-only'>Envoyer</span>
+          <span className='sr-only sm:not-sr-only'>{t('upload')}</span>
         </Button>
         <input
           ref={fileRef}
           type='file'
-          aria-label='Choisir une image'
+          aria-label={t('chooseImage')}
           accept='image/jpeg,image/png,image/webp,image/gif,image/avif'
           className='hidden'
           onChange={async (e) => {

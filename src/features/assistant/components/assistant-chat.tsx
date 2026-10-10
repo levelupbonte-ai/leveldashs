@@ -1,6 +1,8 @@
 'use client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +12,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { getCollection } from '@/features/site/config/collections';
 import { siteKeys } from '@/features/site/api/queries';
 import {
-  SiteServiceError,
   createCollectionItem,
   getSeoSettings,
   saveSetting,
@@ -21,23 +22,15 @@ import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { AssistantMessage, AssistantProposal, AssistantReply } from '../types';
 
-const SUGGESTIONS = [
-  'Résume mon activité de la semaine',
-  'Rédige une meilleure description pour mon service principal',
-  'Propose un titre et une description Google pour mon site',
-  'Comment ajouter un membre à mon équipe ?'
-];
+const SUGGESTIONS = ['week', 'service', 'seo', 'team'] as const;
 
 type Turn = AssistantMessage & { proposals?: AssistantProposal[] };
-
-const ERRORS: Record<string, string> = {
-  limit: 'Limite quotidienne de l’assistant atteinte. Réessayez demain.',
-  unavailable: 'L’assistant est momentanément indisponible. Réessayez dans un instant.'
-};
 
 function ProposalCard({ proposal, canEdit }: { proposal: AssistantProposal; canEdit: boolean }) {
   const scope = useSiteScope();
   const queryClient = useQueryClient();
+  const t = useTranslations('assistant');
+  const errorMessage = useErrorMessage();
   const [applied, setApplied] = useState(false);
   const apply = useMutation({
     mutationFn: async () => {
@@ -61,33 +54,32 @@ function ProposalCard({ proposal, canEdit }: { proposal: AssistantProposal; canE
     },
     onSuccess: () => {
       setApplied(true);
-      toast.success('Modification enregistrée.');
+      toast.success(t('applied'));
       void queryClient.invalidateQueries({ queryKey: siteKeys.website(scope.websiteId) });
     },
-    onError: (e) =>
-      toast.error(e instanceof SiteServiceError ? e.message : 'Enregistrement impossible.')
+    onError: (e) => toast.error(errorMessage(e, 'saveFailed'))
   });
 
   const title =
     proposal.kind === 'service'
-      ? `Service : ${proposal.name}`
+      ? t('proposal.service', { name: proposal.name })
       : proposal.kind === 'faq'
-        ? 'Nouvelle question FAQ'
-        : 'SEO du site';
+        ? t('proposal.faq')
+        : t('proposal.seo');
   const rows: [string, string | undefined][] =
     proposal.kind === 'service'
       ? [
-          ['Description', proposal.changes.description],
-          ['Prix affiché', proposal.changes.price_label]
+          [t('proposal.description'), proposal.changes.description],
+          [t('proposal.priceLabel'), proposal.changes.price_label]
         ]
       : proposal.kind === 'faq'
         ? [
-            ['Question', proposal.question],
-            ['Réponse', proposal.answer]
+            [t('proposal.question'), proposal.question],
+            [t('proposal.answer'), proposal.answer]
           ]
         : [
-            ['Titre', proposal.title],
-            ['Description', proposal.description]
+            [t('proposal.title'), proposal.title],
+            [t('proposal.description'), proposal.description]
           ];
 
   return (
@@ -96,7 +88,7 @@ function ProposalCard({ proposal, canEdit }: { proposal: AssistantProposal; canE
         <CardTitle className='flex items-center gap-2 text-sm'>
           <Icons.sparkles className='size-4' aria-hidden />
           {title}
-          {applied && <Badge variant='secondary'>Appliqué</Badge>}
+          {applied && <Badge variant='secondary'>{t('appliedBadge')}</Badge>}
         </CardTitle>
       </CardHeader>
       <CardContent className='space-y-2 px-4 text-sm'>
@@ -112,7 +104,7 @@ function ProposalCard({ proposal, canEdit }: { proposal: AssistantProposal; canE
       {canEdit && !applied && (
         <CardFooter className='px-4'>
           <Button size='sm' disabled={apply.isPending} onClick={() => apply.mutate()}>
-            {apply.isPending ? 'Enregistrement…' : 'Appliquer'}
+            {apply.isPending ? t('applying') : t('apply')}
           </Button>
         </CardFooter>
       )}
@@ -126,6 +118,7 @@ export function AssistantChat() {
   const [draft, setDraft] = useState('');
   const [remaining, setRemaining] = useState<number | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
+  const t = useTranslations('assistant');
 
   const ask = useMutation({
     mutationFn: async (history: Turn[]) => {
@@ -145,7 +138,7 @@ export function AssistantChat() {
       if (typeof data.remaining === 'number') setRemaining(data.remaining);
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }));
     },
-    onError: (e) => toast.error(ERRORS[e.message] ?? ERRORS.unavailable)
+    onError: (e) => toast.error(e.message === 'limit' ? t('limit') : t('unavailable'))
   });
 
   function send(text: string) {
@@ -165,18 +158,21 @@ export function AssistantChat() {
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-base'>
               <Icons.sparkles className='size-5' aria-hidden />
-              Assistant de {website.name}
+              {t('title', { name: website.name })}
             </CardTitle>
           </CardHeader>
           <CardContent className='text-muted-foreground space-y-3 text-sm'>
-            <p>
-              Posez une question sur votre activité, demandez un texte ou de l’aide sur le
-              dashboard. L’assistant ne voit jamais les coordonnées de vos clients.
-            </p>
+            <p>{t('intro')}</p>
             <div className='flex flex-wrap gap-2'>
               {SUGGESTIONS.map((s) => (
-                <Button key={s} variant='outline' size='sm' onClick={() => send(s)}>
-                  {s}
+                <Button
+                  key={s}
+                  variant='outline'
+                  size='sm'
+                  className='h-auto min-h-8 whitespace-normal text-left'
+                  onClick={() => send(t(`suggestions.${s}`))}
+                >
+                  {t(`suggestions.${s}`)}
                 </Button>
               ))}
             </div>
@@ -206,7 +202,7 @@ export function AssistantChat() {
         {ask.isPending && (
           <div className='text-muted-foreground flex items-center gap-2 text-sm'>
             <Icons.spinner className='size-4 animate-spin' aria-hidden />
-            L’assistant réfléchit…
+            {t('thinking')}
           </div>
         )}
         <div ref={endRef} />
@@ -220,7 +216,7 @@ export function AssistantChat() {
         }}
       >
         <Textarea
-          aria-label='Votre message'
+          aria-label={t('message')}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -229,7 +225,7 @@ export function AssistantChat() {
               send(draft);
             }
           }}
-          placeholder='Écrivez votre question…'
+          placeholder={t('placeholder')}
           className='max-h-40 min-h-11 resize-none border-0 shadow-none focus-visible:ring-0'
           maxLength={4000}
         />
@@ -237,15 +233,14 @@ export function AssistantChat() {
           type='submit'
           size='icon'
           disabled={!draft.trim() || ask.isPending}
-          aria-label='Envoyer'
+          aria-label={t('send')}
         >
           <Icons.send className='size-4' aria-hidden />
         </Button>
       </form>
       {remaining !== null && (
         <p className='text-muted-foreground text-center text-xs'>
-          {remaining} message{remaining > 1 ? 's' : ''} restant{remaining > 1 ? 's' : ''}{' '}
-          aujourd’hui
+          {t('remaining', { count: remaining })}
         </p>
       )}
     </div>

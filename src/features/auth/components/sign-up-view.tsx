@@ -1,19 +1,24 @@
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import type { AuthMethods } from '@/lib/auth/auth-methods';
 import AuthShell from './auth-shell';
 import UserAuthForm from './user-auth-form';
 
-export default function SignUpViewPage({ next, methods }: { next?: string; methods: AuthMethods }) {
+export default async function SignUpViewPage({
+  next,
+  methods
+}: {
+  next?: string;
+  methods: AuthMethods;
+}) {
+  const t = await getTranslations('auth.signUp');
   return (
-    <AuthShell
-      title='Créer un compte'
-      description='Votre accès LevelUp pour gérer votre site, vos réservations et vos demandes.'
-    >
+    <AuthShell title={t('title')} description={t('description')}>
       <UserAuthForm mode='sign-up' next={next} methods={methods} />
       <p className='text-muted-foreground text-center text-sm'>
-        Déjà un compte ?{' '}
+        {t('haveAccount')}{' '}
         <Link href='/auth/sign-in' className='hover:text-primary underline underline-offset-4'>
-          Se connecter
+          {t('signIn')}
         </Link>
       </p>
     </AuthShell>

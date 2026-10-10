@@ -5,6 +5,7 @@ import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/ca
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { overviewQueryOptions } from '../api/queries';
 import { useSiteScope } from './use-site-scope';
 
@@ -12,34 +13,35 @@ export function SiteOverviewCards() {
   const scope = useSiteScope();
   const { data } = useSuspenseQuery(overviewQueryOptions(createClient(), scope.websiteId));
   const f = scope.website.features;
+  const t = useTranslations('site.overview');
 
   const cards = [
     f.includes('bookings') && {
       href: '/dashboard/site/appointments',
-      label: 'Rendez-vous à confirmer',
+      label: t('pendingAppointments'),
       value: data.pendingAppointments,
-      hint: `${data.upcomingAppointments} à venir`,
+      hint: t('upcoming', { count: data.upcomingAppointments }),
       icon: Icons.calendar
     },
     f.includes('waitlist') && {
       href: '/dashboard/site/waitlist',
-      label: 'En file d’attente',
+      label: t('waiting'),
       value: data.waiting,
-      hint: 'Mise à jour en direct',
+      hint: t('waitingHint'),
       icon: Icons.hourglass
     },
     {
       href: '/dashboard/site/requests',
-      label: 'Nouvelles demandes',
+      label: t('newRequests'),
       value: data.newRequests,
-      hint: 'Contact, devis, inscriptions',
+      hint: t('newRequestsHint'),
       icon: Icons.inbox
     },
     {
       href: '/dashboard/site/media',
-      label: 'Fichiers',
+      label: t('files'),
       value: data.media,
-      hint: 'Médiathèque',
+      hint: t('filesHint'),
       icon: Icons.photo
     }
   ].filter(Boolean) as {
@@ -53,7 +55,7 @@ export function SiteOverviewCards() {
   return (
     <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
       {cards.map((c) => (
-        <Link key={c.href} href={c.href} className='group' aria-label={`${c.label} : ${c.value}`}>
+        <Link key={c.href} href={c.href} className='group' aria-label={`${c.label}: ${c.value}`}>
           <Card className='group-hover:bg-muted/40 h-full transition'>
             <CardHeader>
               <CardDescription className='flex items-center gap-2'>

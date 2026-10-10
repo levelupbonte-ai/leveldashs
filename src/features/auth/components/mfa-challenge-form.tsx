@@ -6,15 +6,18 @@ import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
 import * as z from 'zod';
-
-const codeSchema = z.object({
-  code: z.string().regex(/^\d{6}$/, { message: 'Code à 6 chiffres' })
-});
 
 export default function MfaChallengeForm({ next }: { next?: string }) {
   const router = useRouter();
+  const t = useTranslations('auth.mfa');
+  const tv = useTranslations('validation');
+  const codeSchema = useMemo(
+    () => z.object({ code: z.string().regex(/^\d{6}$/, { message: tv('code') }) }),
+    [tv]
+  );
   const destination = safeNext(next);
   const [notice, setNotice] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -38,7 +41,7 @@ export default function MfaChallengeForm({ next }: { next?: string }) {
       const { data: factors, error: listError } = await supabase.auth.mfa.listFactors();
       const factor = factors?.totp.find((f) => f.status === 'verified');
       if (listError || !factor) {
-        setNotice('Aucune application d’authentification trouvée. Reconnectez-vous.');
+        setNotice(t('noFactor'));
         return;
       }
       const { error } = await supabase.auth.mfa.challengeAndVerify({
@@ -49,8 +52,8 @@ export default function MfaChallengeForm({ next }: { next?: string }) {
         formApi.setFieldValue('code', '');
         setNotice(
           error.code === 'mfa_verification_failed' || error.code === 'mfa_challenge_expired'
-            ? 'Code incorrect ou expiré. Réessayez avec le code actuel.'
-            : 'Vérification impossible pour le moment. Réessayez.'
+            ? t('wrongCode')
+            : t('failed')
         );
         return;
       }
@@ -81,7 +84,7 @@ export default function MfaChallengeForm({ next }: { next?: string }) {
               if (/^\d{6}$/.test(value) && !form.state.isSubmitting) form.handleSubmit();
             }
           }}
-          children={(field) => <field.OtpField label='Code de vérification' />}
+          children={(field) => <field.OtpField label={t('codeLabel')} />}
         />
       </FieldGroup>
       {notice && (
@@ -93,7 +96,7 @@ export default function MfaChallengeForm({ next }: { next?: string }) {
         selector={(s) => s.isSubmitting}
         children={(submitting) => (
           <LoadingButton type='submit' loading={submitting} className='w-full'>
-            Vérifier
+            {t('submit')}
           </LoadingButton>
         )}
       />
@@ -104,17 +107,19 @@ export default function MfaChallengeForm({ next }: { next?: string }) {
         disabled={signingOut}
         onClick={signOut}
       >
-        Utiliser un autre compte
+        {t('otherAccount')}
       </Button>
       <p className='text-muted-foreground text-center text-xs'>
-        Plus d’accès à votre application ? Écrivez à{' '}
-        <a
-          href='mailto:contact@levelup-ecosystem.com'
-          className='hover:text-primary underline underline-offset-4'
-        >
-          contact@levelup-ecosystem.com
-        </a>
-        .
+        {t.rich('lostAccess', {
+          email: () => (
+            <a
+              href='mailto:contact@levelup-ecosystem.com'
+              className='hover:text-primary underline underline-offset-4'
+            >
+              contact@levelup-ecosystem.com
+            </a>
+          )
+        })}
       </p>
     </form>
   );

@@ -10,26 +10,14 @@ import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { BrandImageInput } from '@/components/brand-image-input';
 import { hasRole } from '@/lib/auth/types';
 import { PasskeysCard } from './passkeys-card';
 import { SecuritySection } from './security-section';
-
-const nameSchema = z.object({
-  fullName: z.string().trim().min(2, { message: 'Votre nom' }).max(120)
-});
-
-const passwordSchema = z
-  .object({
-    password: z.string().min(10, { message: '10 caractères minimum' }).max(72),
-    confirm: z.string()
-  })
-  .refine((v) => v.password === v.confirm, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirm']
-  });
 
 export default function ProfileViewPage({
   passwordReset,
@@ -41,16 +29,42 @@ export default function ProfileViewPage({
 }) {
   const { user, activeOrg, isPlatformAdmin } = useDashboardSession();
   const router = useRouter();
+  const t = useTranslations('profile');
+  const tv = useTranslations('validation');
+  const { nameSchema, passwordSchema } = useMemo(
+    () => ({
+      nameSchema: z.object({
+        fullName: z
+          .string()
+          .trim()
+          .min(2, { message: tv('fullName') })
+          .max(120)
+      }),
+      passwordSchema: z
+        .object({
+          password: z
+            .string()
+            .min(10, { message: tv('passwordMin', { min: 10 }) })
+            .max(72, { message: tv('passwordMax', { max: 72 }) }),
+          confirm: z.string()
+        })
+        .refine((v) => v.password === v.confirm, {
+          message: tv('passwordsMatch'),
+          path: ['confirm']
+        })
+    }),
+    [tv]
+  );
   const canBrandOrg = !!activeOrg && (isPlatformAdmin || hasRole(activeOrg.role, 'admin'));
 
   async function saveAvatar(url: string | null) {
     const db = createClient();
     const { error } = await db.from('profiles').update({ avatar_url: url }).eq('id', user.id);
     if (error) {
-      toast.error('Enregistrement impossible.');
+      toast.error(t('saveFailed'));
       return;
     }
-    toast.success(url ? 'Photo mise à jour' : 'Photo retirée');
+    toast.success(url ? t('photoUpdated') : t('photoRemoved'));
     router.refresh();
   }
 
@@ -61,10 +75,10 @@ export default function ProfileViewPage({
       .update({ logo_url: url })
       .eq('id', activeOrg.id);
     if (error) {
-      toast.error('Enregistrement impossible.');
+      toast.error(t('saveFailed'));
       return;
     }
-    toast.success(url ? 'Logo mis à jour' : 'Logo retiré');
+    toast.success(url ? t('logoUpdated') : t('logoRemoved'));
     router.refresh();
   }
 
@@ -76,11 +90,11 @@ export default function ProfileViewPage({
       const fullName = value.fullName.trim();
       const { error } = await db.from('profiles').update({ full_name: fullName }).eq('id', user.id);
       if (error) {
-        toast.error('Enregistrement impossible.');
+        toast.error(t('saveFailed'));
         return;
       }
       await db.auth.updateUser({ data: { full_name: fullName } });
-      toast.success('Profil mis à jour');
+      toast.success(t('profileUpdated'));
       router.refresh();
     }
   });
@@ -89,7 +103,7 @@ export default function ProfileViewPage({
     defaultValues: { password: '', confirm: '' },
     validators: {
       onSubmit: passwordSchema,
-      onSubmitAsync: commonPasswordValidator
+      onSubmitAsync: commonPasswordValidator(tv('commonPassword'))
     },
     onSubmit: async ({ value, formApi }) => {
       const { error } = await createClient().auth.updateUser({
@@ -98,15 +112,15 @@ export default function ProfileViewPage({
       if (error) {
         toast.error(
           error.code === 'same_password'
-            ? 'Choisissez un mot de passe différent de l’actuel.'
+            ? t('samePassword')
             : error.code === 'weak_password'
-              ? 'Mot de passe trop faible.'
-              : 'Modification impossible. Reconnectez-vous puis réessayez.'
+              ? t('weakPassword')
+              : t('passwordFailed')
         );
         return;
       }
       formApi.reset();
-      toast.success('Mot de passe modifié');
+      toast.success(t('passwordChanged'));
     }
   });
 
@@ -115,12 +129,12 @@ export default function ProfileViewPage({
       {passwordReset && (
         <Alert className='lg:col-span-2'>
           <Icons.lock className='size-4' />
-          <AlertDescription>Choisissez votre nouveau mot de passe ci-dessous.</AlertDescription>
+          <AlertDescription>{t('resetHint')}</AlertDescription>
         </Alert>
       )}
       <Card>
         <CardHeader>
-          <CardTitle>Informations</CardTitle>
+          <CardTitle>{t('info')}</CardTitle>
           <CardDescription>{user.email}</CardDescription>
         </CardHeader>
         <CardContent className='space-y-6'>
@@ -128,7 +142,7 @@ export default function ProfileViewPage({
             value={user.avatarUrl}
             onChange={saveAvatar}
             folder={`avatars/${user.id}`}
-            label='Photo de profil'
+            label={t('photo')}
             fallback={user.fullName || user.email}
           />
           <form
@@ -141,14 +155,14 @@ export default function ProfileViewPage({
             <FieldGroup>
               <nameForm.AppField
                 name='fullName'
-                children={(field) => <field.TextField label='Nom complet' autoComplete='name' />}
+                children={(field) => <field.TextField label={t('fullName')} autoComplete='name' />}
               />
             </FieldGroup>
             <nameForm.Subscribe
               selector={(s) => s.isSubmitting}
               children={(submitting) => (
                 <LoadingButton type='submit' loading={submitting}>
-                  Enregistrer
+                  {t('save')}
                 </LoadingButton>
               )}
             />
@@ -158,17 +172,15 @@ export default function ProfileViewPage({
       {canBrandOrg && activeOrg && (
         <Card>
           <CardHeader>
-            <CardTitle>Logo de {activeOrg.name}</CardTitle>
-            <CardDescription>
-              Affiché en haut du tableau de bord pour toute votre équipe.
-            </CardDescription>
+            <CardTitle>{t('logoTitle', { name: activeOrg.name })}</CardTitle>
+            <CardDescription>{t('logoDescription')}</CardDescription>
           </CardHeader>
           <CardContent>
             <BrandImageInput
               value={activeOrg.logoUrl}
               onChange={saveLogo}
               folder={`orgs/${activeOrg.id}`}
-              label='Logo'
+              label={t('logo')}
               fallback={activeOrg.name}
               rounded='lg'
             />
@@ -177,8 +189,8 @@ export default function ProfileViewPage({
       )}
       <Card>
         <CardHeader>
-          <CardTitle>Mot de passe</CardTitle>
-          <CardDescription>10 caractères minimum.</CardDescription>
+          <CardTitle>{t('password')}</CardTitle>
+          <CardDescription>{t('passwordHint')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -193,7 +205,7 @@ export default function ProfileViewPage({
                 name='password'
                 children={(field) => (
                   <field.TextField
-                    label='Nouveau mot de passe'
+                    label={t('newPassword')}
                     type='password'
                     autoComplete='new-password'
                   />
@@ -202,7 +214,11 @@ export default function ProfileViewPage({
               <passwordForm.AppField
                 name='confirm'
                 children={(field) => (
-                  <field.TextField label='Confirmer' type='password' autoComplete='new-password' />
+                  <field.TextField
+                    label={t('confirm')}
+                    type='password'
+                    autoComplete='new-password'
+                  />
                 )}
               />
             </FieldGroup>
@@ -210,14 +226,14 @@ export default function ProfileViewPage({
               selector={(s) => s.isSubmitting}
               children={(submitting) => (
                 <LoadingButton type='submit' loading={submitting}>
-                  Changer le mot de passe
+                  {t('changePassword')}
                 </LoadingButton>
               )}
             />
           </form>
         </CardContent>
       </Card>
-      <div id='securite' className='grid scroll-mt-20 gap-6 lg:col-span-2'>
+      <div id='security' className='grid scroll-mt-20 gap-6 lg:col-span-2'>
         <SecuritySection />
         {passkeyEnabled && <PasskeysCard />}
       </div>

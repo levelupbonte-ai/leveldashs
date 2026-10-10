@@ -1,11 +1,11 @@
 'use client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { createClient } from '@/lib/supabase/client';
 import type { CollectionDef } from '../config/collections';
 import { siteKeys } from './queries';
 import {
-  SiteServiceError,
   adminUpdateWebsite,
   createCollectionItem,
   deleteCollectionItem,
@@ -21,13 +21,11 @@ import {
 } from './service';
 import type { AppointmentStatus, MediaItem, SubmissionStatus, WaitlistStatus } from './types';
 
-function errorToast(error: unknown) {
-  toast.error(error instanceof SiteServiceError ? error.message : 'Une erreur est survenue.');
-}
-
 /** Mutations for one website; every success refreshes that website's queries. */
 export function useSiteMutations(scope: SiteScope) {
   const queryClient = useQueryClient();
+  const errorMessage = useErrorMessage();
+  const errorToast = (error: unknown) => toast.error(errorMessage(error));
   const db = createClient();
   const invalidate = () =>
     queryClient.invalidateQueries({ queryKey: siteKeys.website(scope.websiteId) });

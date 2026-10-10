@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { passkeyErrorKind } from '@/lib/auth/passkey';
+import { AppError } from '@/lib/errors';
 import type { MfaState, Passkey, TotpEnrollment } from './types';
 
 export async function getMfaState(db: SupabaseClient): Promise<MfaState> {
@@ -7,7 +8,7 @@ export async function getMfaState(db: SupabaseClient): Promise<MfaState> {
     db.auth.mfa.listFactors(),
     db.auth.mfa.getAuthenticatorAssuranceLevel()
   ]);
-  if (factorsRes.error) throw new Error('Impossible de charger la sécurité du compte.');
+  if (factorsRes.error) throw new AppError('loadFailed', { cause: factorsRes.error });
   return {
     factors: factorsRes.data.all
       .filter((f) => f.factor_type === 'totp' && f.status === 'verified')
@@ -23,24 +24,26 @@ export async function getMfaState(db: SupabaseClient): Promise<MfaState> {
   };
 }
 
-/** Starts a TOTP enrollment (QR code + secret). Leftover unverified factors are removed first. */
-export async function enrollTotp(db: SupabaseClient): Promise<TotpEnrollment> {
+/**
+ * Starts a TOTP enrollment (QR code + secret). Leftover unverified factors are
+ * removed first. `friendlyName` is the translated label shown in the factor list.
+ */
+export async function enrollTotp(
+  db: SupabaseClient,
+  friendlyName: string
+): Promise<TotpEnrollment> {
   const { data: factors } = await db.auth.mfa.listFactors();
   const stale = (factors?.all ?? []).filter(
     (f) => f.factor_type === 'totp' && f.status === 'unverified'
   );
   await Promise.all(stale.map((f) => db.auth.mfa.unenroll({ factorId: f.id })));
 
-  const stamp = new Date().toLocaleString('fr-FR', {
-    dateStyle: 'short',
-    timeStyle: 'short'
-  });
   const { data, error } = await db.auth.mfa.enroll({
     factorType: 'totp',
-    friendlyName: `Application d’authentification (${stamp})`,
+    friendlyName,
     issuer: 'LevelUp'
   });
-  if (error || !data) throw new Error('Activation impossible pour le moment.');
+  if (error || !data) throw new AppError('mfaEnrollFailed', { cause: error });
   return {
     factorId: data.id,
     qrCode: data.totp.qr_code,
@@ -52,10 +55,9 @@ export async function enrollTotp(db: SupabaseClient): Promise<TotpEnrollment> {
 export async function verifyTotp(db: SupabaseClient, factorId: string, code: string) {
   const { error } = await db.auth.mfa.challengeAndVerify({ factorId, code });
   if (error) {
-    throw new Error(
-      error.code === 'mfa_verification_failed'
-        ? 'Code incorrect. Saisissez le code actuel de l’application.'
-        : 'Vérification impossible. Réessayez.'
+    throw new AppError(
+      error.code === 'mfa_verification_failed' ? 'mfaWrongCode' : 'mfaVerifyFailed',
+      { cause: error }
     );
   }
 }
@@ -69,10 +71,10 @@ export async function cancelTotpEnrollment(db: SupabaseClient, factorId: string)
 export async function removeFactor(db: SupabaseClient, factorId: string) {
   const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== 'aal2') {
-    throw new Error('Confirmez d’abord votre code à 6 chiffres (reconnectez-vous).');
+    throw new AppError('mfaRequired');
   }
   const { error } = await db.auth.mfa.unenroll({ factorId });
-  if (error) throw new Error('Suppression impossible. Reconnectez-vous puis réessayez.');
+  if (error) throw new AppError('deleteFailed', { cause: error });
   // Refresh the token so the session reflects the new assurance level.
   await db.auth.refreshSession();
 }
@@ -80,13 +82,13 @@ export async function removeFactor(db: SupabaseClient, factorId: string) {
 /** Revokes every session of the account (all devices, all LevelUp apps). */
 export async function signOutEverywhere(db: SupabaseClient) {
   const { error } = await db.auth.signOut({ scope: 'global' });
-  if (error) throw new Error('Déconnexion impossible. Réessayez.');
+  if (error) throw new AppError('generic', { cause: error });
 }
 
 /** Passkeys (WebAuthn) of the signed-in user, most recent first. */
 export async function listPasskeys(db: SupabaseClient): Promise<Passkey[]> {
   const { data, error } = await db.auth.passkey.list();
-  if (error) throw new Error('Impossible de charger vos passkeys.');
+  if (error) throw new AppError('loadFailed', { cause: error });
   return (data ?? [])
     .map((p) => ({
       id: p.id,
@@ -100,7 +102,7 @@ export async function listPasskeys(db: SupabaseClient): Promise<Passkey[]> {
 /** Error thrown when the person closes the browser prompt: the UI stays silent. */
 export class PasskeyCancelledError extends Error {
   constructor() {
-    super('Ajout annulé.');
+    super('cancelled');
     this.name = 'PasskeyCancelledError';
   }
 }
@@ -111,28 +113,22 @@ export async function addPasskey(db: SupabaseClient): Promise<void> {
   if (!error) return;
   const kind = passkeyErrorKind(error);
   if (kind === 'cancelled') throw new PasskeyCancelledError();
-  if (kind === 'already_registered') {
-    throw new Error('Cet appareil a déjà une passkey pour ce compte.');
-  }
-  if (kind === 'disabled') throw new Error('Les passkeys ne sont pas disponibles pour le moment.');
-  if ((error as { code?: string }).code === 'insufficient_aal') {
-    throw new Error('Confirmez d’abord votre code à 6 chiffres (reconnectez-vous).');
-  }
-  throw new Error('Ajout impossible. Réessayez.');
+  if (kind === 'already_registered') throw new AppError('passkeyExists');
+  if (kind === 'disabled') throw new AppError('passkeyDisabled');
+  if ((error as { code?: string }).code === 'insufficient_aal') throw new AppError('mfaRequired');
+  throw new AppError('createFailed', { cause: error });
 }
 
 export async function renamePasskey(db: SupabaseClient, passkeyId: string, friendlyName: string) {
   const { error } = await db.auth.passkey.update({ passkeyId, friendlyName });
-  if (error) throw new Error('Renommage impossible. Réessayez.');
+  if (error) throw new AppError('saveFailed', { cause: error });
 }
 
 export async function deletePasskey(db: SupabaseClient, passkeyId: string) {
   const { error } = await db.auth.passkey.delete({ passkeyId });
   if (error) {
-    throw new Error(
-      error.code === 'insufficient_aal'
-        ? 'Confirmez d’abord votre code à 6 chiffres (reconnectez-vous).'
-        : 'Suppression impossible. Réessayez.'
-    );
+    throw new AppError(error.code === 'insufficient_aal' ? 'mfaRequired' : 'deleteFailed', {
+      cause: error
+    });
   }
 }

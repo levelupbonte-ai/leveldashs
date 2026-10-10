@@ -15,7 +15,7 @@ const APP_URL = 'https://dashboard.levelup-ecosystem.com';
 const TOLERANCE_SECONDS = 5 * 60;
 
 type HookPayload = {
-  user: { email?: string; new_email?: string };
+  user: { email?: string; new_email?: string; user_metadata?: Record<string, unknown> };
   email_data: {
     token?: string;
     token_hash?: string;
@@ -96,9 +96,13 @@ function link(type: string, tokenHash: string | undefined, next: string): string
 // E-mails whose whole point is the button: never send them without it.
 const NEEDS_LINK = new Set(['signup', 'magiclink', 'recovery', 'invite', 'email_change']);
 
-async function send(to: string, type: string, opts: { link?: string; code?: string }) {
+async function send(
+  to: string,
+  type: string,
+  opts: { link?: string; code?: string; locale?: unknown }
+) {
   if (NEEDS_LINK.has(type) && !opts.link) throw new Error('missing_link');
-  const { subject, html } = buildAuthEmail(type, opts);
+  const { subject, html } = await buildAuthEmail(type, opts);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -132,6 +136,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({});
   }
 
+  // The recipient's language (switcher, sign-up form), English otherwise.
+  const locale = user.user_metadata?.locale;
   const next =
     type === 'recovery'
       ? '/auth/reset-password'
@@ -144,20 +150,24 @@ export async function POST(request: NextRequest) {
       // address, token_hash to the new one (Secure Email Change sends both).
       if (data.token_hash_new && user.new_email) {
         await send(user.email, type, {
-          link: link(type, data.token_hash_new, next)
+          link: link(type, data.token_hash_new, next),
+          locale
         });
         await send(user.new_email, type, {
-          link: link(type, data.token_hash, next)
+          link: link(type, data.token_hash, next),
+          locale
         });
       } else {
         await send(user.new_email ?? user.email, type, {
-          link: link(type, data.token_hash, next)
+          link: link(type, data.token_hash, next),
+          locale
         });
       }
     } else {
       await send(user.email, type, {
         link: link(type, data.token_hash, next),
-        code: type === 'reauthentication' ? data.token : undefined
+        code: type === 'reauthentication' ? data.token : undefined,
+        locale
       });
     }
   } catch {

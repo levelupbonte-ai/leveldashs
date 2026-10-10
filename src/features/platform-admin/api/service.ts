@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { MFA_REQUIRED_MESSAGE } from '@/features/organizations/api/service';
+import { AppError, isMfaError } from '@/lib/errors';
 import type {
   AiInsights,
   AiModelRank,
@@ -36,7 +36,7 @@ export async function getAiInsights(db: SupabaseClient): Promise<AiInsights> {
     db.from('ai_usage_stats').select('*')
   ]);
   if (ranking.error || routes.error || usage.error) {
-    throw new Error('Impossible de charger les statistiques IA.');
+    throw new AppError('loadFailed', { cause: ranking.error ?? routes.error ?? usage.error });
   }
   const stats = (usage.data ?? []) as AiUsageStat[];
   const callsFor = (app: string, task: string, modelId?: string) =>
@@ -93,7 +93,7 @@ export async function listProjectRequests(db: SupabaseClient): Promise<ProjectRe
     .limit(300);
   // Table not created yet on this project: nothing to review.
   if (error?.code === 'PGRST205' || error?.code === '42P01') return [];
-  if (error) throw new Error('Impossible de charger les demandes de projet.');
+  if (error) throw new AppError('loadFailed', { cause: error });
   return (data ?? []).map((row) => ({
     ...(row as ProjectRequest),
     social_links: asStrings(row.social_links),
@@ -112,7 +112,7 @@ export async function updateProjectRequest(db: SupabaseClient, input: ProjectReq
   const {
     data: { user }
   } = await db.auth.getUser();
-  if (!user) throw new Error('Session expirée. Reconnectez-vous.');
+  if (!user) throw new AppError('sessionExpired');
   const { error, count } = await db
     .from('project_requests')
     .update(
@@ -125,13 +125,12 @@ export async function updateProjectRequest(db: SupabaseClient, input: ProjectReq
       { count: 'exact' }
     )
     .eq('id', input.id);
-  if (error?.message.includes('aal2')) throw new Error(MFA_REQUIRED_MESSAGE);
+  if (isMfaError(error)) throw new AppError('mfaRequired', { cause: error });
   if (error || !count) {
     const { data: aal } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-    throw new Error(
-      aal && aal.currentLevel !== 'aal2' && aal.nextLevel === 'aal2'
-        ? MFA_REQUIRED_MESSAGE
-        : 'Modification impossible (réservé à l’équipe LevelUp).'
+    throw new AppError(
+      aal && aal.currentLevel !== 'aal2' && aal.nextLevel === 'aal2' ? 'mfaRequired' : 'forbidden',
+      { cause: error }
     );
   }
 }

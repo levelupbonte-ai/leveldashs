@@ -12,7 +12,10 @@ export interface PermissionCheck {
 }
 
 export interface NavItem {
+  /** Key of `nav.items.*` (see docs/i18n.md), or display text when `rawTitle`. */
   title: string;
+  /** `title` is already translated (server-built entries such as the staff menu). */
+  rawTitle?: boolean;
   url: string;
   disabled?: boolean;
   external?: boolean;
@@ -26,6 +29,7 @@ export interface NavItem {
 }
 
 export interface NavGroup {
+  /** Key of `nav.groups.*`; empty for an unlabeled group. */
   label: string;
   items: NavItem[];
 }

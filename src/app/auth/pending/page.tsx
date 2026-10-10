@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import {
@@ -12,15 +13,14 @@ import {
   ONBOARDING_PATH,
   PENDING_PATH
 } from '@/lib/auth/access';
-import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { getDashboardSession } from '@/lib/auth/session';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata: Metadata = {
-  title: 'Compte en cours de vérification',
-  description: 'Votre demande d’accès au tableau de bord LevelUp.'
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('auth.pending');
+  return { title: t('metaTitle'), description: t('metaDescription') };
+}
 
 // Where every sign-in (password, Google, passkey, e-mail link, /dashboard)
 // lands while the access request waits for the LevelUp team, or was rejected.
@@ -39,30 +39,23 @@ export default async function Page() {
   if (!request || request.status === 'approved') redirect(ONBOARDING_PATH);
 
   if (request.status === 'rejected') {
+    const tr = await getTranslations('auth.rejected');
     return (
-      <AuthShell
-        title='Demande non retenue'
-        description='Votre demande d’accès au tableau de bord n’a pas été validée.'
-      >
+      <AuthShell title={tr('title')} description={tr('description')}>
         <RecordLastMethod />
         <RejectedAccountView email={session.user.email} businessName={request.businessName} />
       </AuthShell>
     );
   }
 
-  const { passkey } = await getAuthMethods();
+  const t = await getTranslations('auth.pending');
   return (
-    <AuthShell
-      title='Votre compte est en cours de vérification'
-      description='Merci ! L’équipe LevelUp vérifie chaque accès au tableau de bord avant de l’ouvrir.'
-    >
+    <AuthShell title={t('title')} description={t('description')}>
       <RecordLastMethod />
       <PendingAccountView
         email={session.user.email}
         businessName={request.businessName}
         submittedAt={request.createdAt}
-        mfaEnabled={session.mfa.enabled}
-        passkeyEnabled={passkey}
       />
     </AuthShell>
   );

@@ -17,6 +17,7 @@ Ensure these are set in your deployment platform:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (optional: defaults to the LevelUp web client, see [auth.md](./auth.md#google-button-google-identity-services))
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
 

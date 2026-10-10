@@ -8,6 +8,8 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { useMemo } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { useSiteMutations } from '../api/mutations';
@@ -30,24 +32,7 @@ const BUSINESS_TYPES = [
   'Person'
 ].map((v) => ({ value: v, label: v }));
 
-const httpsOrEmpty = z
-  .string()
-  .trim()
-  .refine((v) => v === '' || /^https:\/\/\S+$/.test(v), { message: 'Lien https:// requis' });
-
-const seoSchema = z.object({
-  enabled: z.boolean(),
-  title: z.string().trim().max(70, { message: '70 caractères maximum' }),
-  description: z.string().trim().max(320, { message: '320 caractères maximum' }),
-  keywords: z.array(z.string().trim().min(1).max(60)).max(20),
-  image: httpsOrEmpty,
-  business_name: z.string().trim().max(120),
-  business_type: z.string(),
-  google_site_verification: z
-    .string()
-    .trim()
-    .refine((v) => v === '' || /^[A-Za-z0-9_-]{10,100}$/.test(v), { message: 'Code invalide' })
-});
+const PAGES_EXAMPLE = '{ "/services": { "title": "…", "description": "…" } }';
 
 function toValues(seo: SeoSettings) {
   return {
@@ -66,11 +51,40 @@ export function SeoForm() {
   const scope = useSiteScope();
   const { data: seo } = useSuspenseQuery(seoQueryOptions(createClient(), scope.websiteId));
   const { saveSetting } = useSiteMutations(scope);
+  const t = useTranslations('site.seo');
+  const tv = useTranslations('validation');
+  const tsv = useTranslations('site.validation');
+  const seoSchema = useMemo(
+    () =>
+      z.object({
+        enabled: z.boolean(),
+        title: z
+          .string()
+          .trim()
+          .max(70, { message: tv('maxLength', { max: 70 }) }),
+        description: z
+          .string()
+          .trim()
+          .max(320, { message: tv('maxLength', { max: 320 }) }),
+        keywords: z.array(z.string().trim().min(1).max(60)).max(20),
+        image: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || /^https:\/\/\S+$/.test(v), { message: tsv('https') }),
+        business_name: z.string().trim().max(120),
+        business_type: z.string(),
+        google_site_verification: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || /^[A-Za-z0-9_-]{10,100}$/.test(v), {
+            message: t('invalidCode')
+          })
+      }),
+    [t, tv, tsv]
+  );
 
   const save = (next: SeoSettings) =>
-    saveSetting
-      .mutateAsync({ key: 'seo', value: next })
-      .then(() => toast.success('SEO enregistré'));
+    saveSetting.mutateAsync({ key: 'seo', value: next }).then(() => toast.success(t('saved')));
 
   const form = useAppForm({
     defaultValues: toValues(seo),
@@ -101,11 +115,8 @@ export function SeoForm() {
     <div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]'>
       <Card>
         <CardHeader>
-          <CardTitle>Référencement Google</CardTitle>
-          <CardDescription>
-            Appliqué automatiquement par le tag LevelUp sur votre site : titre, description, aperçu
-            de partage et fiche entreprise (schema.org) avec vos coordonnées, horaires et avis.
-          </CardDescription>
+          <CardTitle>{t('title')}</CardTitle>
+          <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form
@@ -119,20 +130,17 @@ export function SeoForm() {
               <form.AppField
                 name='enabled'
                 children={(field) => (
-                  <field.SwitchField
-                    label='Activer le SEO LevelUp'
-                    description='Désactivez si votre site gère déjà ses balises.'
-                  />
+                  <field.SwitchField label={t('enabled')} description={t('enabledHint')} />
                 )}
               />
               <form.AppField
                 name='title'
                 children={(field) => (
                   <field.TextField
-                    label='Titre (Google)'
+                    label={t('metaTitle')}
                     maxLength={70}
-                    placeholder='Barbier à San Diego | Final Stop'
-                    description='50 à 60 caractères : activité + ville + nom.'
+                    placeholder={t('metaTitlePlaceholder')}
+                    description={t('metaTitleHint')}
                   />
                 )}
               />
@@ -140,49 +148,47 @@ export function SeoForm() {
                 name='description'
                 children={(field) => (
                   <field.TextareaField
-                    label='Description'
+                    label={t('metaDescription')}
                     rows={3}
                     maxLength={320}
                     showCount
-                    description='140 à 160 caractères, avec un appel à l’action.'
+                    description={t('metaDescriptionHint')}
                   />
                 )}
               />
               <form.AppField
                 name='keywords'
                 children={(field) => (
-                  <field.TagsField label='Mots-clés' placeholder='Tapez puis Entrée…' />
+                  <field.TagsField label={t('keywords')} placeholder={t('keywordsPlaceholder')} />
                 )}
               />
               <form.AppField
                 name='image'
                 children={(field) => (
                   <field.TextField
-                    label='Image de partage'
+                    label={t('image')}
                     placeholder='https://…'
-                    description='1200 × 630 px. Copiez un lien depuis la Médiathèque.'
+                    description={t('imageHint')}
                   />
                 )}
               />
               <form.AppField
                 name='business_name'
-                children={(field) => (
-                  <field.TextField label='Nom de l’entreprise' maxLength={120} />
-                )}
+                children={(field) => <field.TextField label={t('businessName')} maxLength={120} />}
               />
               <form.AppField
                 name='business_type'
                 children={(field) => (
-                  <field.SelectField label='Type d’entreprise' options={BUSINESS_TYPES} />
+                  <field.SelectField label={t('businessType')} options={BUSINESS_TYPES} />
                 )}
               />
               <form.AppField
                 name='google_site_verification'
                 children={(field) => (
                   <field.TextField
-                    label='Code Google Search Console'
+                    label={t('verification')}
                     placeholder='abc123…'
-                    description='Le contenu de la balise google-site-verification.'
+                    description={t('verificationHint')}
                   />
                 )}
               />
@@ -191,7 +197,7 @@ export function SeoForm() {
               selector={(s) => s.isSubmitting}
               children={(submitting) => (
                 <LoadingButton type='submit' loading={submitting} disabled={!scope.canEdit}>
-                  Enregistrer
+                  {t('save')}
                 </LoadingButton>
               )}
             />
@@ -202,22 +208,18 @@ export function SeoForm() {
       <div className='space-y-6'>
         <Alert>
           <Icons.info className='size-4' />
-          <AlertDescription>
-            Le tag LevelUp doit être installé sur le site (onglet Développeurs). Google lit ces
-            balises ; certains réseaux sociaux (Facebook, WhatsApp) ne lisent que le code HTML
-            d’origine.
-          </AlertDescription>
+          <AlertDescription>{t('tagNotice')}</AlertDescription>
         </Alert>
         <JsonEditorCard
           key={JSON.stringify(seo.pages ?? {})}
-          title='Pages'
-          description='Titre et description par page, ex. { "/services": { "title": "…", "description": "…" } }'
+          title={t('pages')}
+          description={t('pagesHint', { example: PAGES_EXAMPLE })}
           value={seo.pages ?? {}}
           disabled={!scope.canEdit}
           saving={saveSetting.isPending}
           onSave={(pages) => {
             if (!pages || typeof pages !== 'object' || Array.isArray(pages)) {
-              toast.error('Format attendu : { "/chemin": { "title": "…" } }');
+              toast.error(t('pagesFormat', { example: '{ "/path": { "title": "…" } }' }));
               return;
             }
             void save({ ...seo, pages: pages as SeoSettings['pages'] }).catch(() => {});

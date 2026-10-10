@@ -7,37 +7,53 @@ import { LoadingButton } from '@/components/ui/loading-button';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useMemo, useState } from 'react';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
-import { featuresQueryOptions, orgKeys } from '../api/queries';
-import { createClientSite } from '../api/service';
-
-const schema = z.object({
-  organizationName: z.string().trim().min(2, { message: 'Nom requis' }).max(120),
-  websiteName: z.string().trim().min(2, { message: 'Nom requis' }).max(120),
-  primaryDomain: z
-    .string()
-    .trim()
-    .refine((v) => v === '' || /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}\/?$/i.test(v), {
-      message: 'Domaine invalide (ex. salon.com)'
-    }),
-  siteType: z
-    .string()
-    .trim()
-    .refine((v) => v === '' || /^[a-z][a-z0-9_]{1,47}$/.test(v), {
-      message: 'Minuscules et _ (ex. barbershop)'
-    }),
-  features: z.array(z.string()),
-  ownerEmail: z
-    .string()
-    .trim()
-    .refine((v) => v === '' || z.string().email().safeParse(v).success, {
-      message: 'E-mail invalide'
-    })
-});
+import { createClientSite } from '../api/clients';
+import { adminInsightKeys, featuresQueryOptions } from '../api/queries';
 
 export function NewClientForm() {
+  const t = useTranslations('admin.newClient');
+  const tv = useTranslations('validation');
+  const errorMessage = useErrorMessage();
+  const schema = useMemo(
+    () =>
+      z.object({
+        organizationName: z
+          .string()
+          .trim()
+          .min(2, { message: tv('nameRequired') })
+          .max(120),
+        websiteName: z
+          .string()
+          .trim()
+          .min(2, { message: tv('nameRequired') })
+          .max(120),
+        primaryDomain: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}\/?$/i.test(v), {
+            message: t('invalidDomain')
+          }),
+        siteType: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || /^[a-z][a-z0-9_]{1,47}$/.test(v), {
+            message: t('invalidSiteType')
+          }),
+        features: z.array(z.string()),
+        ownerEmail: z
+          .string()
+          .trim()
+          .refine((v) => v === '' || z.string().email().safeParse(v).success, {
+            message: tv('email')
+          })
+      }),
+    [t, tv]
+  );
   const db = createClient();
   const queryClient = useQueryClient();
   const { data: features = [] } = useQuery(featuresQueryOptions(db));
@@ -57,11 +73,11 @@ export function NewClientForm() {
       try {
         const res = await createClientSite(db, value);
         setResult({ websiteId: res.website_id, owner: res.owner });
-        toast.success('Client créé');
+        toast.success(t('created'));
         formApi.reset();
-        void queryClient.invalidateQueries({ queryKey: orgKeys.allWebsites() });
+        void queryClient.invalidateQueries({ queryKey: adminInsightKeys.allWebsites() });
       } catch (e) {
-        toast.error((e as Error).message);
+        toast.error(errorMessage(e));
       }
     }
   });
@@ -69,25 +85,20 @@ export function NewClientForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Nouveau client</CardTitle>
-        <CardDescription>
-          Crée l’organisation, le site et ses fonctions, et invite le propriétaire : il devient
-          propriétaire dès qu’il crée son compte avec cet e-mail (vérifié).
-        </CardDescription>
+        <CardTitle>{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
       </CardHeader>
       <CardContent>
         {result && (
           <div className='bg-muted mb-4 space-y-1 rounded-md p-3 text-sm'>
-            <p>
-              Site créé : <code>{result.websiteId}</code>
-            </p>
+            <p>{t.rich('siteCreated', { id: () => <code>{result.websiteId}</code> })}</p>
             <p className='text-muted-foreground'>
               {result.owner === 'invited'
-                ? 'Invitation enregistrée : le client doit créer son compte avec cet e-mail.'
+                ? t('ownerInvited')
                 : result.owner
-                  ? 'Le propriétaire a été ajouté.'
-                  : 'Aucun propriétaire invité.'}{' '}
-              Le code d’installation est dans « Développeurs » une fois le site sélectionné.
+                  ? t('ownerAdded')
+                  : t('noOwner')}{' '}
+              {t('tagHint')}
             </p>
           </div>
         )}
@@ -102,33 +113,29 @@ export function NewClientForm() {
             <form.AppField
               name='organizationName'
               children={(field) => (
-                <field.TextField label='Entreprise' placeholder='Salon Élégance' />
+                <field.TextField label={t('business')} placeholder={t('businessPlaceholder')} />
               )}
             />
             <form.AppField
               name='websiteName'
               children={(field) => (
-                <field.TextField label='Nom du site' placeholder='Salon Élégance' />
+                <field.TextField label={t('websiteName')} placeholder={t('businessPlaceholder')} />
               )}
             />
             <form.AppField
               name='primaryDomain'
               children={(field) => (
-                <field.TextField label='Domaine' placeholder='salon-elegance.com' />
+                <field.TextField label={t('domain')} placeholder='salon-elegance.com' />
               )}
             />
             <form.AppField
               name='siteType'
-              children={(field) => <field.TextField label='Type de site' placeholder='salon' />}
+              children={(field) => <field.TextField label={t('siteType')} placeholder='salon' />}
             />
             <form.AppField
               name='ownerEmail'
               children={(field) => (
-                <field.TextField
-                  label='E-mail du propriétaire'
-                  type='email'
-                  placeholder='client@…'
-                />
+                <field.TextField label={t('ownerEmail')} type='email' placeholder='client@…' />
               )}
             />
           </FieldGroup>
@@ -136,7 +143,7 @@ export function NewClientForm() {
             name='features'
             children={(field) => (
               <div className='space-y-2'>
-                <p className='text-sm font-medium'>Fonctions</p>
+                <p className='text-sm font-medium'>{t('features')}</p>
                 <div className='flex flex-wrap gap-2'>
                   {features.map((f) => {
                     const on = field.state.value.includes(f.key);
@@ -168,7 +175,7 @@ export function NewClientForm() {
             selector={(s) => s.isSubmitting}
             children={(submitting) => (
               <LoadingButton type='submit' loading={submitting}>
-                Créer le client
+                {t('submit')}
               </LoadingButton>
             )}
           />

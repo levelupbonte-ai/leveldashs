@@ -11,6 +11,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/auth.md](./docs/auth.md)** — Supabase Auth: sign-in/up, Google, callback, sessions, organizations & roles
 - **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
 - **[docs/ecosystem-api.md](./docs/ecosystem-api.md)** — LevelUp tag (`levelup.js`), public API, client onboarding, security model
+- **[docs/i18n.md](./docs/i18n.md)** — i18n with next-intl: English default, French translation, `messages/*.json`, how to add strings
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
 ## Critical Conventions
@@ -22,4 +23,5 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **Icons** — only import from `@/components/icons`, never from `@tabler/icons-react` directly
 - **Forms** — `useAppForm` from `@/lib/form` (TanStack `createFormHook`) + `form.AppField` rendering the field components in `@/components/forms/fields` (`field.TextField`, `field.SelectField`, …); each component is the shadcn TanStack Form doc anatomy; raw `form.Field` for one-off custom fields; form-level Zod `onSubmit` validators
 - **Page headers** — use `PageContainer` props (`pageTitle`, `pageDescription`, `pageHeaderAction`), never import `<Heading>` manually
+- **i18n** — no hard-coded user-facing text: `useTranslations` / `getTranslations` with keys in `messages/en.json` + `messages/fr.json` (English is the official language); service errors are `AppError` codes shown with `useErrorMessage()`, never raw database/provider messages
 - **Formatting** — single quotes, JSX single quotes, no trailing comma, 2-space indent

@@ -1,0 +1,1166 @@
+{
+  "metadata": {
+    "app": {
+      "description": "Gérez votre site, vos réservations et vos clients au même endroit avec LevelUp Ecosystem.",
+      "ogImageAlt": "LevelUp Dashboard — l’étoile LevelUp"
+    },
+    "dashboard": {
+      "title": "Tableau de bord",
+      "description": "Votre tableau de bord LevelUp Ecosystem"
+    }
+  },
+  "common": {
+    "search": "Rechercher…",
+    "save": "Enregistrer",
+    "saving": "Enregistrement…",
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "back": "Retour",
+    "continue": "Continuer",
+    "retry": "Réessayer",
+    "loading": "Chargement…",
+    "copy": "Copier",
+    "copied": "Copié",
+    "none": "—",
+    "optional": "facultatif",
+    "skipToContent": "Aller au contenu",
+    "genericError": "Une erreur est survenue. Réessayez.",
+    "language": {
+      "label": "Langue"
+    },
+    "userMenu": {
+      "profile": "Profil",
+      "billing": "Facturation",
+      "notifications": "Notifications",
+      "siteSettings": "Paramètres du site",
+      "signOut": "Se déconnecter"
+    },
+    "kbar": {
+      "navigation": "Navigation",
+      "goTo": "Aller à {page}",
+      "navigate": "naviguer",
+      "open": "ouvrir",
+      "close": "fermer"
+    },
+    "theme": {
+      "label": "Thème",
+      "themes": "Thèmes",
+      "select": "Choisir un thème",
+      "toggle": "Changer de mode",
+      "switch": "Changer de thème",
+      "toggleMode": "Basculer mode clair/sombre",
+      "setLight": "Mode clair",
+      "setDark": "Mode sombre"
+    },
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "editor": "Éditeur",
+      "viewer": "Lecture seule"
+    },
+    "noAccess": "Vous n’avez pas accès à cette page."
+  },
+  "orgSwitcher": {
+    "switchFailed": "Changement impossible. Réessayez.",
+    "noOrganization": "Aucune organisation",
+    "getStarted": "Commencer",
+    "staff": "Équipe LevelUp",
+    "websites": "Sites",
+    "organizations": "Organisations",
+    "organizationsStaff": "Organisations (équipe LevelUp)",
+    "manage": "Gérer les organisations"
+  },
+  "nav": {
+    "groups": {
+      "mySite": "Mon site",
+      "overview": "Aperçu",
+      "elements": "Éléments"
+    },
+    "items": {
+      "siteOverview": "Vue d’ensemble",
+      "assistant": "Assistant IA",
+      "appointments": "Rendez-vous",
+      "waitlist": "File d’attente",
+      "requests": "Demandes",
+      "content": "Contenu",
+      "services": "Services",
+      "team": "Équipe",
+      "gallery": "Galerie",
+      "reviews": "Avis clients",
+      "announcements": "Annonces",
+      "faq": "FAQ",
+      "media": "Médiathèque",
+      "seo": "SEO",
+      "developers": "Développeurs",
+      "siteSettings": "Paramètres du site",
+      "dashboard": "Tableau de bord",
+      "organizations": "Organisations",
+      "teamAccess": "Équipe & accès",
+      "product": "Produits",
+      "users": "Utilisateurs",
+      "kanban": "Kanban",
+      "chat": "Messagerie",
+      "aiChat": "Chat IA",
+      "forms": "Formulaires",
+      "basicForm": "Formulaire simple",
+      "multiStepForm": "Formulaire en étapes",
+      "sheetDialog": "Panneau & boîte de dialogue",
+      "advancedPatterns": "Modèles avancés",
+      "reactQuery": "React Query",
+      "icons": "Icônes",
+      "account": "Compte",
+      "profile": "Profil",
+      "notifications": "Notifications",
+      "billing": "Facturation",
+      "home": "Accueil"
+    }
+  },
+  "admin": {
+    "nav": {
+      "levelupAdmin": "Admin LevelUp",
+      "allClients": "Tous les clients"
+    },
+    "page": {
+      "title": "Tous les clients",
+      "description": "Sites gérés par LevelUp"
+    },
+    "accessRequests": {
+      "title": "Demandes d’accès",
+      "description": "Valider une demande crée l’organisation du client (à son nom) et l’en rend propriétaire. Vous pourrez ensuite lui ajouter un site ci-dessous.",
+      "empty": "Aucune demande pour le moment.",
+      "approved": "Accès validé, le client a été prévenu par e-mail.",
+      "rejected": "Demande refusée.",
+      "approve": "Valider",
+      "reject": "Refuser",
+      "status": {
+        "pending": "En attente",
+        "approved": "Validée",
+        "rejected": "Refusée"
+      }
+    },
+    "websites": {
+      "search": "Rechercher un client, un domaine…",
+      "website": "Site",
+      "organization": "Organisation",
+      "status": "Statut",
+      "features": "Fonctions",
+      "manage": "Gérer"
+    },
+    "newClient": {
+      "title": "Nouveau client",
+      "description": "Crée l’organisation, le site et ses fonctions, et invite le propriétaire : il devient propriétaire dès qu’il crée son compte avec cet e-mail (vérifié).",
+      "invalidDomain": "Domaine invalide (ex. salon.com)",
+      "invalidSiteType": "Minuscules et _ (ex. barbershop)",
+      "created": "Client créé",
+      "siteCreated": "Site créé : <id></id>",
+      "ownerInvited": "Invitation enregistrée : le client doit créer son compte avec cet e-mail.",
+      "ownerAdded": "Le propriétaire a été ajouté.",
+      "noOwner": "Aucun propriétaire invité.",
+      "tagHint": "Le code d’installation est dans « Développeurs » une fois le site sélectionné.",
+      "business": "Entreprise",
+      "businessPlaceholder": "Salon Élégance",
+      "websiteName": "Nom du site",
+      "domain": "Domaine",
+      "siteType": "Type de site",
+      "ownerEmail": "E-mail du propriétaire",
+      "features": "Fonctions",
+      "submit": "Créer le client"
+    },
+    "ai": {
+      "title": "Intelligence artificielle",
+      "description": "Modèles utilisés par les applications LevelUp, du plus au moins sollicité, et où chacun intervient. Chaque tâche essaie les modèles dans l’ordre et passe au suivant en cas de quota ou de panne. DeepSeek est le seul fournisseur payant.",
+      "offCatalog": "Hors catalogue",
+      "paid": "Payant",
+      "free": "Gratuit",
+      "calls": "{count, plural, one {# appel} other {# appels}}",
+      "calls30d": "{count, plural, one {# appel} other {# appels}} (30 j)",
+      "rankingDetail": "{provider} · {model} · 24 h : {day} · 7 j : {week}",
+      "lastCall": "dernier appel {date}",
+      "last24h": "Dernières 24 h",
+      "last7d": "7 derniers jours",
+      "last30d": "30 derniers jours",
+      "allTime": "Depuis le début",
+      "topModels": "Modèles les plus utilisés (30 jours)",
+      "noCalls": "Aucun appel enregistré pour le moment.",
+      "neverCalled": "Jamais appelés pour l’instant : {models}.",
+      "whereUsed": "Où chaque IA est utilisée",
+      "otherCalls": "Autres appels enregistrés (hors catalogue)",
+      "apps": {
+        "dashboard": "Tableau de bord",
+        "studio": "LevelStudio",
+        "showcase": "levelup-ecosystem.com",
+        "site": "Site vitrine"
+      },
+      "tasks": {
+        "agents": "Assistant",
+        "writing": "Rédaction",
+        "reports": "Rapports",
+        "site": "Récapitulatif de brief",
+        "studio_chat": "Conversation",
+        "studio_build": "Création des pages",
+        "studio_review": "Relecture",
+        "vision": "Images et PDF"
+      }
+    },
+    "projects": {
+      "title": "Demandes de projet",
+      "description": "Formulaire « Démarrer un projet » de levelup-ecosystem.com. L’IA donne un score et un avis indicatifs : vérifiez les liens avant de proposer une démo.",
+      "scoreTitle": "Score de qualification IA (0 à 100)",
+      "updated": "Demande mise à jour.",
+      "linkWebsite": "Site",
+      "linkSocial": "Réseau",
+      "linkProof": "Preuve",
+      "contact": "Contact :",
+      "budget": "Budget / délai :",
+      "registration": "N° d’immatriculation :",
+      "language": "Langue :",
+      "fullBrief": "Brief complet",
+      "statusLabel": "Statut du suivi",
+      "notes": "Notes internes",
+      "notesPlaceholder": "Notes internes (visibles par l’équipe LevelUp)",
+      "save": "Enregistrer",
+      "lastReview": "Dernier suivi le {date}",
+      "aiModel": "analyse IA : {model}",
+      "empty": "Aucune demande ici.",
+      "tabs": {
+        "qualified": "Qualifiées",
+        "review": "À vérifier",
+        "rejected": "Écartées"
+      },
+      "status": {
+        "new": "Nouvelle",
+        "contacted": "Contacté",
+        "demo": "Démo",
+        "won": "Gagné",
+        "lost": "Perdu",
+        "rejected": "Refusé"
+      }
+    }
+  },
+  "mfaStep": {
+    "title": "Terminez d’abord cette étape",
+    "description": "Confirmez votre code de vérification en deux étapes pour effectuer ce changement.",
+    "action": "Vérifier maintenant"
+  },
+  "validation": {
+    "email": "Adresse e-mail invalide.",
+    "nameRequired": "Indiquez un nom.",
+    "required": "Ce champ est requis.",
+    "passwordRequired": "Mot de passe requis.",
+    "fullName": "Indiquez votre nom.",
+    "passwordMin": "{min} caractères minimum.",
+    "passwordMax": "{max} caractères maximum.",
+    "passwordsMatch": "Les mots de passe ne correspondent pas.",
+    "commonPassword": "Ce mot de passe est trop courant. Choisissez-en un autre.",
+    "url": "Adresse invalide (https://…).",
+    "phone": "Numéro de téléphone invalide.",
+    "code": "Entrez le code à 6 chiffres.",
+    "maxLength": "{max} caractères maximum.",
+    "invalidJson": "JSON invalide."
+  },
+  "errors": {
+    "generic": "Une erreur est survenue. Réessayez.",
+    "loadFailed": "Impossible de charger ces données. Actualisez la page.",
+    "loadMembers": "Impossible de charger les membres.",
+    "mfaRequired": "Confirmez d’abord votre code de vérification en deux étapes.",
+    "forbidden": "Vous n’avez pas les droits pour faire cela.",
+    "addMemberFailed": "Ajout impossible. Réessayez.",
+    "keepOneOwner": "Une organisation doit garder au moins un propriétaire.",
+    "updateRoleFailed": "Impossible de modifier ce rôle.",
+    "removeMemberFailed": "Impossible de retirer ce membre.",
+    "slugTaken": "Ce nom est déjà pris. Essayez-en un autre.",
+    "orgLimit": "Nombre maximum d’organisations atteint.",
+    "createOrgFailed": "Impossible de créer l’organisation. Réessayez.",
+    "domainTaken": "Ce domaine est déjà utilisé par un autre site.",
+    "invalidDomain": "Domaine ou type de site invalide.",
+    "createFailed": "Création impossible. Réessayez.",
+    "cancelInvitationFailed": "Impossible d’annuler cette invitation.",
+    "saveFailed": "Enregistrement impossible. Réessayez.",
+    "deleteFailed": "Suppression impossible. Réessayez.",
+    "uploadFailed": "L’envoi n’a pas fonctionné. Réessayez.",
+    "network": "Problème de connexion. Vérifiez votre réseau et réessayez.",
+    "sessionExpired": "Votre session a expiré. Reconnectez-vous.",
+    "imageUnreadable": "Image illisible.",
+    "imageFormat": "Formats acceptés : PNG, JPG ou WebP.",
+    "imageTooLarge": "Image trop lourde (8 Mo maximum).",
+    "mfaEnrollFailed": "Activation impossible pour le moment. Réessayez.",
+    "mfaWrongCode": "Code incorrect. Saisissez le code actuel de l’application.",
+    "mfaVerifyFailed": "Vérification impossible. Réessayez.",
+    "passkeyExists": "Cet appareil a déjà une passkey pour ce compte.",
+    "passkeyDisabled": "Les passkeys ne sont pas disponibles pour le moment.",
+    "alreadyExists": "Cet élément existe déjà.",
+    "invalidValues": "Certaines valeurs ne sont pas valides. Vérifiez le formulaire.",
+    "mediaFormat": "Format non pris en charge (images, PDF, MP4, WebM).",
+    "mediaTooLarge": "Fichier trop lourd (10 Mo maximum).",
+    "uploadForbidden": "Envoi impossible : il faut un accès éditeur pour ajouter des fichiers.",
+    "invalidOrigin": "Un des domaines n’est pas valide (utilisez https://exemple.com)."
+  },
+  "workspaces": {
+    "title": "Organisations",
+    "description": "Vos entreprises et les sites qui y sont reliés",
+    "created": "Organisation créée",
+    "empty": "Vous n’êtes membre d’aucune organisation. Si LevelUp gère votre site, demandez-nous de vous y ajouter avec l’e-mail de ce compte.",
+    "staffAccess": "Accès équipe LevelUp",
+    "active": "Active",
+    "open": "Ouvrir",
+    "newTitle": "Nouvelle organisation",
+    "newDescription": "Pour votre entreprise. Le site y est relié ensuite par l’équipe LevelUp.",
+    "name": "Nom",
+    "namePlaceholder": "Mon entreprise",
+    "create": "Créer"
+  },
+  "team": {
+    "title": "Équipe & accès",
+    "description": "Qui peut gérer {name}",
+    "descriptionNoOrg": "Membres de votre organisation",
+    "invitationCancelled": "Invitation annulée",
+    "roleUpdated": "Rôle mis à jour",
+    "memberRemoved": "Membre retiré",
+    "memberAdded": "Membre ajouté",
+    "invited": "Invitation enregistrée : la personne rejoindra l’équipe en créant son compte avec cet e-mail.",
+    "members": "Membres ({count})",
+    "membersDescription": "Propriétaire et administrateur gèrent l’équipe ; éditeur modifie le contenu ; lecture seule consulte.",
+    "member": "Membre",
+    "you": "(vous)",
+    "role": "Rôle",
+    "remove": "Retirer",
+    "removeConfirm": "Retirer {name} de l’organisation ?",
+    "pendingInvitation": "Invitation en attente · {role}",
+    "cancelInvitation": "Annuler l’invitation",
+    "addTitle": "Ajouter un membre",
+    "addDescription": "La personne doit d’abord avoir créé son compte LevelUp.",
+    "email": "E-mail",
+    "add": "Ajouter"
+  },
+  "billing": {
+    "title": "Facturation",
+    "description": "Abonnement",
+    "descriptionOrg": "Abonnement de {name}",
+    "cardTitle": "Votre abonnement LevelUp",
+    "cardDescription": "La facturation est gérée directement par l’équipe LevelUp.",
+    "contact": "Pour changer de formule, ajouter une fonction à votre site ou recevoir une facture, écrivez-nous à <email></email>."
+  },
+  "info": {
+    "workspaces": {
+      "title": "Organisations",
+      "principleTitle": "Principe",
+      "principle": "Une organisation représente votre entreprise. Vos sites, votre équipe et vos fichiers y sont rattachés, et personne en dehors de l’organisation ne peut les voir.",
+      "switchTitle": "Changer d’organisation",
+      "switch": "Utilisez le sélecteur en haut de la barre latérale pour passer d’une organisation ou d’un site à l’autre."
+    },
+    "team": {
+      "title": "Équipe & accès",
+      "rolesTitle": "Rôles",
+      "roles": "Propriétaire : tous les droits, y compris nommer d’autres propriétaires. Administrateur : gère l’équipe et les paramètres. Éditeur : modifie le contenu, les rendez-vous et les demandes. Lecture seule : consulte.",
+      "addTitle": "Ajouter quelqu’un",
+      "add": "La personne crée d’abord son compte LevelUp (page Créer un compte), puis un administrateur l’ajoute ici avec son e-mail."
+    },
+    "billing": {
+      "title": "Facturation",
+      "subscriptionTitle": "Abonnement",
+      "subscription": "Votre abonnement et les fonctions de votre site sont gérés par l’équipe LevelUp. Contactez-nous pour toute modification.",
+      "contact": "Écrire à LevelUp"
+    }
+  },
+  "emails": {
+    "buttonFallback": "Le bouton ne fonctionne pas ? Copiez ce lien dans votre navigateur :",
+    "auth": {
+      "signup": {
+        "subject": "Confirmez votre compte LevelUp",
+        "title": "Bienvenue chez LevelUp",
+        "intro": "Confirmez votre adresse e-mail pour activer votre compte.",
+        "cta": "Confirmer mon adresse",
+        "outro": "Si vous n’avez pas créé de compte, ignorez simplement cet e-mail."
+      },
+      "magiclink": {
+        "subject": "Votre lien de connexion LevelUp",
+        "title": "Connexion à LevelUp",
+        "intro": "Cliquez sur le bouton ci-dessous pour vous connecter. Le lien est valable une seule fois.",
+        "cta": "Me connecter",
+        "outro": "Si vous n’avez pas demandé ce lien, ignorez cet e-mail : votre compte reste protégé."
+      },
+      "recovery": {
+        "subject": "Réinitialisez votre mot de passe LevelUp",
+        "title": "Nouveau mot de passe",
+        "intro": "Vous avez demandé à changer votre mot de passe. Choisissez-en un nouveau ici :",
+        "cta": "Choisir un nouveau mot de passe",
+        "outro": "Si vous n’êtes pas à l’origine de cette demande, ignorez cet e-mail : rien ne change."
+      },
+      "invite": {
+        "subject": "Vous êtes invité sur LevelUp",
+        "title": "Invitation LevelUp",
+        "intro": "Vous avez été invité à rejoindre un espace LevelUp. Acceptez l’invitation pour commencer.",
+        "cta": "Accepter l’invitation",
+        "outro": "Si vous ne vous attendiez pas à cette invitation, ignorez cet e-mail."
+      },
+      "email_change": {
+        "subject": "Confirmez votre nouvelle adresse e-mail",
+        "title": "Changement d’adresse e-mail",
+        "intro": "Confirmez ce changement d’adresse e-mail pour votre compte LevelUp.",
+        "cta": "Confirmer le changement",
+        "outro": "Si vous n’êtes pas à l’origine de ce changement, contactez-nous immédiatement."
+      },
+      "reauthentication": {
+        "subject": "Votre code de vérification LevelUp",
+        "title": "Code de vérification",
+        "intro": "Utilisez ce code pour confirmer votre action :",
+        "outro": "Si vous n’avez rien demandé, changez votre mot de passe."
+      },
+      "password_changed_notification": {
+        "subject": "Votre mot de passe LevelUp a été modifié",
+        "title": "Mot de passe modifié",
+        "intro": "Le mot de passe de votre compte LevelUp vient d’être changé.",
+        "outro": "Si ce n’était pas vous, réinitialisez votre mot de passe et contactez-nous immédiatement."
+      },
+      "email_changed_notification": {
+        "subject": "L’adresse e-mail de votre compte LevelUp a changé",
+        "title": "Adresse e-mail modifiée",
+        "intro": "L’adresse e-mail associée à votre compte LevelUp a été modifiée.",
+        "outro": "Si ce n’était pas vous, contactez-nous immédiatement."
+      }
+    },
+    "accessApproved": {
+      "subject": "Votre accès au tableau de bord LevelUp est validé",
+      "title": "Bienvenue sur votre tableau de bord",
+      "line1": "Votre demande a été validée par l’équipe LevelUp.",
+      "line2": "Vous pouvez maintenant vous connecter pour gérer votre site, vos rendez-vous et vos demandes.",
+      "cta": "Ouvrir mon tableau de bord"
+    },
+    "accessRejected": {
+      "subject": "Votre demande d’accès LevelUp",
+      "title": "Votre demande n’a pas été retenue",
+      "line1": "Nous ne pouvons pas ouvrir d’accès au tableau de bord pour cette demande pour le moment.",
+      "line2": "Si vous pensez qu’il s’agit d’une erreur ou si vous souhaitez un site avec LevelUp, écrivez simplement à contact@levelup-ecosystem.com."
+    },
+    "accessRequestTeam": {
+      "subject": "Demande d’accès au dashboard : {business}",
+      "title": "Nouvelle demande d’accès",
+      "business": "Entreprise : {value}",
+      "account": "Compte : {value}",
+      "website": "Site : {value}",
+      "phone": "Téléphone : {value}",
+      "message": "Message : {value}",
+      "cta": "Examiner la demande"
+    }
+  },
+  "brandImage": {
+    "change": "Changer",
+    "upload": "Importer",
+    "remove": "Retirer",
+    "hint": "PNG, JPG ou WebP, redimensionné automatiquement."
+  },
+  "auth": {
+    "shell": {
+      "quote": "Tout ce dont votre entreprise a besoin en ligne, géré au même endroit."
+    },
+    "signIn": {
+      "title": "Connexion",
+      "description": "Accédez au tableau de bord de votre site.",
+      "metaDescription": "Connexion au tableau de bord LevelUp.",
+      "noAccount": "Pas encore de compte ?",
+      "createAccount": "Créer un compte"
+    },
+    "signUp": {
+      "title": "Créer un compte",
+      "description": "Votre accès LevelUp pour gérer votre site, vos réservations et vos demandes.",
+      "metaDescription": "Créer un compte LevelUp.",
+      "haveAccount": "Déjà un compte ?",
+      "signIn": "Se connecter"
+    },
+    "form": {
+      "lastUsed": "Dernière méthode utilisée",
+      "callbackFailed": "La connexion a échoué. Réessayez.",
+      "captcha": "Confirmez que vous n’êtes pas un robot (vérification ci-dessus).",
+      "emailNotConfirmed": "Confirmez votre adresse e-mail (lien reçu par e-mail) puis reconnectez-vous.",
+      "wrongCredentials": "E-mail ou mot de passe incorrect.",
+      "weakPassword": "Mot de passe trop faible : choisissez-en un plus long.",
+      "signUpFailed": "Inscription impossible. Vérifiez vos informations.",
+      "passkeyNotFound": "Aucune passkey trouvée pour ce compte. Connectez-vous avec votre mot de passe puis ajoutez une passkey dans Profil → Sécurité.",
+      "passkeyFailed": "Connexion par passkey impossible. Réessayez ou utilisez votre mot de passe.",
+      "googleFailed": "La connexion Google n’a pas fonctionné. Réessayez.",
+      "googleUnavailable": "Connexion Google indisponible pour le moment.",
+      "passkey": "Continuer avec une passkey",
+      "otherMethods": "Autres méthodes de connexion",
+      "orEmail": "ou par e-mail",
+      "fullName": "Nom complet",
+      "email": "E-mail",
+      "emailPlaceholder": "vous@exemple.com",
+      "password": "Mot de passe",
+      "signIn": "Se connecter",
+      "signUp": "Créer mon compte",
+      "forgot": "Mot de passe oublié ?"
+    },
+    "google": {
+      "continue": "Continuer avec Google",
+      "loading": "Chargement de la connexion Google…"
+    },
+    "steps": {
+      "label": "Étapes de création du compte",
+      "account": "Compte",
+      "email": "E-mail",
+      "profile": "Profil",
+      "approval": "Validation",
+      "waiting": "(en attente)"
+    },
+    "signOut": {
+      "label": "Se déconnecter",
+      "loading": "Déconnexion…"
+    },
+    "captcha": {
+      "unavailable": "Vérification anti-robot indisponible. Rechargez la page."
+    },
+    "emailSent": {
+      "tipValidity": "Le lien est valable une heure et ne fonctionne qu’une fois.",
+      "tipSpam": "Rien reçu ? Regardez dans les courriers indésirables ou les promotions.",
+      "tipSender": "L’e-mail vient de LevelUp Ecosystem (levelup-ecosystem.com).",
+      "resendIn": "Renvoyer l’e-mail dans {seconds} s",
+      "resend": "Renvoyer l’e-mail",
+      "resent": "Un nouvel e-mail vient d’être envoyé.",
+      "changeEmail": "Changer d’adresse",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "signupSent": {
+      "verified": "Adresse e-mail vérifiée",
+      "next": "Passage à l’étape suivante…",
+      "title": "Confirmez votre adresse e-mail",
+      "description": "Pour activer votre compte, cliquez sur le lien que nous venons d’envoyer à",
+      "waiting": "Vous pouvez ouvrir le lien sur votre téléphone : cette page continuera toute seule.",
+      "stopped": "La vérification automatique s’est arrêtée. Vous avez cliqué sur le lien ?",
+      "signInToContinue": "Connectez-vous avec votre nouveau mot de passe pour continuer.",
+      "checkNow": "Vérifier maintenant"
+    },
+    "verified": {
+      "metaTitle": "Adresse e-mail vérifiée",
+      "title": "Félicitations, votre adresse e‑mail est vérifiée",
+      "description": "Votre compte LevelUp est activé.",
+      "goBack": "Retournez sur l’appareil où vous avez commencé votre inscription pour continuer.",
+      "goBackHint": "La page d’inscription restée ouverte passe d’elle-même à l’étape suivante : votre profil. Vous pouvez fermer cette fenêtre.",
+      "continueHere": "Continuer ici"
+    },
+    "forgot": {
+      "title": "Mot de passe oublié",
+      "description": "Indiquez l’adresse de votre compte : nous vous envoyons un lien pour en choisir un nouveau.",
+      "metaDescription": "Recevez un lien pour choisir un nouveau mot de passe.",
+      "captcha": "Confirmez que vous n’êtes pas un robot.",
+      "rateLimited": "Trop de demandes pour le moment. Réessayez dans quelques minutes.",
+      "sentTitle": "Lien envoyé",
+      "sentDescription": "Si un compte LevelUp existe pour cette adresse, un lien de réinitialisation vient d’être envoyé à",
+      "emailLabel": "E-mail du compte",
+      "emailPlaceholder": "vous@exemple.com",
+      "submit": "Envoyer le lien",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "reset": {
+      "title": "Nouveau mot de passe",
+      "metaDescription": "Choisissez un nouveau mot de passe pour votre compte LevelUp.",
+      "descriptionFor": "Choisissez un nouveau mot de passe pour {email}.",
+      "expiredTitle": "Lien expiré",
+      "expiredDescription": "Ce lien de réinitialisation n’est plus valide. Demandez-en un nouveau.",
+      "backToSignIn": "Retour à la connexion",
+      "samePassword": "Choisissez un mot de passe différent de l’ancien.",
+      "weakPassword": "Mot de passe trop faible : choisissez-en un plus long et moins courant.",
+      "failed": "Modification impossible. Demandez un nouveau lien.",
+      "updated": "Mot de passe mis à jour.",
+      "newPassword": "Nouveau mot de passe",
+      "confirm": "Confirmer",
+      "submit": "Enregistrer le mot de passe"
+    },
+    "mfa": {
+      "title": "Vérification en deux étapes",
+      "description": "Entrez le code à 6 chiffres affiché par votre application d’authentification.",
+      "metaDescription": "Confirmez votre connexion avec votre application d’authentification.",
+      "noFactor": "Aucune application d’authentification trouvée. Reconnectez-vous.",
+      "wrongCode": "Code incorrect ou expiré. Réessayez avec le code actuel.",
+      "failed": "Vérification impossible pour le moment. Réessayez.",
+      "codeLabel": "Code de vérification",
+      "submit": "Vérifier",
+      "otherAccount": "Utiliser un autre compte",
+      "lostAccess": "Plus d’accès à votre application ? Écrivez à <email></email>."
+    },
+    "onboarding": {
+      "metaTitle": "Finaliser mon compte",
+      "metaDescription": "Votre profil et votre accès au tableau de bord LevelUp.",
+      "title": "Finaliser votre compte",
+      "description": "Quelques informations pour personnaliser votre espace.",
+      "editTitle": "Modifier ma demande",
+      "editDescription": "Mettez à jour les informations transmises à l’équipe LevelUp.",
+      "businessRequired": "Le nom de votre entreprise.",
+      "saveFailed": "Enregistrement impossible. Réessayez.",
+      "unverified": "Confirmez d’abord votre adresse e-mail.",
+      "sendFailed": "Envoi impossible. Réessayez.",
+      "alreadyPending": "Votre demande est déjà en cours de vérification : vos modifications la mettent à jour, sans repartir de zéro.",
+      "accessIntro": "Le tableau de bord est réservé aux clients LevelUp. Présentez votre activité : nous validons votre accès rapidement.",
+      "business": "Entreprise",
+      "website": "Site actuel (facultatif)",
+      "phone": "Téléphone (facultatif)",
+      "project": "Votre projet (facultatif)",
+      "update": "Mettre à jour ma demande",
+      "requestAccess": "Demander l’accès",
+      "cancel": "Annuler",
+      "photo": "Photo ou logo (facultatif)",
+      "fullName": "Nom complet",
+      "finish": "Terminer",
+      "continue": "Continuer",
+      "signedInAs": "Connecté en tant que {email}.",
+      "switchAccount": "Changer de compte"
+    },
+    "pending": {
+      "metaTitle": "Compte en cours de vérification",
+      "metaDescription": "Votre demande d’accès au tableau de bord LevelUp.",
+      "title": "Votre compte est en cours de vérification",
+      "description": "Merci pour votre demande. L’équipe LevelUp vérifie chaque compte avant d’ouvrir l’accès au tableau de bord.",
+      "yourBusiness": "Votre entreprise",
+      "submittedOn": "Demande envoyée le {date}",
+      "submitted": "Demande envoyée",
+      "delayTitle": "Délai habituel",
+      "delay": "En général sous 1 jour ouvré (du lundi au vendredi).",
+      "emailTitle": "La suite",
+      "email": "Vous recevrez un e-mail à <email></email> dès que votre accès sera prêt.",
+      "edit": "Modifier ma demande",
+      "question": "Une question ?"
+    },
+    "rejected": {
+      "title": "Votre demande n’a pas été retenue",
+      "description": "Le tableau de bord est réservé aux clients LevelUp. Si vous souhaitez un site avec LevelUp ou pensez qu’il s’agit d’une erreur, écrivez-nous : nous vous répondrons rapidement.",
+      "yourBusiness": "Votre entreprise",
+      "contact": "Écrire à LevelUp"
+    }
+  },
+  "profile": {
+    "title": "Mon profil",
+    "description": "Votre nom, votre mot de passe et la sécurité du compte",
+    "saveFailed": "Enregistrement impossible. Réessayez.",
+    "photoUpdated": "Photo mise à jour",
+    "photoRemoved": "Photo retirée",
+    "logoUpdated": "Logo mis à jour",
+    "logoRemoved": "Logo retiré",
+    "profileUpdated": "Profil mis à jour",
+    "samePassword": "Choisissez un mot de passe différent de l’actuel.",
+    "weakPassword": "Mot de passe trop faible.",
+    "passwordFailed": "Modification impossible. Reconnectez-vous puis réessayez.",
+    "passwordChanged": "Mot de passe modifié",
+    "resetHint": "Choisissez votre nouveau mot de passe ci-dessous.",
+    "info": "Informations",
+    "photo": "Photo de profil",
+    "fullName": "Nom complet",
+    "save": "Enregistrer",
+    "logoTitle": "Logo de {name}",
+    "logoDescription": "Affiché en haut du tableau de bord pour toute votre équipe.",
+    "logo": "Logo",
+    "password": "Mot de passe",
+    "passwordHint": "10 caractères minimum.",
+    "newPassword": "Nouveau mot de passe",
+    "confirm": "Confirmer",
+    "changePassword": "Changer le mot de passe",
+    "security": {
+      "title": "Sécurité",
+      "description": "Vérification en deux étapes avec une application d’authentification (code à 6 chiffres) et gestion de vos sessions.",
+      "enabledToast": "Vérification en deux étapes activée",
+      "removedToast": "Application d’authentification retirée",
+      "step1": "Ouvrez votre application d’authentification (Google Authenticator, 1Password, Microsoft Authenticator…).",
+      "step2": "Scannez ce QR code ou saisissez la clé manuellement.",
+      "step3": "Entrez le code à 6 chiffres affiché pour confirmer.",
+      "qrAlt": "QR code à scanner avec votre application d’authentification",
+      "setupKey": "Clé de configuration",
+      "keyCopied": "Clé copiée",
+      "copyKey": "Copier la clé",
+      "codeLabel": "Code de vérification",
+      "enable": "Activer",
+      "cancel": "Annuler",
+      "factorName": "Application d’authentification ({date})",
+      "twoStep": "Vérification en deux étapes",
+      "on": "Activée",
+      "off": "Désactivée",
+      "addApp": "Ajouter une application",
+      "setUp": "Configurer",
+      "loadFailed": "Impossible de charger la sécurité du compte. Actualisez la page.",
+      "app": "Application d’authentification",
+      "addedOn": "Ajoutée le {date}",
+      "remove": "Retirer",
+      "offHint": "Ajoutez une deuxième étape à votre connexion : même avec votre mot de passe, personne ne pourra se connecter sans le code de votre téléphone.",
+      "sessions": "Sessions",
+      "sessionsHint": "Déconnecte ce compte sur tous vos appareils et toutes les applications LevelUp.",
+      "signOutAll": "Déconnecter tous mes appareils",
+      "removeTitle": "Retirer cette application ?",
+      "removeOther": "Elle ne pourra plus servir à confirmer vos connexions.",
+      "removeLast": "C’est votre seule application : la vérification en deux étapes sera désactivée.",
+      "signOutAllTitle": "Déconnecter tous vos appareils ?",
+      "signOutAllDescription": "Toutes vos sessions seront fermées, y compris celle-ci. Vous devrez vous reconnecter.",
+      "signOutAllConfirm": "Tout déconnecter"
+    },
+    "passkeys": {
+      "renamed": "Passkey renommée",
+      "renameTitle": "Renommer la passkey",
+      "renameDescription": "Un nom pour la reconnaître (ex. « iPhone », « MacBook »).",
+      "name": "Nom",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "added": "Passkey ajoutée",
+      "deleted": "Passkey supprimée",
+      "description": "Connectez-vous sans mot de passe avec Face ID, Touch ID, Windows Hello ou le code de votre téléphone.",
+      "add": "Ajouter une passkey",
+      "unsupported": "Ce navigateur ne prend pas en charge les passkeys.",
+      "loadFailed": "Impossible de charger vos passkeys.",
+      "empty": "Aucune passkey pour l’instant. Ajoutez-en une sur chaque appareil que vous utilisez.",
+      "addedOn": "Ajoutée le {date}",
+      "usedOn": "utilisée le {date}",
+      "neverUsed": "jamais utilisée",
+      "rename": "Renommer",
+      "delete": "Supprimer",
+      "deleteTitle": "Supprimer cette passkey ?",
+      "deleteDescription": "Elle ne pourra plus servir à vous connecter. Pensez aussi à la retirer du gestionnaire de mots de passe de l’appareil."
+    }
+  },
+  "setup": {
+    "title": "Terminez la configuration de votre compte",
+    "description": "Quelques étapes rapides pour profiter pleinement de votre tableau de bord.",
+    "progress": "{done} sur {total} terminées",
+    "done": "Terminé",
+    "todo": "À faire",
+    "dismiss": "Masquer cette étape",
+    "tasks": {
+      "profile": {
+        "title": "Complétez votre profil",
+        "description": "Ajoutez votre nom pour que votre équipe sache qui a fait chaque modification.",
+        "action": "Modifier le profil"
+      },
+      "logo": {
+        "title": "Ajoutez votre logo",
+        "description": "Affiché en haut du tableau de bord pour toute votre équipe.",
+        "action": "Ajouter le logo"
+      },
+      "mfa": {
+        "title": "Activez la vérification en deux étapes",
+        "description": "Confirmez chaque connexion avec un code à 6 chiffres d’une application d’authentification.",
+        "action": "Configurer"
+      }
+    }
+  },
+  "site": {
+    "pages": {
+      "overview": {
+        "title": "Mon site",
+        "description": "Vue d’ensemble"
+      },
+      "appointments": {
+        "title": "Rendez-vous",
+        "description": "Réservations faites depuis votre site"
+      },
+      "waitlist": {
+        "title": "File d’attente",
+        "description": "Clients en attente au salon"
+      },
+      "requests": {
+        "title": "Demandes",
+        "description": "Formulaires de contact, devis et inscriptions"
+      },
+      "media": {
+        "title": "Médiathèque",
+        "description": "Images et fichiers de votre site"
+      },
+      "seo": {
+        "title": "SEO",
+        "description": "Visibilité sur Google et aperçus de partage"
+      },
+      "settings": {
+        "title": "Paramètres du site",
+        "description": "Coordonnées, horaires et textes"
+      },
+      "developers": {
+        "title": "Développeurs",
+        "description": "Connecter le site à LevelUp"
+      },
+      "assistant": {
+        "title": "Assistant IA",
+        "description": "Questions, textes et aide sur votre site"
+      }
+    },
+    "unavailable": {
+      "noWebsiteTitle": "Aucun site pour le moment",
+      "noWebsite": "Votre site sera relié à ce tableau de bord par l’équipe LevelUp.",
+      "disabledTitle": "Fonction non activée",
+      "disabled": "Cette fonction n’est pas activée pour ce site. Contactez LevelUp pour l’ajouter."
+    },
+    "overview": {
+      "pendingAppointments": "Rendez-vous à confirmer",
+      "upcoming": "{count} à venir",
+      "waiting": "En file d’attente",
+      "waitingHint": "Mise à jour en direct",
+      "newRequests": "Nouvelles demandes",
+      "newRequestsHint": "Contact, devis, inscriptions",
+      "files": "Fichiers",
+      "filesHint": "Médiathèque"
+    },
+    "content": {
+      "search": "Rechercher…",
+      "add": "Ajouter",
+      "noResults": "Aucun résultat",
+      "nothingYet": "Rien pour le moment",
+      "tryAnother": "Essayez une autre recherche.",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "deleted": "Supprimé",
+      "deleteTitle": "Supprimer cet élément ?",
+      "deleteDescription": "« {name} » sera retiré de votre site. Pour le masquer sans le supprimer, passez-le en brouillon.",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saved": "Modifications enregistrées",
+      "added": "Élément ajouté",
+      "editTitle": "Modifier : {name}",
+      "tagsPlaceholder": "Tapez puis Entrée…",
+      "choose": "Choisir",
+      "imageHint": "Envoyez un fichier (10 Mo max.) ou collez un lien https.",
+      "upload": "Envoyer",
+      "chooseImage": "Choisir une image",
+      "notes": "Notes internes",
+      "notesFor": "Notes · {name}",
+      "notesDescription": "Notes internes, visibles uniquement par votre équipe.",
+      "loading": "Chargement…",
+      "loadMore": "Charger plus",
+      "invalidJson": "Format invalide : vérifiez les guillemets, virgules et accolades."
+    },
+    "validation": {
+      "https": "Lien https:// requis.",
+      "number": "Nombre invalide.",
+      "amount": "Montant invalide.",
+      "required": "Requis",
+      "date": "Date invalide.",
+      "tooLong": "Trop long."
+    },
+    "status": {
+      "published": "Publié",
+      "draft": "Brouillon",
+      "archived": "Archivé"
+    },
+    "commonFields": {
+      "status": "Statut",
+      "sort_order": "Ordre d’affichage",
+      "sort_orderHint": "Les plus petits nombres apparaissent en premier."
+    },
+    "collections": {
+      "services": {
+        "title": "Services",
+        "description": "Vos prestations, prix et durées affichés sur le site.",
+        "addTitle": "Ajouter un service",
+        "empty": "Ajoutez votre premier service : il apparaîtra sur votre site une fois publié.",
+        "fields": {
+          "name": "Nom",
+          "category": "Catégorie",
+          "description": "Description",
+          "price_cents": "Prix",
+          "price_label": "Prix affiché",
+          "duration_minutes": "Durée (minutes)",
+          "badge": "Badge",
+          "featured": "Mis en avant",
+          "inclusions": "Inclus",
+          "image_url": "Image"
+        },
+        "hints": {
+          "price_cents": "Utilisé pour les réservations.",
+          "price_label": "Ex. « À partir de 35 $ »."
+        }
+      },
+      "team": {
+        "title": "Équipe",
+        "description": "Les membres de votre équipe présentés sur le site.",
+        "addTitle": "Ajouter un membre",
+        "empty": "Ajoutez votre premier membre : il apparaîtra sur votre site une fois publié.",
+        "fields": {
+          "name": "Nom",
+          "role": "Rôle",
+          "bio": "Présentation",
+          "phone": "Téléphone",
+          "email": "E-mail",
+          "tags": "Spécialités",
+          "image_url": "Photo"
+        },
+        "hints": {}
+      },
+      "gallery": {
+        "title": "Galerie",
+        "description": "Les photos de votre galerie.",
+        "addTitle": "Ajouter une photo",
+        "empty": "Ajoutez votre première photo : elle apparaîtra sur votre site une fois publiée.",
+        "fields": {
+          "image_url": "Image",
+          "title": "Titre",
+          "description": "Description",
+          "category": "Catégorie",
+          "tags": "Mots-clés"
+        },
+        "hints": {}
+      },
+      "reviews": {
+        "title": "Avis clients",
+        "description": "Les témoignages affichés sur votre site.",
+        "addTitle": "Ajouter un avis",
+        "empty": "Ajoutez votre premier avis : il apparaîtra sur votre site une fois publié.",
+        "fields": {
+          "author": "Auteur",
+          "rating": "Note",
+          "comment": "Commentaire",
+          "review_date": "Date",
+          "source": "Source"
+        },
+        "hints": {
+          "source": "Ex. Google, Yelp."
+        }
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Questions fréquentes.",
+        "addTitle": "Ajouter une question",
+        "empty": "Ajoutez votre première question : elle apparaîtra sur votre site une fois publiée.",
+        "fields": {
+          "question": "Question",
+          "answer": "Réponse",
+          "category": "Catégorie"
+        },
+        "hints": {}
+      },
+      "announcements": {
+        "title": "Annonces",
+        "description": "Actualités, promotions et articles.",
+        "addTitle": "Ajouter une annonce",
+        "empty": "Ajoutez votre première annonce : elle apparaîtra sur votre site une fois publiée.",
+        "fields": {
+          "title": "Titre",
+          "content": "Contenu",
+          "image_url": "Image",
+          "published_at": "Publié le",
+          "expires_at": "Expire le"
+        },
+        "hints": {}
+      }
+    },
+    "appointments": {
+      "upcoming": "À venir",
+      "past": "Passés",
+      "all": "Tous",
+      "emptyTitle": "Aucun rendez-vous",
+      "emptyDescription": "Les réservations faites sur votre site apparaîtront ici.",
+      "date": "Date",
+      "customer": "Client",
+      "service": "Service",
+      "statusLabel": "Statut",
+      "statusAria": "Statut du rendez-vous",
+      "status": {
+        "pending": "En attente",
+        "confirmed": "Confirmé",
+        "completed": "Terminé",
+        "cancelled": "Annulé",
+        "no_show": "Absent"
+      }
+    },
+    "waitlist": {
+      "statusLabel": "Statut",
+      "current": "File actuelle ({count})",
+      "emptyTitle": "Personne en attente",
+      "emptyDescription": "Ouvrez ou fermez la liste d’attente dans Paramètres du site (clé « waitlist »).",
+      "recent": "Récemment",
+      "status": {
+        "waiting": "En attente",
+        "called": "Appelé",
+        "in_chair": "En cours",
+        "served": "Servi",
+        "cancelled": "Annulé"
+      }
+    },
+    "requests": {
+      "open": "À traiter",
+      "all": "Toutes",
+      "emptyTitle": "Aucune demande",
+      "emptyDescription": "Les formulaires envoyés depuis votre site (contact, devis, inscriptions) arrivent ici.",
+      "noName": "Sans nom",
+      "note": "Note : {note}",
+      "statusAria": "Statut de la demande",
+      "status": {
+        "new": "Nouveau",
+        "contacted": "Contacté",
+        "in_progress": "En cours",
+        "quoted": "Devis envoyé",
+        "won": "Gagné",
+        "lost": "Perdu",
+        "closed": "Fermé",
+        "spam": "Spam"
+      },
+      "types": {
+        "contact": "Contact",
+        "quote": "Devis",
+        "vip_signup": "VIP",
+        "newsletter": "Newsletter",
+        "registration": "Inscription",
+        "preview_request": "Demande d’aperçu"
+      }
+    },
+    "media": {
+      "linkCopied": "Lien copié",
+      "rejected": "Fichier refusé : format non pris en charge ou plus de 10 Mo.",
+      "uploading": "Envoi en cours ({count})…",
+      "drop": "Déposez vos fichiers ici ou cliquez",
+      "formats": "Images, PDF, vidéos MP4/WebM · 10 Mo max.",
+      "emptyTitle": "Aucun fichier",
+      "emptyDescription": "Les images de votre site seront stockées ici.",
+      "copyLink": "Copier le lien",
+      "deleteConfirm": "Supprimer ce fichier ? Il disparaîtra des pages qui l’utilisent.",
+      "deleted": "Fichier supprimé"
+    },
+    "settings": {
+      "settingsTab": "Paramètres",
+      "contentTab": "Textes des pages",
+      "hint": "Modifiez uniquement les valeurs entre guillemets. Les changements sont en ligne dès l’enregistrement.",
+      "private": "privé",
+      "saved": "Enregistré",
+      "noSettings": "Aucun paramètre.",
+      "mustBeObject": "Le contenu doit être un objet JSON.",
+      "noContent": "Aucun contenu.",
+      "help": {
+        "contact": "Téléphones, adresse et lien Google Maps.",
+        "hours": "Horaires d’ouverture affichés sur le site.",
+        "booking": "Créneaux de réservation et délai minimum.",
+        "waitlist": "{open} ouvre la liste d’attente.",
+        "social": "Liens vers vos réseaux sociaux.",
+        "branding": "Nom, logo et couleurs.",
+        "seo": "Titre et description pour Google."
+      }
+    },
+    "seo": {
+      "invalidCode": "Code invalide",
+      "saved": "SEO enregistré",
+      "title": "Référencement Google",
+      "description": "Appliqué automatiquement par le tag LevelUp sur votre site : titre, description, aperçu de partage et fiche entreprise (schema.org) avec vos coordonnées, horaires et avis.",
+      "enabled": "Activer le SEO LevelUp",
+      "enabledHint": "Désactivez si votre site gère déjà ses balises.",
+      "metaTitle": "Titre (Google)",
+      "metaTitlePlaceholder": "Barbier à San Diego | Final Stop",
+      "metaTitleHint": "50 à 60 caractères : activité + ville + nom.",
+      "metaDescription": "Description",
+      "metaDescriptionHint": "140 à 160 caractères, avec un appel à l’action.",
+      "keywords": "Mots-clés",
+      "keywordsPlaceholder": "Tapez puis Entrée…",
+      "image": "Image de partage",
+      "imageHint": "1200 × 630 px. Copiez un lien depuis la Médiathèque.",
+      "businessName": "Nom de l’entreprise",
+      "businessType": "Type d’entreprise",
+      "verification": "Code Google Search Console",
+      "verificationHint": "Le contenu de la balise google-site-verification.",
+      "save": "Enregistrer",
+      "tagNotice": "Le tag LevelUp doit être installé sur le site (onglet Développeurs). Google lit ces balises ; certains réseaux sociaux (Facebook, WhatsApp) ne lisent que le code HTML d’origine.",
+      "pages": "Pages",
+      "pagesHint": "Titre et description par page, ex. {example}",
+      "pagesFormat": "Format attendu : {example}"
+    },
+    "developers": {
+      "installTitle": "1. Installer le tag LevelUp",
+      "installDescription": "Collez cette ligne une seule fois, juste avant <code></code>, sur toutes les pages du site (WordPress, Wix, Shopify, Webflow : champ « code personnalisé »). Ensuite, SEO, contenus et formulaires se gèrent d’ici.",
+      "siteId": "Identifiant public du site : <id></id>. Il n’est pas secret : il ne donne accès qu’au contenu déjà public et ne fonctionne que sur les domaines autorisés.",
+      "formsTitle": "2. Formulaires",
+      "formsDescription": "Ajoutez <code>data-lu-form</code> à un formulaire existant : les demandes arrivent dans « Demandes ». Types : contact, quote, newsletter, vip_signup, registration.",
+      "contentTitle": "3. Contenus et badge",
+      "contentDescription": "Un élément avec <code>data-lu</code> affiche une valeur gérée dans le tableau de bord (texte uniquement). <code>data-lu-badge</code> affiche le crédit « Built by LevelUp ».",
+      "statusTitle": "État de l’installation",
+      "active": "Actif",
+      "notDetected": "Non détecté",
+      "lastSeen": "Dernière visite détectée le {date} sur {origin}{version}.",
+      "neverSeen": "Aucune visite détectée pour le moment. Ouvrez votre site après l’installation, puis actualisez cette page.",
+      "check": "Vérifier",
+      "originsTitle": "Domaines autorisés",
+      "originsDescription": "Seuls ces domaines peuvent envoyer des formulaires, réservations et inscriptions pour ce site.",
+      "originsContact": "Contactez LevelUp pour les modifier.",
+      "originsSaved": "Domaines enregistrés",
+      "save": "Enregistrer",
+      "allOrigins": "Tous les domaines (non restreint).",
+      "serverKeysTitle": "Clés serveur",
+      "serverKeysDescription": "Pour connecter un back-office ou une application à LevelUp côté serveur, demandez une clé secrète à LevelUp. Elle ne doit jamais apparaître dans le code d’une page web."
+    }
+  },
+  "assistant": {
+    "noAnswer": "Je n’ai pas de réponse pour le moment.",
+    "title": "Assistant de {name}",
+    "intro": "Posez une question sur votre activité, demandez un texte ou de l’aide sur le tableau de bord. L’assistant ne voit jamais les coordonnées de vos clients.",
+    "suggestions": {
+      "week": "Résume mon activité de la semaine",
+      "service": "Rédige une meilleure description pour mon service principal",
+      "seo": "Propose un titre et une description Google pour mon site",
+      "team": "Comment ajouter un membre à mon équipe ?"
+    },
+    "thinking": "L’assistant réfléchit…",
+    "message": "Votre message",
+    "placeholder": "Écrivez votre question…",
+    "send": "Envoyer",
+    "remaining": "{count, plural, one {# message restant} other {# messages restants}} aujourd’hui",
+    "limit": "Limite quotidienne de l’assistant atteinte. Réessayez demain.",
+    "unavailable": "L’assistant est momentanément indisponible. Réessayez dans un instant.",
+    "applied": "Modification enregistrée.",
+    "appliedBadge": "Appliqué",
+    "applying": "Enregistrement…",
+    "apply": "Appliquer",
+    "proposal": {
+      "service": "Service : {name}",
+      "faq": "Nouvelle question FAQ",
+      "seo": "SEO du site",
+      "description": "Description",
+      "priceLabel": "Prix affiché",
+      "question": "Question",
+      "answer": "Réponse",
+      "title": "Titre"
+    },
+    "weekly": {
+      "title": "Résumé de la semaine",
+      "description": "Vos 7 derniers jours en quelques lignes. Seuls des chiffres sont analysés, jamais les coordonnées de vos clients.",
+      "refresh": "Actualiser",
+      "generate": "Générer",
+      "limit": "Limite quotidienne de l’IA atteinte. Réessayez demain.",
+      "unavailable": "Le résumé est momentanément indisponible. Réessayez dans un instant."
+    }
+  },
+  "forms": {
+    "selectOption": "Choisir une option",
+    "search": "Rechercher…",
+    "noResults": "Aucun résultat.",
+    "pickDate": "Choisir une date",
+    "pickDateRange": "Choisir une période",
+    "select": "Choisir",
+    "tagsPlaceholder": "Tapez puis Entrée…",
+    "addTag": "Ajouter à {label}",
+    "removeTag": "Retirer {tag}",
+    "add": "Ajouter"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "back": "Retour",
+    "home": "Retour au tableau de bord"
+  },
+  "statsError": {
+    "title": "Impossible de charger cette section",
+    "loadFailed": "Ces données ne sont pas disponibles pour le moment. Réessayez.",
+    "retry": "Réessayer",
+    "retrying": "Nouvel essai…"
+  },
+  "breadcrumbs": {
+    "dashboard": "Tableau de bord",
+    "site": "Mon site",
+    "appointments": "Rendez-vous",
+    "waitlist": "File d’attente",
+    "requests": "Demandes",
+    "media": "Médiathèque",
+    "seo": "SEO",
+    "settings": "Paramètres",
+    "developers": "Développeurs",
+    "assistant": "Assistant IA",
+    "services": "Services",
+    "team": "Équipe",
+    "gallery": "Galerie",
+    "reviews": "Avis clients",
+    "faq": "FAQ",
+    "announcements": "Annonces",
+    "workspaces": "Organisations",
+    "profile": "Profil",
+    "billing": "Facturation",
+    "notifications": "Notifications"
+  }
+}

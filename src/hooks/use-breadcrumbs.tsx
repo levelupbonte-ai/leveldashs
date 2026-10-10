@@ -1,6 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 
 type BreadcrumbItem = {
@@ -24,6 +25,7 @@ const routeMapping: Record<string, BreadcrumbItem[]> = {
 
 export function useBreadcrumbs() {
   const pathname = usePathname();
+  const t = useTranslations('breadcrumbs');
 
   const breadcrumbs = useMemo(() => {
     // Check if we have a custom mapping for this exact path
@@ -35,12 +37,13 @@ export function useBreadcrumbs() {
     const segments = pathname.split('/').filter(Boolean);
     return segments.map((segment, index) => {
       const path = `/${segments.slice(0, index + 1).join('/')}`;
+      const key = segment as Parameters<typeof t>[0];
       return {
-        title: segment.charAt(0).toUpperCase() + segment.slice(1),
+        title: t.has(key) ? t(key) : segment.charAt(0).toUpperCase() + segment.slice(1),
         link: path
       };
     });
-  }, [pathname]);
+  }, [pathname, t]);
 
   return breadcrumbs;
 }

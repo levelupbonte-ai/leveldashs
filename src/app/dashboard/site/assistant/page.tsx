@@ -1,18 +1,18 @@
-import { AiUsageCard } from '@/features/assistant/components/ai-usage-card';
+import type { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
 import { AssistantChat } from '@/features/assistant/components/assistant-chat';
 import { SitePage } from '@/features/site/components/site-page';
 
-export const metadata = { title: 'Assistant IA' };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('site.pages.assistant');
+  return { title: t('title') };
+}
 
-export default function Page() {
+export default async function Page() {
+  const t = await getTranslations('site.pages.assistant');
   return (
-    <SitePage
-      title='Assistant IA'
-      description='Questions, textes et aide sur votre site'
-      prefetch={() => {}}
-    >
+    <SitePage title={t('title')} description={t('description')} prefetch={() => {}}>
       <AssistantChat />
-      <AiUsageCard />
     </SitePage>
   );
 }

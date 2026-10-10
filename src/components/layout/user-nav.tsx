@@ -13,9 +13,12 @@ import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { signOut } from '@/lib/auth/actions';
 import { useDashboardSession } from '@/lib/auth/session-context';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { LocaleMenuSub } from '@/components/i18n/locale-switcher';
 export function UserNav() {
   const { user } = useDashboardSession();
   const router = useRouter();
+  const t = useTranslations('common.userMenu');
   if (user) {
     return (
       <DropdownMenu>
@@ -36,15 +39,16 @@ export function UserNav() {
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-              Profile
+              {t('profile')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => router.push('/dashboard/site/settings')}>
-              Paramètres du site
+              {t('siteSettings')}
             </DropdownMenuItem>
+            <LocaleMenuSub />
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => void signOut()}>Se déconnecter</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => void signOut()}>{t('signOut')}</DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>
