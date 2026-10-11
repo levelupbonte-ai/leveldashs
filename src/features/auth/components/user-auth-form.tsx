@@ -213,6 +213,10 @@ export default function UserAuthForm({
     }
   });
 
+  // Sign-up: Google is available once the terms are accepted.
+  const termsAccepted = useStore(form.store, (state) => state.values.acceptTerms);
+  const googleLocked = mode === 'sign-up' && !termsAccepted;
+
   // Same path for every sign-in method: second factor first, then the destination
   // (the dashboard layout sends accounts without access to onboarding).
   async function afterSignIn(supabase: ReturnType<typeof createClient>) {
@@ -334,9 +338,6 @@ export default function UserAuthForm({
     );
   }
 
-  // Sign-up: Google is available once the terms are accepted.
-  const termsAccepted = useStore(form.store, (state) => state.values.acceptTerms);
-  const googleLocked = mode === 'sign-up' && !termsAccepted;
   const consentField = mode === 'sign-up' && (
     <form.AppField
       name='acceptTerms'
