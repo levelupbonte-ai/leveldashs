@@ -31,6 +31,7 @@ import { signOut } from '@/lib/auth/actions';
 import { useDashboardSession } from '@/lib/auth/session-context';
 import { useFilteredNavGroups, useNavGroupLabel, useNavGroups, useNavTitle } from '@/hooks/use-nav';
 import { LocaleMenuSub } from '@/components/i18n/locale-switcher';
+import { LegalMenuSub } from '@/components/legal-menu-sub';
 import type { NavGroup } from '@/types';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -165,6 +166,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
                     {t('notifications')}
                   </DropdownMenuItem>
                   <LocaleMenuSub />
+                  <LegalMenuSub />
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>

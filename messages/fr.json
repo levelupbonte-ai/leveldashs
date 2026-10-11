@@ -1183,5 +1183,18 @@
     "reference": "Référence : {digest}",
     "site": "LevelUp Ecosystem",
     "contact": "Contacter le support"
+  },
+  "legal": {
+    "label": "Mentions légales",
+    "terms": "Conditions d’utilisation",
+    "privacy": "Politique de confidentialité",
+    "acceptableUse": "Politique d’utilisation acceptable",
+    "servicesAgreement": "Contrat de services",
+    "cookies": "Politique relative aux témoins",
+    "accept": "J’accepte les <terms>Conditions d’utilisation</terms>, la <aup>Politique d’utilisation acceptable</aup> et la <privacy>Politique de confidentialité</privacy>.",
+    "acceptRequired": "Veuillez accepter les conditions pour continuer.",
+    "googleNeedsAccept": "Acceptez les conditions ci-dessus pour continuer avec Google.",
+    "dpa": "Entente de traitement des données",
+    "levelstudioTerms": "Conditions de LevelStudio"
   }
 }

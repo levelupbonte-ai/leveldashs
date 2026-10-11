@@ -340,6 +340,41 @@ passwords have their own confirmation screen with a resend
 cooldown (`/auth/forgot-password`). Avatars and organization logos are uploaded
 to the public `brand` bucket (`avatars/<user>/`, `orgs/<org>/`, images only, 2 MB).
 
+## Legal documents and acceptance
+
+The legal pages live on the showcase (`src/lib/legal.ts`, `LEGAL_LINKS`):
+`/terms`, `/privacy`, `/acceptable-use`, `/services-agreement`, `/dpa`, `/cookies`,
+`/levelstudio-terms` on `https://levelup-ecosystem.com`. They are linked (new tab) at
+the bottom of every auth card and error page (`LegalLinks`) and in the user menu →
+*Legal* (`LegalMenuSub`).
+
+**Acceptance is required** to create an account: "I agree to the Terms of Service,
+Acceptable Use Policy and Privacy Policy" (`acceptTerms`, Zod `refine`, EN/FR).
+
+- **E-mail sign-up** — the checkbox is required by the form schema; `signUp` sends
+  `legal_version` (and an informative `legal_accepted_at`) in `user_metadata`. There is
+  no session before the e-mail is confirmed, so the trigger
+  `private.record_signup_legal_acceptance()` (on `auth.users` insert) writes the row
+  with the **database timestamp**.
+- **Google on the sign-up page** — the Google button stays disabled until the box is
+  ticked; after `signInWithIdToken` the RPC `accept_legal_terms(version, 'google')`
+  records it.
+- **Any other new account** (Google from the sign-in page, redirect fallback) — the
+  onboarding profile step shows the same required checkbox when no acceptance of the
+  current version exists, and calls `accept_legal_terms(version, 'onboarding')`.
+
+Storage: table `public.legal_acceptances` (migration
+`20261011110000_legal_acceptances.sql`): `user_id`, `version` (`YYYY-MM-DD`),
+`documents` (`terms`, `acceptable-use`, `privacy`), `source` (`signup` | `google` |
+`onboarding`), `accepted_at` (server time), unique per user and version. RLS: users read
+their own rows, platform admins read all; no insert/update/delete grants (only the RPC
+and the trigger write). We chose a table over `user_metadata` because users can rewrite
+their own metadata (`auth.updateUser`), which makes it worthless as a record.
+
+**New version of the documents:** bump `LEGAL_VERSION` in `src/lib/legal.ts`. New
+accounts then record the new version; existing accounts are not asked again
+automatically (add a re-acceptance prompt if the change requires consent).
+
 ## Cross-device e-mail verification
 
 People often sign up on a computer and open the confirmation e-mail on their phone.

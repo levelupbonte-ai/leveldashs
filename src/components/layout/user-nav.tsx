@@ -15,6 +15,7 @@ import { useDashboardSession } from '@/lib/auth/session-context';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LocaleMenuSub } from '@/components/i18n/locale-switcher';
+import { LegalMenuSub } from '@/components/legal-menu-sub';
 export function UserNav() {
   const { user } = useDashboardSession();
   const router = useRouter();
@@ -45,6 +46,7 @@ export function UserNav() {
               {t('siteSettings')}
             </DropdownMenuItem>
             <LocaleMenuSub />
+            <LegalMenuSub />
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>

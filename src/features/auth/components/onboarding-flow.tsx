@@ -10,9 +10,11 @@ import { FieldGroup } from '@/components/ui/field';
 import { isExternalNext } from '@/lib/auth/redirect';
 import type { DashboardUser } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
+import { LEGAL_VERSION } from '@/lib/legal';
 import { createClient } from '@/lib/supabase/client';
 import { accessRequestSchema } from '../lib/access-request-schema';
 import { AuthSteps } from './auth-steps';
+import { LegalConsentLabel } from './legal-consent-label';
 
 type Request = {
   status: 'pending' | 'approved' | 'rejected';
@@ -27,11 +29,14 @@ export default function OnboardingFlow({
   destination,
   hasAccess,
   request,
+  needsLegalAcceptance = false,
   initialStep = 'profile'
 }: {
   user: DashboardUser;
   destination: string;
   hasAccess: boolean;
+  /** No acceptance of the current legal documents on record yet. */
+  needsLegalAcceptance?: boolean;
   request: Request | null;
   /** `access` to edit a pending request straight away ("Edit request"). */
   initialStep?: 'profile' | 'access';
@@ -39,6 +44,7 @@ export default function OnboardingFlow({
   const router = useRouter();
   const t = useTranslations('auth.onboarding');
   const tv = useTranslations('validation');
+  const tl = useTranslations('legal');
   const locale = useLocale();
   const profileSchema = useMemo(
     () =>
@@ -47,9 +53,10 @@ export default function OnboardingFlow({
           .string()
           .trim()
           .min(2, { message: tv('fullName') })
-          .max(120)
+          .max(120),
+        acceptTerms: z.boolean().refine((v) => v, { message: tl('acceptRequired') })
       }),
-    [tv]
+    [tv, tl]
   );
   const accessSchema = useMemo(
     () =>
@@ -84,11 +91,22 @@ export default function OnboardingFlow({
 
   const profileForm = useAppForm({
     defaultValues: {
-      fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName
+      fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName,
+      acceptTerms: !needsLegalAcceptance
     },
     validators: { onSubmit: profileSchema },
     onSubmit: async ({ value }) => {
       const db = createClient();
+      if (needsLegalAcceptance) {
+        const { error: legalError } = await db.rpc('accept_legal_terms', {
+          p_version: LEGAL_VERSION,
+          p_source: 'onboarding'
+        });
+        if (legalError) {
+          toast.error(t('saveFailed'));
+          return;
+        }
+      }
       const fullName = value.fullName.trim();
       const { error } = await db.from('profiles').update({ full_name: fullName }).eq('id', user.id);
       if (error) {
@@ -238,6 +256,12 @@ export default function OnboardingFlow({
           name='fullName'
           children={(field) => <field.TextField label={t('fullName')} autoComplete='name' />}
         />
+        {needsLegalAcceptance && (
+          <profileForm.AppField
+            name='acceptTerms'
+            children={(field) => <field.CheckboxField label={<LegalConsentLabel />} />}
+          />
+        )}
       </FieldGroup>
       <profileForm.AppForm>
         <profileForm.SubmitButton className='w-full'>

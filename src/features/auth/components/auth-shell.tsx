@@ -2,6 +2,7 @@ import { getTranslations } from 'next-intl/server';
 import { cn } from '@/lib/utils';
 import { BrandMark } from '@/components/brand-mark';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
+import { LegalLinks } from '@/components/legal-links';
 import { InteractiveGridPattern } from './interactive-grid';
 
 export default async function AuthShell({
@@ -44,6 +45,7 @@ export default async function AuthShell({
           </div>
           {children}
           <LocaleSwitcher className='pt-2' />
+          <LegalLinks />
         </div>
       </div>
     </div>

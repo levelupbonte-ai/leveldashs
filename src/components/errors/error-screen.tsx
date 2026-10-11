@@ -1,5 +1,6 @@
 import { BrandMark } from '@/components/brand-mark';
 import { LocaleSwitcher } from '@/components/i18n/locale-switcher';
+import { LegalLinks } from '@/components/legal-links';
 import { cn } from '@/lib/utils';
 
 export const LEVELUP_SITE = 'https://levelup-ecosystem.com';
@@ -62,6 +63,7 @@ export function ErrorScreen({
           {footer}
         </nav>
         <LocaleSwitcher className='mt-4' />
+        <LegalLinks className='mt-4' />
       </div>
     </main>
   );
