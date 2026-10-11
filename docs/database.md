@@ -156,6 +156,18 @@ the declared one, so a renamed HTML or SVG file is refused. **SVG is never accep
 WebP in the browser (any picked PNG/JPEG/WebP up to 8 MB, stored file ≤ 2 MB). There is
 no upload route handler: files go straight to Storage as the signed-in user.
 
+## Backups
+
+The Free plan has no downloadable automatic backups, so
+[`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml) runs every day
+(06:17 UTC) and on demand: `supabase db dump` (roles, schema, data) with a pinned
+Supabase CLI, `tar.gz`, encrypted with `gpg --symmetric` (AES-256), uploaded as a
+workflow artifact kept **30 days**, plus an optional copy in a private R2/S3 bucket.
+It needs the repository secrets `SUPABASE_DB_URL` (session pooler connection string)
+and `BACKUP_PASSPHRASE`; secrets are never printed. Restore guide and setup:
+[`scripts/restore-backup.md`](../scripts/restore-backup.md). Storage files are not
+included.
+
 ## Secrets
 
 - Browser: only the project URL and the **publishable/anon** key.
