@@ -5,6 +5,7 @@ import { InfoSidebar } from '@/components/layout/info-sidebar';
 import { SetupChecklist } from '@/components/layout/setup-checklist';
 import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { IdleTimeout } from '@/features/auth/components/idle-timeout';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
 import { getAccessState, noAccessPath } from '@/lib/auth/access';
 import { requireDashboardSession } from '@/lib/auth/session';
@@ -45,6 +46,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SessionProvider session={session}>
       <RecordLastMethod />
+      <IdleTimeout />
       <KBar adminNav={adminNav}>
         <SidebarProvider defaultOpen={defaultOpen}>
           <a

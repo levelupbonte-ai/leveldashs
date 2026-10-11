@@ -46,11 +46,14 @@ export default function UserAuthForm({
   mode,
   next,
   initialError,
+  reason,
   methods = { google: false, passkey: false }
 }: {
   mode: 'sign-in' | 'sign-up';
   next?: string;
   initialError?: string;
+  /** Why the visitor is here, e.g. `idle` after the inactivity sign-out. */
+  reason?: string;
   /** Sign-in methods enabled in Supabase (read server-side from /auth/v1/settings). */
   methods?: AuthMethods;
 }) {
@@ -123,7 +126,9 @@ export default function UserAuthForm({
           ? 'passkey'
           : null
       : null;
-  const [notice, setNotice] = useState<string | null>(initialError ? t('callbackFailed') : null);
+  const [notice, setNotice] = useState<string | null>(
+    initialError ? t('callbackFailed') : reason === 'idle' ? t('idleSignedOut') : null
+  );
   // Sign-up waiting for the e-mail link. The password stays in memory (React
   // state only, never stored) so this tab can sign in once the link is clicked,
   // even on another device.

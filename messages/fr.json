@@ -491,7 +491,8 @@
       "password": "Mot de passe",
       "signIn": "Se connecter",
       "signUp": "Créer mon compte",
-      "forgot": "Mot de passe oublié ?"
+      "forgot": "Mot de passe oublié ?",
+      "idleSignedOut": "Vous avez été déconnecté après 30 minutes d’inactivité. Reconnectez-vous pour continuer."
     },
     "google": {
       "continue": "Continuer avec Google",
@@ -627,6 +628,12 @@
       "description": "Le tableau de bord est réservé aux clients LevelUp. Si vous souhaitez un site avec LevelUp ou pensez qu’il s’agit d’une erreur, écrivez-nous : nous vous répondrons rapidement.",
       "yourBusiness": "Votre entreprise",
       "contact": "Écrire à LevelUp"
+    },
+    "idle": {
+      "title": "Êtes-vous toujours là ?",
+      "description": "Pour votre sécurité, vous serez déconnecté dans <time></time> en raison de l’inactivité.",
+      "stay": "Rester connecté",
+      "signOut": "Me déconnecter"
     }
   },
   "profile": {

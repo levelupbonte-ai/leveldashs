@@ -124,6 +124,43 @@ They are changed through server actions in `src/lib/auth/actions.ts`:
 Client components read the session with `useDashboardSession()` (or
 `useActiveWebsite()`) from `src/lib/auth/session-context.tsx`.
 
+## Session lifetime and inactivity
+
+- **Inactivity sign-out (dashboard)** — `IdleTimeout`
+  (`src/features/auth/components/idle-timeout.tsx`, mounted by the `/dashboard` layout)
+  signs the browser out after **30 minutes** without activity (pointer, keyboard, wheel,
+  touch, scroll). At **28 minutes** an "Are you still there?" dialog counts down with
+  *Stay signed in* / *Sign out now*; while it is open only the button counts as activity.
+  Tabs share the last activity in `localStorage.lu_last_activity` (`storage` event) and
+  a `BroadcastChannel('lu-session')`, so working in one tab keeps the others alive and
+  an automatic sign-out closes every tab. The sign-out is the `signOutIdle()` server
+  action: `auth.signOut({ scope: 'local' })` (this browser only; other devices keep
+  their session), clears `lu_org` / `lu_site`, then `/auth/sign-in?reason=idle`, which
+  explains what happened. Opening a dashboard page counts as activity; a laptop that
+  wakes up after more than 30 minutes is signed out on the next check.
+- **Server-side re-validation** — every request goes through the proxy, which calls
+  `auth.getUser()` (validated by Supabase Auth, never a bare cookie), and server pages
+  use `getDashboardSession()` the same way. A revoked or expired session is signed out
+  on the next request even if a tab stayed open.
+- The manual *Sign out* menu entry keeps `scope: 'global'` (every device, every LevelUp
+  app); Profile → *Sign out of all devices* does the same explicitly.
+
+### Recommended Supabase Auth session settings
+
+Supabase → **Authentication → Sessions** (and *JWT Keys* for the expiry):
+
+| Setting | Recommended | Plan |
+|---|---|---|
+| Access token (JWT) expiry | `3600` s (1 h, default); do not raise it | Free |
+| Detect and revoke compromised refresh tokens (rotation) | On | Free |
+| Refresh token reuse interval | `10` s (default) | Free |
+| Inactivity timeout | `8h` (server-side backstop for the 30 min client timer; applies to LevelStudio too) | **Pro** |
+| Time-box user sessions | `7d` (forces a fresh sign-in weekly) | **Pro** |
+| Enforce single session per user | Off (people use phone + computer) | **Pro** |
+
+On the Free plan only the first three exist; the client-side 30 minute timer above is
+then the inactivity control, and refresh tokens otherwise live until sign-out.
+
 ## Roles
 
 Defined in `src/lib/auth/types.ts`: `owner > admin > editor > viewer` (`hasRole(role, min)`).

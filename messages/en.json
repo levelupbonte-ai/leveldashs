@@ -491,7 +491,8 @@
       "password": "Password",
       "signIn": "Sign in",
       "signUp": "Create my account",
-      "forgot": "Forgot your password?"
+      "forgot": "Forgot your password?",
+      "idleSignedOut": "You were signed out after 30 minutes of inactivity. Sign in again to continue."
     },
     "google": {
       "continue": "Continue with Google",
@@ -627,6 +628,12 @@
       "description": "The dashboard is reserved for LevelUp clients. If you’d like a website with LevelUp or think this is a mistake, get in touch and we’ll reply quickly.",
       "yourBusiness": "Your business",
       "contact": "Contact LevelUp"
+    },
+    "idle": {
+      "title": "Are you still there?",
+      "description": "For your security, you’ll be signed out in <time></time> because of inactivity.",
+      "stay": "Stay signed in",
+      "signOut": "Sign out now"
     }
   },
   "profile": {
