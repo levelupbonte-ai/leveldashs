@@ -53,10 +53,19 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 ## Supabase dashboard setup
 
-1. **Authentication → URL Configuration**
-   - Site URL: `https://<dashboard-domain>`
-   - Redirect URLs: `https://<dashboard-domain>/auth/callback` and
-     `http://localhost:3000/auth/callback` (add preview domains if needed)
+1. **Authentication → URL Configuration** (exact values):
+   - **Site URL**: `https://dashboard.levelup-ecosystem.com`
+   - **Redirect URLs** (one per line):
+     - `https://dashboard.levelup-ecosystem.com/**`
+     - `https://studio.levelup-ecosystem.com/**`
+     - `https://levelup-ecosystem.com/**`
+     - `http://localhost:3000/**`
+
+   Supabase matches the **whole** `redirectTo` URL, query string included, against
+   these globs. Our callback URL carries `?next=…`, so an entry without `/**`
+   (e.g. `…/auth/callback`) never matches; Supabase then silently uses the
+   **Site URL** instead. That is how Google sign-ins ended up on the showcase
+   (`levelup-ecosystem.com`) while it was the Site URL.
 2. **Authentication → Providers → Google**: enable it with a Google Cloud OAuth client
    (type "Web application") whose authorized redirect URI is
    `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback`. Avatars come from
@@ -64,6 +73,31 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 3. **Authentication → Emails** (optional): configure custom SMTP so confirmation and
    reset e-mails are sent from a LevelUp address instead of the rate-limited default
    sender. Templates are ours (Send Email Hook, below).
+
+### Google redirect safety nets
+
+The Google button normally never redirects (Google Identity Services, below). The
+OAuth redirect flow (`signInWithOAuth`) is only the fallback when Google's script
+cannot load. For that flow:
+
+- **`lu_next` cookie** — just before leaving for Google, the browser stores the
+  destination (`safeNext` result: a dashboard path or an https URL of another LevelUp
+  app such as LevelStudio) in `lu_next` (`src/lib/auth/next-cookie.ts`): domain
+  `.levelup-ecosystem.com` (host-only on localhost / previews), `Path=/`,
+  `SameSite=Lax`, `Secure` on https, 10 minutes. `/auth/callback` uses it when the
+  `next` query parameter is missing, always re-checks it with `safeNext()`, and deletes it.
+- **Code forwarded from elsewhere** — the PKCE code verifier is also a cookie on the
+  shared domain, so `/auth/callback` can exchange a `code` that first landed on another
+  LevelUp host. The showcase forwards a stray `?code=` to
+  `https://dashboard.levelup-ecosystem.com/auth/callback?code=…`, and the dashboard
+  proxy forwards `/?code=…` (Site URL fallback) to `/auth/callback`.
+- **Callback input** — `code`, `token_hash`, `type` and `next` are validated with Zod
+  (format, length) before anything reaches Supabase; any failure goes to
+  `/auth/sign-in?error=callback`.
+
+The GIS path needs none of this: after `signInWithIdToken` the session cookies are
+written on the shared domain and `goTo()` sends the browser to `safeNext(next)`, with a
+full page load (`window.location.assign`) when it is another LevelUp app (LevelStudio).
 
 ## Session, organizations and websites
 
@@ -321,7 +355,9 @@ consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project
 1. **Google Cloud → Google Auth Platform → Clients →** the web client above →
    **Authorized JavaScript origins**: `https://dashboard.levelup-ecosystem.com` and
    `http://localhost:3000` (development; add preview domains if Google sign-in should work
-   there). Keep the existing redirect URI
+   there). Without the dashboard origin the GIS button cannot sign anyone in (Google
+   answers `origin_mismatch` / "The given origin is not allowed"); only a script that
+   fails to load switches to the redirect fallback, so this origin is required. Keep the existing redirect URI
    `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback` for the fallback flow.
 2. **Supabase → Authentication → Providers → Google**: put this client id in
    **Client IDs** (authorized client ids; the web client first if there are several) and

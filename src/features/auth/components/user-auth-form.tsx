@@ -8,6 +8,7 @@ import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { passkeyErrorKind, usePasskeySupport } from '@/lib/auth/passkey';
 import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { hasGoogleIdentity } from '@/lib/auth/identities';
+import { rememberNext } from '@/lib/auth/next-cookie';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
@@ -275,6 +276,9 @@ export default function UserAuthForm({
     setPending(true);
     // Confirmed (saved as the last method) once a signed-in page loads.
     markPendingMethod('google');
+    // If Supabase drops `next` (redirect URL not allow-listed → Site URL), the
+    // callback still knows where to go: lu_next cookie on the shared domain.
+    rememberNext(destination);
     const { error } = await createClient().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callbackUrl(destination) }

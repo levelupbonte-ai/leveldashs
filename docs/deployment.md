@@ -7,7 +7,7 @@ The dashboard deploys to Vercel out of the box, or anywhere Docker runs. `next.c
 1. Connect the repository to Vercel
 2. Add environment variables in the dashboard (see below)
 3. Deploy
-4. In Supabase (**Authentication → URL Configuration**), set the Site URL to the production domain and add `https://<domain>/auth/callback` to the redirect URLs (see [auth.md](./auth.md))
+4. In Supabase (**Authentication → URL Configuration**), set the Site URL to `https://dashboard.levelup-ecosystem.com` and the redirect URLs listed in [auth.md](./auth.md#supabase-dashboard-setup) (each ending in `/**`, since the callback URL carries `?next=…`)
 
 For other platforms, see the [Next.js deployment docs](https://nextjs.org/docs/app/getting-started/deploying).
 
