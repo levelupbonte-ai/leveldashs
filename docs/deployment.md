@@ -25,6 +25,17 @@ Sentry source maps are uploaded automatically in CI.
 
 Only the publishable key is needed: the app never uses the Supabase secret / service-role key, and every query runs as the signed-in user through RLS.
 
+## Analytics (Vercel)
+
+`src/components/vercel-insights.tsx` (root layout) loads **Vercel Web Analytics**
+(`@vercel/analytics`) and **Speed Insights** (`@vercel/speed-insights`). Both are
+cookieless and store no personal data; URLs are reported **without query strings**
+(`beforeSend`), so `next`, `code`, `token_hash` or e-mail addresses never leave the
+browser. They report only on Vercel (scripts served from `/_vercel/*`).
+
+Enable once: Vercel → project **leveldashs** → *Analytics* → **Enable**, and
+*Speed Insights* → **Enable** (then redeploy). Nothing is sent until they are enabled.
+
 ## Security headers
 
 Set for every route in `next.config.ts` (`securityHeaders()`):

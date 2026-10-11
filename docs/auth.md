@@ -207,6 +207,13 @@ Links point to `/auth/callback?token_hash=…&type=…&next=…` on this dashboa
 - Magic links are no longer offered on the sign-in page (the hook still formats them if
   Supabase sends one).
 
+Verification (`verify()` in the route): the body is read as text (64 KB max), then
+`webhook-id`, `webhook-timestamp` and `webhook-signature` are checked: timestamp within
+5 minutes (non-numeric → rejected), HMAC-SHA256 over `id.timestamp.body` with the
+base64 secret, constant-time comparison of every `v1,` signature. Only then is the JSON
+parsed (bounded Zod schema). A missing secret rejects everything. This is the only
+inbound webhook of the dashboard; any new one must verify a signature the same way.
+
 Setup: Supabase → Authentication → Hooks → Send Email → HTTPS
 `https://dashboard.levelup-ecosystem.com/api/auth/email-hook`, generate the
 secret, then set on Vercel (leveldashs): `SEND_EMAIL_HOOK_SECRET` (the

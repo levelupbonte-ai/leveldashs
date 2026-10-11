@@ -1,5 +1,6 @@
 import Providers from '@/components/layout/providers';
 import { Toaster } from '@/components/ui/sonner';
+import { VercelInsights } from '@/components/vercel-insights';
 import { fontVariables } from '@/components/themes/font.config';
 import { DEFAULT_THEME, THEMES } from '@/components/themes/theme.config';
 import ThemeProvider from '@/components/themes/theme-provider';
@@ -108,6 +109,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             </ThemeProvider>
           </NuqsAdapter>
         </NextIntlClientProvider>
+        <VercelInsights />
       </body>
     </html>
   );
