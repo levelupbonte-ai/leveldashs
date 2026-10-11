@@ -421,8 +421,11 @@ consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project
    leave **Skip nonce check** off.
 3. Optional: **Google Auth Platform → Branding** (app name, logo, authorized domain
    `levelup-ecosystem.com`) so the popup shows the LevelUp name and logo.
-4. If a Content-Security-Policy is added later: `script-src` and `frame-src`
-   `https://accounts.google.com/gsi/`, `connect-src https://accounts.google.com/gsi/`.
+4. Content-Security-Policy (`next.config.ts`, see
+   [deployment.md](./deployment.md#security-headers)) already allows
+   `https://accounts.google.com/gsi/` in `script-src`, `style-src`, `frame-src` and
+   `connect-src`, and `Cross-Origin-Opener-Policy: same-origin-allow-popups` keeps the
+   GIS popup working.
 
 ### Passkeys
 
@@ -457,5 +460,5 @@ validator): SHA-1 in the browser (`crypto.subtle`), only the first 5 hex charact
 to `https://api.pwnedpasswords.com/range/{prefix}` (`Add-Padding: true`), suffixes are
 compared locally. A match shows "Ce mot de passe est trop courant. Choisissez-en un
 autre." If the API fails or takes more than 3 s the password is accepted (fail open).
-There is no Content-Security-Policy header today; if one is added, `connect-src` must
-allow `api.pwnedpasswords.com`, the Supabase URL and `challenges.cloudflare.com`.
+The Content-Security-Policy allows `api.pwnedpasswords.com`, the Supabase URL and
+`challenges.cloudflare.com` in `connect-src` (see deployment.md).
