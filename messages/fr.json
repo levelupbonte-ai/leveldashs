@@ -1139,9 +1139,12 @@
   },
   "notFound": {
     "title": "Page introuvable",
-    "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "description": "La page que vous cherchez n’existe pas ou a été déplacée. Vérifiez l’adresse ou retournez à votre tableau de bord.",
     "back": "Retour",
-    "home": "Retour au tableau de bord"
+    "home": "Retour au tableau de bord",
+    "eyebrow": "Erreur 404",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contacter le support"
   },
   "statsError": {
     "title": "Impossible de charger cette section",
@@ -1170,5 +1173,15 @@
     "profile": "Profil",
     "billing": "Facturation",
     "notifications": "Notifications"
+  },
+  "errorPage": {
+    "eyebrow": "Erreur inattendue",
+    "title": "Une erreur est survenue",
+    "description": "Nous n’avons pas pu charger cette page. Réessayez ; si le problème persiste, contactez-nous en indiquant la référence ci-dessous.",
+    "retry": "Réessayer",
+    "home": "Retour au tableau de bord",
+    "reference": "Référence : {digest}",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contacter le support"
   }
 }

@@ -1,29 +1,42 @@
-'use client';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
+import { BackButton } from '@/components/errors/back-button';
+import { ErrorScreen, LEVELUP_SITE, SUPPORT_EMAIL } from '@/components/errors/error-screen';
+import { buttonVariants } from '@/components/ui/button';
 
-import { useRouter } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('notFound');
+  return { title: t('title'), robots: { index: false, follow: false } };
+}
 
-import { Button } from '@/components/ui/button';
-
-export default function NotFound() {
-  const router = useRouter();
-  const t = useTranslations('notFound');
-
+export default async function NotFound() {
+  const t = await getTranslations('notFound');
+  const link = 'hover:text-foreground underline-offset-4 hover:underline';
   return (
-    <div className='absolute top-1/2 left-1/2 mb-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center'>
-      <span className='from-foreground bg-linear-to-b to-transparent bg-clip-text text-[10rem] leading-none font-extrabold text-transparent'>
-        404
-      </span>
-      <h2 className='font-heading my-2 text-2xl font-bold'>{t('title')}</h2>
-      <p>{t('description')}</p>
-      <div className='mt-8 flex justify-center gap-2'>
-        <Button onClick={() => router.back()} variant='default' size='lg'>
-          {t('back')}
-        </Button>
-        <Button onClick={() => router.push('/dashboard')} variant='ghost' size='lg'>
-          {t('home')}
-        </Button>
-      </div>
-    </div>
+    <ErrorScreen
+      code='404'
+      eyebrow={t('eyebrow')}
+      title={t('title')}
+      description={t('description')}
+      actions={
+        <>
+          <Link href='/' className={buttonVariants({ size: 'lg' })}>
+            {t('home')}
+          </Link>
+          <BackButton label={t('back')} />
+        </>
+      }
+      footer={
+        <>
+          <a href={LEVELUP_SITE} className={link}>
+            {t('site')}
+          </a>
+          <a href={`mailto:${SUPPORT_EMAIL}`} className={link}>
+            {t('contact')}
+          </a>
+        </>
+      }
+    />
   );
 }

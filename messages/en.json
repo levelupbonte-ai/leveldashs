@@ -1139,9 +1139,12 @@
   },
   "notFound": {
     "title": "Page not found",
-    "description": "The page you’re looking for doesn’t exist or has been moved.",
+    "description": "The page you’re looking for doesn’t exist or has been moved. Check the address, or head back to your dashboard.",
     "back": "Go back",
-    "home": "Back to dashboard"
+    "home": "Back to dashboard",
+    "eyebrow": "Error 404",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contact support"
   },
   "statsError": {
     "title": "Couldn’t load this section",
@@ -1170,5 +1173,15 @@
     "profile": "Profile",
     "billing": "Billing",
     "notifications": "Notifications"
+  },
+  "errorPage": {
+    "eyebrow": "Unexpected error",
+    "title": "Something went wrong",
+    "description": "We couldn’t load this page. Please try again; if it keeps happening, contact us and mention the reference below.",
+    "retry": "Try again",
+    "home": "Back to dashboard",
+    "reference": "Reference: {digest}",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contact support"
   }
 }
