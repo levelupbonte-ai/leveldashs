@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
 
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+  // Honeypot filled: a bot. Answer like a success so it learns nothing.
+  if (parsed.data.companyUrl) return NextResponse.json({ status: 'pending' });
   const db = await createClient();
   const {
     data: { user }
@@ -47,6 +49,10 @@ export async function POST(request: NextRequest) {
   });
   if (error) {
     console.error('submit_access_request failed', error.code);
+    // 10 submissions or edits per account per hour (private.hit_rate_limit).
+    if (error.code === 'PT429') {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    }
     return NextResponse.json(
       { error: error.code === 'PT403' ? 'unverified' : 'invalid' },
       { status: error.code === 'PT403' ? 403 : 400 }

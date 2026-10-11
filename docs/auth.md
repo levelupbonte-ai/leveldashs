@@ -287,6 +287,26 @@ Setup (in this order, otherwise every sign-in fails):
 Once CAPTCHA is on in Supabase, every password / OTP / sign-up / reset call needs a token,
 so all of them must go through this dashboard (the only LevelUp sign-in page).
 
+**Status check (2026-10-11):** a password grant sent to Supabase *without* a token was
+answered `invalid_credentials`, not a CAPTCHA error: step 3 is **not done yet**, so the
+widget currently shows but Supabase does not enforce it. Turn it on (step 3) now that
+the site key is set in production; the dashboard already sends a token with every call.
+
+### Anti-spam and rate limits
+
+| Endpoint | Protection |
+|---|---|
+| Sign-in, sign-up, reset, resend, passkey | Turnstile token (enforced once Supabase CAPTCHA is on) + Supabase Auth rate limits (*Authentication → Rate Limits*) |
+| `POST /api/access/request` (access request) | Same-origin check, Zod, honeypot field `companyUrl` (filled → fake success, nothing stored or sent), **10 submissions/edits per account per hour** (`private.hit_rate_limit`, migration `20261011100000_rate_limits.sql`, `PT429` → 429 “Too many attempts”), one team e-mail per new request |
+| `POST /api/assistant`, `/api/assistant/weekly` | Same-origin + JSON only, signed-in member, daily AI allowance per organization (`assistant_consume`, `PT429`) |
+| `POST /api/access/decision` | Same-origin, platform admin with an aal2 session (database) |
+| `POST /api/auth/email-hook` | Standard Webhooks signature (HMAC-SHA256, 5-minute window, constant-time compare) |
+| Public RPCs used by client websites | Database rate limits (5/hour per contact, 300/hour per site) |
+
+`private.hit_rate_limit(bucket, subject, max, window)` is the generic limiter for future
+authenticated endpoints: it counts rows in `private.rate_limit_events` (not exposed by the
+Data API) and raises `PT429`. Rows are never pruned automatically; they are tiny.
+
 ## Dashboard access on approval
 
 Creating an account is open (LevelStudio stays available), but `/dashboard` only

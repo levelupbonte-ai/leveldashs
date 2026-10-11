@@ -123,7 +123,13 @@ export default function OnboardingFlow({
         error?: string;
       };
       if (!res.ok) {
-        toast.error(body.error === 'unverified' ? t('unverified') : t('sendFailed'));
+        toast.error(
+          body.error === 'unverified'
+            ? t('unverified')
+            : body.error === 'rate_limited'
+              ? t('tooMany')
+              : t('sendFailed')
+        );
         return;
       }
       if (body.status === 'member') return goTo('/dashboard/site');
@@ -172,6 +178,26 @@ export default function OnboardingFlow({
             children={(field) => <field.TextareaField label={t('project')} />}
           />
         </FieldGroup>
+        {/* Honeypot: off-screen and hidden from assistive tech; people leave it
+            empty, form-filling bots do not (the server then ignores the request). */}
+        <div
+          aria-hidden
+          className='pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden'
+        >
+          <accessForm.Field
+            name='companyUrl'
+            children={(field) => (
+              <input
+                type='text'
+                name='company_url'
+                tabIndex={-1}
+                autoComplete='off'
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+            )}
+          />
+        </div>
         <accessForm.AppForm>
           <accessForm.SubmitButton className='w-full'>
             {request?.status === 'pending' ? t('update') : t('requestAccess')}

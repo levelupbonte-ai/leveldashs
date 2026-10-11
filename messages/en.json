@@ -606,7 +606,8 @@
       "finish": "Finish",
       "continue": "Continue",
       "signedInAs": "Signed in as {email}.",
-      "switchAccount": "Switch account"
+      "switchAccount": "Switch account",
+      "tooMany": "Too many attempts. Please wait a few minutes and try again."
     },
     "pending": {
       "metaTitle": "Account under review",

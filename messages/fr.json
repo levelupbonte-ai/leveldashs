@@ -606,7 +606,8 @@
       "finish": "Terminer",
       "continue": "Continuer",
       "signedInAs": "Connecté en tant que {email}.",
-      "switchAccount": "Changer de compte"
+      "switchAccount": "Changer de compte",
+      "tooMany": "Trop de tentatives. Patientez quelques minutes, puis réessayez."
     },
     "pending": {
       "metaTitle": "Compte en cours de vérification",

@@ -28,6 +28,7 @@ the schema from application code or by hand in the dashboard.
 | `20261007231000` | ai_key_state (shared AI key rotation, fingerprints only) | **Applied** |
 | `20261008110000` | project_requests (showcase "Start a project" + AI qualification) | **Applied** |
 | `20261008120000` | ai_catalog (`ai_models`, `ai_routes`, views `ai_usage_stats`, `ai_model_ranking`; staff read `ai_calls`) | **Applied** |
+| `20261011100000` | rate_limits (`private.rate_limit_events`, `private.hit_rate_limit`; access requests 10/hour per account) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
