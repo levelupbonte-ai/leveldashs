@@ -11,6 +11,7 @@ import { isExternalNext } from '@/lib/auth/redirect';
 import type { DashboardUser } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
+import { accessRequestSchema } from '../lib/access-request-schema';
 import { AuthSteps } from './auth-steps';
 
 type Request = {
@@ -52,17 +53,13 @@ export default function OnboardingFlow({
   );
   const accessSchema = useMemo(
     () =>
-      z.object({
-        businessName: z
-          .string()
-          .trim()
-          .min(2, { message: t('businessRequired') })
-          .max(120),
-        website: z.string().trim().max(200),
-        phone: z.string().trim().max(40),
-        message: z.string().trim().max(1000)
+      accessRequestSchema({
+        business: t('businessRequired'),
+        website: tv('url'),
+        phone: tv('phone'),
+        tooLong: (max) => tv('maxLength', { max })
       }),
-    [t]
+    [t, tv]
   );
   const forOtherApp = isExternalNext(destination);
   const [step, setStep] = useState<'profile' | 'access'>(initialStep);
@@ -111,7 +108,8 @@ export default function OnboardingFlow({
       businessName: request?.businessName ?? '',
       website: request?.website ?? '',
       phone: request?.phone ?? '',
-      message: request?.message ?? ''
+      message: request?.message ?? '',
+      companyUrl: ''
     },
     validators: { onSubmit: accessSchema },
     onSubmit: async ({ value }) => {

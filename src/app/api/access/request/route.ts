@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getLocale } from 'next-intl/server';
+import { accessRequestSchema } from '@/features/auth/lib/access-request-schema';
 import { userLocale } from '@/i18n/config';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice, TEAM_INBOX } from '@/lib/email/notice';
@@ -10,12 +11,8 @@ import { createClient } from '@/lib/supabase/server';
 // (submit_access_request decides; status is never the user's to set) and the
 // LevelUp team gets an e-mail.
 
-const Body = z.object({
-  businessName: z.string().trim().min(2).max(120),
-  website: z.string().trim().max(200).optional(),
-  phone: z.string().trim().max(40).optional(),
-  message: z.string().trim().max(1000).optional()
-});
+// Same rules as the form; the honeypot may be missing from an older page.
+const Body = accessRequestSchema().extend({ companyUrl: z.string().max(200).optional() });
 
 const DASHBOARD = 'https://dashboard.levelup-ecosystem.com';
 
