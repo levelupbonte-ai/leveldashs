@@ -139,6 +139,22 @@ show in *Demandes de projet* on the same page.
 Note: deleting an auth user who is the last owner of an organization is blocked
 until ownership is transferred.
 
+## Storage uploads
+
+| Bucket | Used for | `file_size_limit` | `allowed_mime_types` | Paths (storage RLS) |
+|---|---|---|---|---|
+| `brand` (public) | avatars, organization logos | 2 MB | `image/png`, `image/jpeg`, `image/webp` | `avatars/<user id>/`, `orgs/<org id>/` |
+| `media` (public) | website media library | 10 MB | jpeg, png, webp, gif, avif, pdf, mp4, webm | `<organization id>/<website id>/` (editor+) |
+
+The bucket limits are enforced by Supabase Storage for every client. The dashboard checks
+the same rules before uploading (`src/lib/brand-images.ts`, `uploadMedia` in
+`src/features/site/api/service.ts`) and also reads the first bytes of the file
+(`src/lib/file-signature.ts`): the content must be one of the allowed formats **and**
+the declared one, so a renamed HTML or SVG file is refused. **SVG is never accepted**
+(it can carry scripts; there is no sanitizer). Brand images are re-encoded to a 512 px
+WebP in the browser (any picked PNG/JPEG/WebP up to 8 MB, stored file ≤ 2 MB). There is
+no upload route handler: files go straight to Storage as the signed-in user.
+
 ## Secrets
 
 - Browser: only the project URL and the **publishable/anon** key.

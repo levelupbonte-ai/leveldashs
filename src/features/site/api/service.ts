@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { assertFileSignature } from '@/lib/file-signature';
 import { AppError, isMfaError } from '@/lib/errors';
 import type { CollectionDef } from '../config/collections';
 import type {
@@ -259,6 +260,8 @@ export async function uploadMedia(
   const ext = MEDIA_TYPES[file.type];
   if (!ext) throw new AppError('mediaFormat');
   if (file.size > MEDIA_MAX_BYTES) throw new AppError('mediaTooLarge');
+  // The content must really be the declared format (a renamed HTML/SVG is refused).
+  await assertFileSignature(file, Object.keys(MEDIA_TYPES), 'mediaFormat');
 
   const {
     data: { user }

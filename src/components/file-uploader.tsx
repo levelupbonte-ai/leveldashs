@@ -95,7 +95,8 @@ export function FileUploader(props: FileUploaderProps) {
     onValueChange,
     onUpload,
     progresses,
-    accept = { 'image/*': [] },
+    // Raster images only: SVG can carry scripts.
+    accept = { 'image/png': [], 'image/jpeg': [], 'image/webp': [] },
     maxSize = 1024 * 1024 * 2,
     maxFiles = 1,
     multiple = false,
