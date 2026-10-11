@@ -26,5 +26,6 @@ const TAGS = {
 /** "I agree to the Terms of Service, Acceptable Use Policy and Privacy Policy" with links. */
 export function LegalConsentLabel() {
   const t = useTranslations('legal');
-  return <>{t.rich('accept', TAGS)}</>;
+  // One inline box: FieldLabel is a flex container and would split the links apart.
+  return <span className='block leading-relaxed'>{t.rich('accept', TAGS)}</span>;
 }

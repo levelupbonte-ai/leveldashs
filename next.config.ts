@@ -40,7 +40,8 @@ function contentSecurityPolicy(): { enforced: string; reportOnly: string } {
     'frame-src https://accounts.google.com/gsi/ https://challenges.cloudflare.com',
     "worker-src 'self' blob:",
     "manifest-src 'self'",
-    ...enforced
+    // upgrade-insecure-requests is ignored in report-only (it stays enforced above).
+    ...enforced.filter((d) => d !== 'upgrade-insecure-requests')
   ];
   return { enforced: enforced.join('; '), reportOnly: full.join('; ') };
 }

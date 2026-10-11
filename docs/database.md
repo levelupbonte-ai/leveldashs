@@ -169,6 +169,21 @@ and `BACKUP_PASSPHRASE`; secrets are never printed. Restore guide and setup:
 [`scripts/restore-backup.md`](../scripts/restore-backup.md). Storage files are not
 included.
 
+## Security advisors (reviewed 2026-10-11)
+
+`get_advisors(security)` after the `rate_limits` and `legal_acceptances` migrations:
+
+- *RLS enabled, no policy* on `private.rate_limit_events`, `ai_key_state`, `ai_usage`,
+  `studio_usage`, `studio_rate_limits` — intentional: server-only tables, closed to every
+  API role (`studio_*` belong to LevelStudio).
+- *SECURITY DEFINER executable by anon/authenticated* — the public RPCs (`submit_form`,
+  `book_appointment`, …) and the authenticated ones (`accept_legal_terms`,
+  `submit_access_request`, admin RPCs) are the intended API; each checks the caller
+  and validates its input.
+- *Leaked password protection disabled* — Supabase Pro feature (HaveIBeenPwned check in
+  Auth). The dashboard already refuses common passwords client-side (Pwned Passwords
+  k-anonymity, see auth.md); enable it in Auth → Password security on Pro.
+
 ## Secrets
 
 - Browser: only the project URL and the **publishable/anon** key.
