@@ -1,5 +1,10 @@
 import {
   IconAdjustmentsHorizontal,
+  IconContract,
+  IconDownload,
+  IconEraser,
+  IconFileCertificate,
+  IconSignature,
   IconDevices,
   IconUserKey,
   IconShieldCheck,
@@ -323,5 +328,10 @@ export const Icons = {
   slash: IconSlash,
   calendar: IconCalendar,
   galleryVerticalEnd: IconStack2,
-  moreHorizontal: IconDots
+  moreHorizontal: IconDots,
+  contract: IconContract,
+  signature: IconSignature,
+  certificate: IconFileCertificate,
+  eraser: IconEraser,
+  download: IconDownload
 };

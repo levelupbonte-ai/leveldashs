@@ -5,7 +5,15 @@ import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 import { hasVerifiedFactor } from './mfa';
 import { ACTIVE_ORG_COOKIE, ACTIVE_WEBSITE_COOKIE } from './cookies';
-import type { DashboardOrg, DashboardSession, DashboardWebsite, OrgRole } from './types';
+import type {
+  DashboardAccess,
+  DashboardOrg,
+  DashboardSession,
+  DashboardWebsite,
+  OrgAccessState,
+  OrgRole,
+  RequiredTask
+} from './types';
 
 // Everything here is read with the user's own token, so Row Level Security
 // decides what is visible. The cookies only pick among rows already allowed.
@@ -87,6 +95,8 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
   const wantedSite = cookieStore.get(ACTIVE_WEBSITE_COOKIE)?.value;
   const activeWebsite = websites.find((w) => w.id === wantedSite) ?? websites[0] ?? null;
 
+  const access = await loadDashboardAccess(supabase, activeOrg?.id ?? null);
+
   const meta = (user.user_metadata ?? {}) as Record<string, unknown>;
   const email = user.email ?? '';
   return {
@@ -111,9 +121,37 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
     organizations,
     activeOrg,
     websites,
-    activeWebsite
+    activeWebsite,
+    access
   };
 });
+
+const OPEN_ACCESS: DashboardAccess = { state: 'active', pendingTasks: [], hasContracts: false };
+
+/**
+ * Contract / required-task state of the organization (public.dashboard_access).
+ * A failed call leaves the dashboard open: the database still refuses content
+ * writes while a required contract is unsigned (RLS), so this gate is UX.
+ */
+export async function loadDashboardAccess(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: string | null
+): Promise<DashboardAccess> {
+  const { data, error } = await supabase.rpc('dashboard_access', {
+    p_org_id: organizationId
+  });
+  if (error || !data) return OPEN_ACCESS;
+  const row = data as { state?: string; pending_tasks?: unknown; has_contracts?: boolean };
+  const states: OrgAccessState[] = ['active', 'contract_required', 'tasks_required', 'suspended'];
+  const tasks: RequiredTask[] = ['profile', 'logo', 'mfa'];
+  return {
+    state: states.includes(row.state as OrgAccessState) ? (row.state as OrgAccessState) : 'active',
+    pendingTasks: Array.isArray(row.pending_tasks)
+      ? (row.pending_tasks.filter((t) => tasks.includes(t as RequiredTask)) as RequiredTask[])
+      : [],
+    hasContracts: row.has_contracts === true
+  };
+}
 
 /** For pages under /dashboard: the session, or a redirect to sign-in. */
 export async function requireDashboardSession(): Promise<DashboardSession> {

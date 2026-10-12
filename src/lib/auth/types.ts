@@ -31,6 +31,32 @@ export interface DashboardWebsite {
   features: string[];
 }
 
+/** Dashboard gate state of the active organization (public.dashboard_access). */
+export type OrgAccessState = 'active' | 'contract_required' | 'tasks_required' | 'suspended';
+
+/** Setup steps LevelUp can make blocking (public.organization_required_tasks). */
+export type RequiredTask = 'profile' | 'logo' | 'mfa';
+
+export interface DashboardAccess {
+  state: OrgAccessState;
+  /** Blocking setup steps the user still has to finish in the active organization. */
+  pendingTasks: RequiredTask[];
+  /** LevelUp sent the active organization at least one contract. */
+  hasContracts: boolean;
+}
+
+/** Pages a locked organization can still open (contract, tasks, account). */
+export const LOCKED_ALLOWED_PATHS = ['/dashboard/contract', '/dashboard/profile'] as const;
+export const CONTRACT_PATH = '/dashboard/contract';
+
+export function isLockedState(state: OrgAccessState): boolean {
+  return state !== 'active';
+}
+
+export function isAllowedWhileLocked(pathname: string): boolean {
+  return LOCKED_ALLOWED_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
 export interface DashboardSession {
   user: DashboardUser;
   isPlatformAdmin: boolean;
@@ -40,6 +66,8 @@ export interface DashboardSession {
   activeOrg: DashboardOrg | null;
   websites: DashboardWebsite[];
   activeWebsite: DashboardWebsite | null;
+  /** Contract / required tasks gate of the active organization (never locks staff). */
+  access: DashboardAccess;
 }
 
 export function hasRole(role: OrgRole | null | undefined, min: OrgRole): boolean {

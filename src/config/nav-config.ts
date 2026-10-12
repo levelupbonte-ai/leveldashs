@@ -10,6 +10,9 @@ import { NavGroup } from '@/types';
  * - `role`: minimum organization role (viewer < editor < admin < owner)
  * - `feature`: website_features key(s) that must be enabled on the active website
  * - `platformAdmin`: LevelUp staff only
+ * - `whenLocked`: still shown while the organization must sign its contract or
+ *   finish required tasks (everything else is hidden, and the proxy redirects)
+ * - `hasContracts`: only once LevelUp sent the organization a contract
  *
  * `label` / `title` are keys of the `nav.groups` / `nav.items` messages (see
  * docs/i18n.md). LevelUp staff entries are not here: they come from
@@ -258,12 +261,20 @@ export const navGroups: NavGroup[] = [
         url: '#',
         icon: 'account',
         isActive: true,
+        access: { whenLocked: true },
         items: [
+          {
+            title: 'contract',
+            url: '/dashboard/contract',
+            icon: 'contract',
+            access: { requireOrg: true, hasContracts: true, whenLocked: true }
+          },
           {
             title: 'profile',
             url: '/dashboard/profile',
             icon: 'profile',
-            shortcut: ['m', 'm']
+            shortcut: ['m', 'm'],
+            access: { whenLocked: true }
           },
           {
             title: 'notifications',

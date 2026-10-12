@@ -115,7 +115,8 @@
       "profile": "Profil",
       "notifications": "Notifications",
       "billing": "Facturation",
-      "home": "Accueil"
+      "home": "Accueil",
+      "contract": "Contrat"
     }
   },
   "admin": {
@@ -296,7 +297,10 @@
     "mediaFormat": "Format non pris en charge (images, PDF, MP4, WebM).",
     "mediaTooLarge": "Fichier trop lourd (10 Mo maximum).",
     "uploadForbidden": "Envoi impossible : il faut un accès éditeur pour ajouter des fichiers.",
-    "invalidOrigin": "Un des domaines n’est pas valide (utilisez https://exemple.com)."
+    "invalidOrigin": "Un des domaines n’est pas valide (utilisez https://exemple.com).",
+    "contractChanged": "Ce contrat a été mis à jour. Relisez la nouvelle version, puis signez de nouveau.",
+    "contractNotSignable": "Ce contrat ne peut plus être signé. Rechargez la page.",
+    "signFailed": "Nous n’avons pas pu enregistrer votre signature. Veuillez réessayer."
   },
   "workspaces": {
     "title": "Organisations",
@@ -444,6 +448,56 @@
       "phone": "Téléphone : {value}",
       "message": "Message : {value}",
       "cta": "Examiner la demande"
+    },
+    "contract": {
+      "sentSubject": "Votre contrat LevelUp est prêt à être signé",
+      "sentTitle": "Votre contrat est prêt",
+      "sentLine1": "LevelUp a préparé « {title} » pour {organization}.",
+      "sentLine2": "Relisez-le et signez-le dans votre tableau de bord. Cela ne prend qu’une minute.",
+      "sentCta": "Relire et signer",
+      "signedSubject": "Exemplaire signé : {title}",
+      "signedTitle": "Votre contrat est signé",
+      "signedLine1": "{name} a signé « {title} » pour {organization} le {date} UTC.",
+      "signedLine2": "Le PDF signé et son certificat de signature sont joints. Conservez-les précieusement.",
+      "teamSubject": "Contract signed: {organization}",
+      "pdf": {
+        "brand": "LevelUp Ecosystem",
+        "signedCopy": "Exemplaire signé",
+        "unsignedCopy": "Exemplaire pour relecture (non signé)",
+        "client": "Client",
+        "contractId": "Identifiant du contrat",
+        "version": "Version du modèle",
+        "orderForm": "Bon de commande",
+        "orderFormEmpty": "Aucun détail de commande.",
+        "project": "Projet",
+        "package": "Formule",
+        "buildPrice": "Prix de création",
+        "paymentSchedule": "Échéancier de paiement",
+        "monthlyPlan": "Plan mensuel",
+        "monthlyPrice": "Prix mensuel",
+        "startDate": "Date de début",
+        "scope": "Périmètre",
+        "notes": "Notes",
+        "agreement": "Contrat (version anglaise officielle)",
+        "translation": "Traduction française",
+        "translationNotice": "Fournie pour information. La version anglaise est la version officielle et prévaut.",
+        "certificate": "Certificat de signature",
+        "certificateIntro": "Cette page indique comment le contrat a été signé électroniquement dans le Dashboard LevelUp.",
+        "signer": "Signataire",
+        "signerTitle": "Fonction",
+        "email": "E-mail",
+        "signedAt": "Signé le",
+        "sentAt": "Envoyé le",
+        "ip": "Adresse IP",
+        "userAgent": "Appareil (user agent)",
+        "consent": "Consentement",
+        "consentText": "Le signataire a confirmé « J’ai lu et j’accepte ce contrat et son bon de commande, et je le signe électroniquement » et a accepté l’utilisation de documents et de signatures électroniques (ESIGN Act, UETA de Californie).",
+        "hash": "SHA-256 du document",
+        "hashNote": "SHA-256 (hex) de l’instantané enregistré : le texte anglais, une ligne vide, la traduction française (vide s’il n’y en a pas), une ligne vide, puis le bon de commande tel qu’enregistré (JSON), encodé en UTF-8.",
+        "drawnSignature": "Signature dessinée",
+        "typedSignature": "Signature saisie",
+        "page": "Page {current} sur {total}"
+      }
     }
   },
   "brandImage": {
@@ -1228,5 +1282,103 @@
     "googleNeedsAccept": "Acceptez les conditions ci-dessus pour continuer avec Google.",
     "dpa": "Entente de traitement des données",
     "levelstudioTerms": "Conditions de LevelStudio"
+  },
+  "contract": {
+    "title": "Contrat",
+    "description": "Votre contrat avec LevelUp, son bon de commande et vos exemplaires signés.",
+    "descriptionLocked": "Relisez et signez votre contrat pour accéder au reste de votre tableau de bord.",
+    "intro": "LevelUp a préparé votre contrat. Relisez-le et signez-le quand vous le souhaitez.",
+    "introRequired": "LevelUp a préparé votre contrat. Merci de le relire et de le signer pour accéder à votre tableau de bord — cela ne prend qu’une minute.",
+    "downloadPdf": "Télécharger le PDF",
+    "steps": {
+      "label": "Progression de la signature",
+      "review": "Relire",
+      "sign": "Signer",
+      "done": "Terminé"
+    },
+    "document": {
+      "version": "Version {version}",
+      "english": "English (version officielle)",
+      "french": "Français (traduction)",
+      "translationNotice": "Cette traduction française est fournie pour information. La version anglaise est la version officielle et prévaut."
+    },
+    "orderForm": {
+      "title": "Bon de commande",
+      "description": "Préparé par LevelUp pour votre projet.",
+      "empty": "LevelUp ajoutera ici le détail de votre commande.",
+      "client": "Client",
+      "project": "Projet",
+      "package": "Formule",
+      "buildPrice": "Prix de création",
+      "paymentSchedule": "Échéancier de paiement",
+      "monthlyPlan": "Plan mensuel",
+      "perMonth": "{amount}/mois",
+      "startDate": "Date de début",
+      "scope": "Périmètre",
+      "notes": "Notes"
+    },
+    "sign": {
+      "title": "Signer votre contrat",
+      "description": "Saisissez votre nom complet et votre fonction. Dessiner une signature est facultatif.",
+      "fullName": "Nom complet",
+      "signerTitle": "Fonction ou rôle",
+      "signerTitlePlaceholder": "Gérant, Responsable…",
+      "titleRequired": "Indiquez votre fonction ou votre rôle.",
+      "draw": "Dessinez votre signature (facultatif)",
+      "drawDescription": "Avec la souris, le doigt ou un stylet.",
+      "drawHint": "Signez ici",
+      "drawnLabel": "Votre signature dessinée",
+      "clear": "Effacer",
+      "consent": "J’ai lu et j’accepte ce contrat et son bon de commande, et je le signe électroniquement.",
+      "consentRequired": "Merci de confirmer que vous avez lu et acceptez le contrat.",
+      "legal": "En signant, vous acceptez l’utilisation de documents et de signatures électroniques pour ce contrat. Les signatures électroniques sont reconnues par la loi fédérale américaine ESIGN Act et par le California Uniform Electronic Transactions Act. Vous pouvez télécharger un exemplaire à tout moment et demander un exemplaire papier à contact@levelup-ecosystem.com.",
+      "submit": "Signer le contrat"
+    },
+    "done": {
+      "title": "Votre contrat est signé",
+      "description": "{title}, signé le {date}. Merci !",
+      "emailed": "Un exemplaire vous a été envoyé par e-mail.",
+      "certificate": "Certificat de signature",
+      "certificateDescription": "Enregistré au moment de la signature. L’empreinte identifie exactement le texte signé."
+    },
+    "waiting": {
+      "title": "En attente de signature",
+      "description": "Un propriétaire ou un administrateur de {organization} signe le contrat. Votre tableau de bord complet s’ouvre dès qu’il est signé."
+    },
+    "certificate": {
+      "signer": "Signataire",
+      "email": "E-mail",
+      "signedAt": "Signé le",
+      "ip": "Adresse IP",
+      "contractId": "Identifiant du contrat",
+      "hash": "SHA-256 du document",
+      "unknown": "Non enregistrée"
+    },
+    "history": {
+      "title": "Historique des contrats",
+      "description": "Contrats signés et versions précédentes.",
+      "version": "Version {version}",
+      "signedOn": "signé le {date}"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "sent": "À signer",
+      "signed": "Signé",
+      "superseded": "Version précédente",
+      "void": "Annulé"
+    },
+    "tasks": {
+      "title": "Étapes à terminer",
+      "description": "Quelques étapes rapides demandées par LevelUp avant de continuer.",
+      "todo": "À faire"
+    },
+    "suspended": {
+      "title": "Votre compte est en pause",
+      "description": "Contactez LevelUp à contact@levelup-ecosystem.com pour réactiver votre tableau de bord."
+    },
+    "empty": {
+      "title": "Aucun contrat pour le moment",
+      "description": "Lorsque LevelUp vous envoie un contrat, il apparaît ici."
+    }
   }
 }
