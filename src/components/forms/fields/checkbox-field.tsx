@@ -10,8 +10,12 @@ import {
 } from '@/components/ui/field';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
 
-/** Single boolean checkbox (terms, consent, …). */
-export function CheckboxField({ label, description, required }: BaseFieldProps) {
+/** Single boolean checkbox (terms, consent, …). The label may contain links. */
+export function CheckboxField({
+  label,
+  description,
+  required
+}: Omit<BaseFieldProps, 'label'> & { label: React.ReactNode }) {
   const field = useFieldContext<boolean>();
   const isInvalid = useFieldInvalid();
 

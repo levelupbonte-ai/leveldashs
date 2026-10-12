@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
+import { z } from 'zod';
 import { safeNext } from '@/lib/auth/redirect';
 import { buildAuthEmail, isSupportedAuthEmail } from '@/lib/email/auth-emails';
 
@@ -14,17 +15,23 @@ const FROM = process.env.AUTH_EMAIL_FROM || 'LevelUp Ecosystem <account@levelup-
 const APP_URL = 'https://dashboard.levelup-ecosystem.com';
 const TOLERANCE_SECONDS = 5 * 60;
 
-type HookPayload = {
-  user: { email?: string; new_email?: string; user_metadata?: Record<string, unknown> };
-  email_data: {
-    token?: string;
-    token_hash?: string;
-    token_new?: string;
-    token_hash_new?: string;
-    redirect_to?: string;
-    email_action_type?: string;
-  };
-};
+// Signed by Supabase, still validated: bounded strings only.
+const str = (max: number) => z.string().max(max).optional();
+const HookPayload = z.object({
+  user: z.object({
+    email: z.string().email().max(320).optional(),
+    new_email: z.string().email().max(320).optional(),
+    user_metadata: z.record(z.string(), z.unknown()).optional()
+  }),
+  email_data: z.object({
+    token: str(64),
+    token_hash: str(300),
+    token_new: str(64),
+    token_hash_new: str(300),
+    redirect_to: str(2048),
+    email_action_type: str(40)
+  })
+});
 
 function verify(request: NextRequest, body: string): boolean {
   const id = request.headers.get('webhook-id');
@@ -123,13 +130,15 @@ export async function POST(request: NextRequest) {
   if (body.length > 64_000 || !verify(request, body)) return hookError(401, 'invalid signature');
   if (!RESEND_API_KEY) return hookError(500, 'email provider not configured');
 
-  let payload: HookPayload;
+  let json: unknown;
   try {
-    payload = JSON.parse(body) as HookPayload;
+    json = JSON.parse(body);
   } catch {
     return hookError(400, 'invalid payload');
   }
-  const { user, email_data: data } = payload;
+  const parsed = HookPayload.safeParse(json);
+  if (!parsed.success) return hookError(400, 'invalid payload');
+  const { user, email_data: data } = parsed.data;
   const type = data?.email_action_type ?? '';
   if (!user?.email || !isSupportedAuthEmail(type)) {
     // Notifications we do not customise are simply not sent.

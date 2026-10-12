@@ -2,6 +2,11 @@
 // The added config here will be used whenever a users loads a page in their browser.
 // https://docs.sentry.io/platforms/javascript/guides/nextjs/
 import * as Sentry from '@sentry/nextjs';
+import { config as zodConfig } from 'zod';
+
+// Zod would probe `new Function('')` to pick its fast path; jitless skips the
+// probe so the app runs under a Content-Security-Policy without 'unsafe-eval'.
+zodConfig({ jitless: true });
 
 if (!process.env.NEXT_PUBLIC_SENTRY_DISABLED) {
   Sentry.init({

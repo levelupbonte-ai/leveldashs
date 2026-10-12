@@ -10,8 +10,11 @@ import { FieldGroup } from '@/components/ui/field';
 import { isExternalNext } from '@/lib/auth/redirect';
 import type { DashboardUser } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
+import { LEGAL_VERSION } from '@/lib/legal';
 import { createClient } from '@/lib/supabase/client';
+import { accessRequestSchema } from '../lib/access-request-schema';
 import { AuthSteps } from './auth-steps';
+import { LegalConsentLabel } from './legal-consent-label';
 
 type Request = {
   status: 'pending' | 'approved' | 'rejected';
@@ -26,11 +29,14 @@ export default function OnboardingFlow({
   destination,
   hasAccess,
   request,
+  needsLegalAcceptance = false,
   initialStep = 'profile'
 }: {
   user: DashboardUser;
   destination: string;
   hasAccess: boolean;
+  /** No acceptance of the current legal documents on record yet. */
+  needsLegalAcceptance?: boolean;
   request: Request | null;
   /** `access` to edit a pending request straight away ("Edit request"). */
   initialStep?: 'profile' | 'access';
@@ -38,6 +44,7 @@ export default function OnboardingFlow({
   const router = useRouter();
   const t = useTranslations('auth.onboarding');
   const tv = useTranslations('validation');
+  const tl = useTranslations('legal');
   const locale = useLocale();
   const profileSchema = useMemo(
     () =>
@@ -46,23 +53,20 @@ export default function OnboardingFlow({
           .string()
           .trim()
           .min(2, { message: tv('fullName') })
-          .max(120)
+          .max(120),
+        acceptTerms: z.boolean().refine((v) => v, { message: tl('acceptRequired') })
       }),
-    [tv]
+    [tv, tl]
   );
   const accessSchema = useMemo(
     () =>
-      z.object({
-        businessName: z
-          .string()
-          .trim()
-          .min(2, { message: t('businessRequired') })
-          .max(120),
-        website: z.string().trim().max(200),
-        phone: z.string().trim().max(40),
-        message: z.string().trim().max(1000)
+      accessRequestSchema({
+        business: t('businessRequired'),
+        website: tv('url'),
+        phone: tv('phone'),
+        tooLong: (max) => tv('maxLength', { max })
       }),
-    [t]
+    [t, tv]
   );
   const forOtherApp = isExternalNext(destination);
   const [step, setStep] = useState<'profile' | 'access'>(initialStep);
@@ -87,11 +91,22 @@ export default function OnboardingFlow({
 
   const profileForm = useAppForm({
     defaultValues: {
-      fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName
+      fullName: user.fullName === user.email.split('@')[0] ? '' : user.fullName,
+      acceptTerms: !needsLegalAcceptance
     },
     validators: { onSubmit: profileSchema },
     onSubmit: async ({ value }) => {
       const db = createClient();
+      if (needsLegalAcceptance) {
+        const { error: legalError } = await db.rpc('accept_legal_terms', {
+          p_version: LEGAL_VERSION,
+          p_source: 'onboarding'
+        });
+        if (legalError) {
+          toast.error(t('saveFailed'));
+          return;
+        }
+      }
       const fullName = value.fullName.trim();
       const { error } = await db.from('profiles').update({ full_name: fullName }).eq('id', user.id);
       if (error) {
@@ -111,7 +126,8 @@ export default function OnboardingFlow({
       businessName: request?.businessName ?? '',
       website: request?.website ?? '',
       phone: request?.phone ?? '',
-      message: request?.message ?? ''
+      message: request?.message ?? '',
+      companyUrl: ''
     },
     validators: { onSubmit: accessSchema },
     onSubmit: async ({ value }) => {
@@ -125,7 +141,13 @@ export default function OnboardingFlow({
         error?: string;
       };
       if (!res.ok) {
-        toast.error(body.error === 'unverified' ? t('unverified') : t('sendFailed'));
+        toast.error(
+          body.error === 'unverified'
+            ? t('unverified')
+            : body.error === 'rate_limited'
+              ? t('tooMany')
+              : t('sendFailed')
+        );
         return;
       }
       if (body.status === 'member') return goTo('/dashboard/site');
@@ -174,6 +196,26 @@ export default function OnboardingFlow({
             children={(field) => <field.TextareaField label={t('project')} />}
           />
         </FieldGroup>
+        {/* Honeypot: off-screen and hidden from assistive tech; people leave it
+            empty, form-filling bots do not (the server then ignores the request). */}
+        <div
+          aria-hidden
+          className='pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden'
+        >
+          <accessForm.Field
+            name='companyUrl'
+            children={(field) => (
+              <input
+                type='text'
+                name='company_url'
+                tabIndex={-1}
+                autoComplete='off'
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+            )}
+          />
+        </div>
         <accessForm.AppForm>
           <accessForm.SubmitButton className='w-full'>
             {request?.status === 'pending' ? t('update') : t('requestAccess')}
@@ -214,6 +256,12 @@ export default function OnboardingFlow({
           name='fullName'
           children={(field) => <field.TextField label={t('fullName')} autoComplete='name' />}
         />
+        {needsLegalAcceptance && (
+          <profileForm.AppField
+            name='acceptTerms'
+            children={(field) => <field.CheckboxField label={<LegalConsentLabel />} />}
+          />
+        )}
       </FieldGroup>
       <profileForm.AppForm>
         <profileForm.SubmitButton className='w-full'>

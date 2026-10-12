@@ -1,0 +1,103 @@
+# Daily encrypted backup of the Supabase database (the Free plan has no
+# downloadable automatic backups). Restore steps: scripts/restore-backup.md.
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_DB_URL    required  Postgres connection string, session pooler (IPv4):
+#                                postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres
+#   BACKUP_PASSPHRASE  required  long random passphrase; keep a copy outside GitHub
+#   BACKUP_S3_BUCKET   optional  private bucket (R2 or S3) for a copy kept beyond 30 days
+#   BACKUP_S3_ENDPOINT optional  e.g. https://<account>.r2.cloudflarestorage.com (empty for AWS S3)
+#   BACKUP_S3_ACCESS_KEY_ID / BACKUP_S3_SECRET_ACCESS_KEY  optional  keys for that bucket only
+#   BACKUP_S3_REGION   optional  AWS region (defaults to "auto", right for R2)
+name: Database backup
+
+on:
+  schedule:
+    # Every day at 06:17 UTC (off the hour to avoid the scheduler rush).
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+jobs:
+  backup:
+    name: Dump, encrypt and store
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      SUPABASE_CLI_VERSION: 2.119.0
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+      BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+    steps:
+      - name: Check required secrets
+        run: |
+          missing=0
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "::error::Repository secret SUPABASE_DB_URL is not set."; missing=1; fi
+          if [ -z "$BACKUP_PASSPHRASE" ]; then echo "::error::Repository secret BACKUP_PASSPHRASE is not set."; missing=1; fi
+          exit "$missing"
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Dump roles, schema and data
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p backup
+          supabase db dump --db-url "$SUPABASE_DB_URL" --role-only -f backup/roles.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f backup/schema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f backup/data.sql
+          for f in roles schema data; do
+            test -s "backup/$f.sql" || { echo "::error::backup/$f.sql is empty"; exit 1; }
+          done
+          (cd backup && sha256sum roles.sql schema.sql data.sql > SHA256SUMS)
+          ls -l backup
+
+      - name: Compress and encrypt
+        id: archive
+        run: |
+          set -euo pipefail
+          umask 077
+          name="levelup-db-$(date -u +%Y%m%dT%H%M%SZ)"
+          tar -C backup -czf - . \
+            | gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
+                --passphrase-file <(printf '%s' "$BACKUP_PASSPHRASE") \
+                -o "$name.tar.gz.gpg"
+          rm -rf backup
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+          ls -l "$name.tar.gz.gpg"
+
+      - name: Upload artifact (30 days)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ${{ steps.archive.outputs.name }}
+          path: ${{ steps.archive.outputs.name }}.tar.gz.gpg
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 0
+
+      - name: Copy to private bucket (optional)
+        if: env.BACKUP_S3_BUCKET != ''
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.BACKUP_S3_REGION || 'auto' }}
+          BACKUP_S3_ENDPOINT: ${{ secrets.BACKUP_S3_ENDPOINT }}
+          FILE: ${{ steps.archive.outputs.name }}.tar.gz.gpg
+        run: |
+          set -euo pipefail
+          endpoint=()
+          if [ -n "$BACKUP_S3_ENDPOINT" ]; then endpoint=(--endpoint-url "$BACKUP_S3_ENDPOINT"); fi
+          aws s3 cp "$FILE" "s3://$BACKUP_S3_BUCKET/supabase/$FILE" "${endpoint[@]}" --only-show-errors
+
+      - name: Remove local copy
+        if: always()
+        run: rm -rf backup ./*.tar.gz.gpg

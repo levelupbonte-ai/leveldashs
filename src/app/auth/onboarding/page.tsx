@@ -8,6 +8,7 @@ import { getAccessRequest, hasDashboardAccess, PENDING_PATH } from '@/lib/auth/a
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { getDashboardSession } from '@/lib/auth/session';
+import { LEGAL_VERSION } from '@/lib/legal';
 import { createClient } from '@/lib/supabase/server';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -42,6 +43,15 @@ export default async function Page(props: {
     if (request?.status === 'pending' || request?.status === 'rejected') redirect(PENDING_PATH);
   }
 
+  // Accounts created without the sign-up checkbox (e.g. Google from the sign-in
+  // page) accept the current legal documents here, on the profile step.
+  const { data: acceptance } = await db
+    .from('legal_acceptances')
+    .select('id')
+    .eq('user_id', session.user.id)
+    .eq('version', LEGAL_VERSION)
+    .maybeSingle();
+
   const t = await getTranslations('auth.onboarding');
   return (
     <AuthShell
@@ -53,6 +63,7 @@ export default async function Page(props: {
         user={session.user}
         destination={destination}
         hasAccess={hasAccess}
+        needsLegalAcceptance={!acceptance}
         initialStep={editing ? 'access' : 'profile'}
         request={
           request

@@ -491,7 +491,8 @@
       "password": "Mot de passe",
       "signIn": "Se connecter",
       "signUp": "Créer mon compte",
-      "forgot": "Mot de passe oublié ?"
+      "forgot": "Mot de passe oublié ?",
+      "idleSignedOut": "Vous avez été déconnecté après 30 minutes d’inactivité. Reconnectez-vous pour continuer."
     },
     "google": {
       "continue": "Continuer avec Google",
@@ -605,7 +606,8 @@
       "finish": "Terminer",
       "continue": "Continuer",
       "signedInAs": "Connecté en tant que {email}.",
-      "switchAccount": "Changer de compte"
+      "switchAccount": "Changer de compte",
+      "tooMany": "Trop de tentatives. Patientez quelques minutes, puis réessayez."
     },
     "pending": {
       "metaTitle": "Compte en cours de vérification",
@@ -627,6 +629,12 @@
       "description": "Le tableau de bord est réservé aux clients LevelUp. Si vous souhaitez un site avec LevelUp ou pensez qu’il s’agit d’une erreur, écrivez-nous : nous vous répondrons rapidement.",
       "yourBusiness": "Votre entreprise",
       "contact": "Écrire à LevelUp"
+    },
+    "idle": {
+      "title": "Êtes-vous toujours là ?",
+      "description": "Pour votre sécurité, vous serez déconnecté dans <time></time> en raison de l’inactivité.",
+      "stay": "Rester connecté",
+      "signOut": "Me déconnecter"
     }
   },
   "profile": {
@@ -1131,9 +1139,12 @@
   },
   "notFound": {
     "title": "Page introuvable",
-    "description": "La page que vous cherchez n’existe pas ou a été déplacée.",
+    "description": "La page que vous cherchez n’existe pas ou a été déplacée. Vérifiez l’adresse ou retournez à votre tableau de bord.",
     "back": "Retour",
-    "home": "Retour au tableau de bord"
+    "home": "Retour au tableau de bord",
+    "eyebrow": "Erreur 404",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contacter le support"
   },
   "statsError": {
     "title": "Impossible de charger cette section",
@@ -1162,5 +1173,28 @@
     "profile": "Profil",
     "billing": "Facturation",
     "notifications": "Notifications"
+  },
+  "errorPage": {
+    "eyebrow": "Erreur inattendue",
+    "title": "Une erreur est survenue",
+    "description": "Nous n’avons pas pu charger cette page. Réessayez ; si le problème persiste, contactez-nous en indiquant la référence ci-dessous.",
+    "retry": "Réessayer",
+    "home": "Retour au tableau de bord",
+    "reference": "Référence : {digest}",
+    "site": "LevelUp Ecosystem",
+    "contact": "Contacter le support"
+  },
+  "legal": {
+    "label": "Mentions légales",
+    "terms": "Conditions d’utilisation",
+    "privacy": "Politique de confidentialité",
+    "acceptableUse": "Politique d’utilisation acceptable",
+    "servicesAgreement": "Contrat de services",
+    "cookies": "Politique relative aux témoins",
+    "accept": "J’accepte les <terms>Conditions d’utilisation</terms>, la <aup>Politique d’utilisation acceptable</aup> et la <privacy>Politique de confidentialité</privacy>.",
+    "acceptRequired": "Veuillez accepter les conditions pour continuer.",
+    "googleNeedsAccept": "Acceptez les conditions ci-dessus pour continuer avec Google.",
+    "dpa": "Entente de traitement des données",
+    "levelstudioTerms": "Conditions de LevelStudio"
   }
 }

@@ -53,10 +53,19 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 ## Supabase dashboard setup
 
-1. **Authentication → URL Configuration**
-   - Site URL: `https://<dashboard-domain>`
-   - Redirect URLs: `https://<dashboard-domain>/auth/callback` and
-     `http://localhost:3000/auth/callback` (add preview domains if needed)
+1. **Authentication → URL Configuration** (exact values):
+   - **Site URL**: `https://dashboard.levelup-ecosystem.com`
+   - **Redirect URLs** (one per line):
+     - `https://dashboard.levelup-ecosystem.com/**`
+     - `https://studio.levelup-ecosystem.com/**`
+     - `https://levelup-ecosystem.com/**`
+     - `http://localhost:3000/**`
+
+   Supabase matches the **whole** `redirectTo` URL, query string included, against
+   these globs. Our callback URL carries `?next=…`, so an entry without `/**`
+   (e.g. `…/auth/callback`) never matches; Supabase then silently uses the
+   **Site URL** instead. That is how Google sign-ins ended up on the showcase
+   (`levelup-ecosystem.com`) while it was the Site URL.
 2. **Authentication → Providers → Google**: enable it with a Google Cloud OAuth client
    (type "Web application") whose authorized redirect URI is
    `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback`. Avatars come from
@@ -64,6 +73,31 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 3. **Authentication → Emails** (optional): configure custom SMTP so confirmation and
    reset e-mails are sent from a LevelUp address instead of the rate-limited default
    sender. Templates are ours (Send Email Hook, below).
+
+### Google redirect safety nets
+
+The Google button normally never redirects (Google Identity Services, below). The
+OAuth redirect flow (`signInWithOAuth`) is only the fallback when Google's script
+cannot load. For that flow:
+
+- **`lu_next` cookie** — just before leaving for Google, the browser stores the
+  destination (`safeNext` result: a dashboard path or an https URL of another LevelUp
+  app such as LevelStudio) in `lu_next` (`src/lib/auth/next-cookie.ts`): domain
+  `.levelup-ecosystem.com` (host-only on localhost / previews), `Path=/`,
+  `SameSite=Lax`, `Secure` on https, 10 minutes. `/auth/callback` uses it when the
+  `next` query parameter is missing, always re-checks it with `safeNext()`, and deletes it.
+- **Code forwarded from elsewhere** — the PKCE code verifier is also a cookie on the
+  shared domain, so `/auth/callback` can exchange a `code` that first landed on another
+  LevelUp host. The showcase forwards a stray `?code=` to
+  `https://dashboard.levelup-ecosystem.com/auth/callback?code=…`, and the dashboard
+  proxy forwards `/?code=…` (Site URL fallback) to `/auth/callback`.
+- **Callback input** — `code`, `token_hash`, `type` and `next` are validated with Zod
+  (format, length) before anything reaches Supabase; any failure goes to
+  `/auth/sign-in?error=callback`.
+
+The GIS path needs none of this: after `signInWithIdToken` the session cookies are
+written on the shared domain and `goTo()` sends the browser to `safeNext(next)`, with a
+full page load (`window.location.assign`) when it is another LevelUp app (LevelStudio).
 
 ## Session, organizations and websites
 
@@ -89,6 +123,43 @@ They are changed through server actions in `src/lib/auth/actions.ts`:
 
 Client components read the session with `useDashboardSession()` (or
 `useActiveWebsite()`) from `src/lib/auth/session-context.tsx`.
+
+## Session lifetime and inactivity
+
+- **Inactivity sign-out (dashboard)** — `IdleTimeout`
+  (`src/features/auth/components/idle-timeout.tsx`, mounted by the `/dashboard` layout)
+  signs the browser out after **30 minutes** without activity (pointer, keyboard, wheel,
+  touch, scroll). At **28 minutes** an "Are you still there?" dialog counts down with
+  *Stay signed in* / *Sign out now*; while it is open only the button counts as activity.
+  Tabs share the last activity in `localStorage.lu_last_activity` (`storage` event) and
+  a `BroadcastChannel('lu-session')`, so working in one tab keeps the others alive and
+  an automatic sign-out closes every tab. The sign-out is the `signOutIdle()` server
+  action: `auth.signOut({ scope: 'local' })` (this browser only; other devices keep
+  their session), clears `lu_org` / `lu_site`, then `/auth/sign-in?reason=idle`, which
+  explains what happened. Opening a dashboard page counts as activity; a laptop that
+  wakes up after more than 30 minutes is signed out on the next check.
+- **Server-side re-validation** — every request goes through the proxy, which calls
+  `auth.getUser()` (validated by Supabase Auth, never a bare cookie), and server pages
+  use `getDashboardSession()` the same way. A revoked or expired session is signed out
+  on the next request even if a tab stayed open.
+- The manual *Sign out* menu entry keeps `scope: 'global'` (every device, every LevelUp
+  app); Profile → *Sign out of all devices* does the same explicitly.
+
+### Recommended Supabase Auth session settings
+
+Supabase → **Authentication → Sessions** (and *JWT Keys* for the expiry):
+
+| Setting | Recommended | Plan |
+|---|---|---|
+| Access token (JWT) expiry | `3600` s (1 h, default); do not raise it | Free |
+| Detect and revoke compromised refresh tokens (rotation) | On | Free |
+| Refresh token reuse interval | `10` s (default) | Free |
+| Inactivity timeout | `8h` (server-side backstop for the 30 min client timer; applies to LevelStudio too) | **Pro** |
+| Time-box user sessions | `7d` (forces a fresh sign-in weekly) | **Pro** |
+| Enforce single session per user | Off (people use phone + computer) | **Pro** |
+
+On the Free plan only the first three exist; the client-side 30 minute timer above is
+then the inactivity control, and refresh tokens otherwise live until sign-out.
 
 ## Roles
 
@@ -135,6 +206,13 @@ Links point to `/auth/callback?token_hash=…&type=…&next=…` on this dashboa
 - Sign-up confirmation → always `/auth/verified?next=…` (the hook wraps `next`).
 - Magic links are no longer offered on the sign-in page (the hook still formats them if
   Supabase sends one).
+
+Verification (`verify()` in the route): the body is read as text (64 KB max), then
+`webhook-id`, `webhook-timestamp` and `webhook-signature` are checked: timestamp within
+5 minutes (non-numeric → rejected), HMAC-SHA256 over `id.timestamp.body` with the
+base64 secret, constant-time comparison of every `v1,` signature. Only then is the JSON
+parsed (bounded Zod schema). A missing secret rejects everything. This is the only
+inbound webhook of the dashboard; any new one must verify a signature the same way.
 
 Setup: Supabase → Authentication → Hooks → Send Email → HTTPS
 `https://dashboard.levelup-ecosystem.com/api/auth/email-hook`, generate the
@@ -216,6 +294,26 @@ Setup (in this order, otherwise every sign-in fails):
 Once CAPTCHA is on in Supabase, every password / OTP / sign-up / reset call needs a token,
 so all of them must go through this dashboard (the only LevelUp sign-in page).
 
+**Status check (2026-10-11):** a password grant sent to Supabase *without* a token was
+answered `invalid_credentials`, not a CAPTCHA error: step 3 is **not done yet**, so the
+widget currently shows but Supabase does not enforce it. Turn it on (step 3) now that
+the site key is set in production; the dashboard already sends a token with every call.
+
+### Anti-spam and rate limits
+
+| Endpoint | Protection |
+|---|---|
+| Sign-in, sign-up, reset, resend, passkey | Turnstile token (enforced once Supabase CAPTCHA is on) + Supabase Auth rate limits (*Authentication → Rate Limits*) |
+| `POST /api/access/request` (access request) | Same-origin check, Zod, honeypot field `companyUrl` (filled → fake success, nothing stored or sent), **10 submissions/edits per account per hour** (`private.hit_rate_limit`, migration `20261011100000_rate_limits.sql`, `PT429` → 429 “Too many attempts”), one team e-mail per new request |
+| `POST /api/assistant`, `/api/assistant/weekly` | Same-origin + JSON only, signed-in member, daily AI allowance per organization (`assistant_consume`, `PT429`) |
+| `POST /api/access/decision` | Same-origin, platform admin with an aal2 session (database) |
+| `POST /api/auth/email-hook` | Standard Webhooks signature (HMAC-SHA256, 5-minute window, constant-time compare) |
+| Public RPCs used by client websites | Database rate limits (5/hour per contact, 300/hour per site) |
+
+`private.hit_rate_limit(bucket, subject, max, window)` is the generic limiter for future
+authenticated endpoints: it counts rows in `private.rate_limit_events` (not exposed by the
+Data API) and raises `PT429`. Rows are never pruned automatically; they are tiny.
+
 ## Dashboard access on approval
 
 Creating an account is open (LevelStudio stays available), but `/dashboard` only
@@ -241,6 +339,41 @@ Sign-up runs in steps (account → e-mail check → profile → approval); forgo
 passwords have their own confirmation screen with a resend
 cooldown (`/auth/forgot-password`). Avatars and organization logos are uploaded
 to the public `brand` bucket (`avatars/<user>/`, `orgs/<org>/`, images only, 2 MB).
+
+## Legal documents and acceptance
+
+The legal pages live on the showcase (`src/lib/legal.ts`, `LEGAL_LINKS`):
+`/terms`, `/privacy`, `/acceptable-use`, `/services-agreement`, `/dpa`, `/cookies`,
+`/levelstudio-terms` on `https://levelup-ecosystem.com`. They are linked (new tab) at
+the bottom of every auth card and error page (`LegalLinks`) and in the user menu →
+*Legal* (`LegalMenuSub`).
+
+**Acceptance is required** to create an account: "I agree to the Terms of Service,
+Acceptable Use Policy and Privacy Policy" (`acceptTerms`, Zod `refine`, EN/FR).
+
+- **E-mail sign-up** — the checkbox is required by the form schema; `signUp` sends
+  `legal_version` (and an informative `legal_accepted_at`) in `user_metadata`. There is
+  no session before the e-mail is confirmed, so the trigger
+  `private.record_signup_legal_acceptance()` (on `auth.users` insert) writes the row
+  with the **database timestamp**.
+- **Google on the sign-up page** — the Google button stays disabled until the box is
+  ticked; after `signInWithIdToken` the RPC `accept_legal_terms(version, 'google')`
+  records it.
+- **Any other new account** (Google from the sign-in page, redirect fallback) — the
+  onboarding profile step shows the same required checkbox when no acceptance of the
+  current version exists, and calls `accept_legal_terms(version, 'onboarding')`.
+
+Storage: table `public.legal_acceptances` (migration
+`20261011110000_legal_acceptances.sql`): `user_id`, `version` (`YYYY-MM-DD`),
+`documents` (`terms`, `acceptable-use`, `privacy`), `source` (`signup` | `google` |
+`onboarding`), `accepted_at` (server time), unique per user and version. RLS: users read
+their own rows, platform admins read all; no insert/update/delete grants (only the RPC
+and the trigger write). We chose a table over `user_metadata` because users can rewrite
+their own metadata (`auth.updateUser`), which makes it worthless as a record.
+
+**New version of the documents:** bump `LEGAL_VERSION` in `src/lib/legal.ts`. New
+accounts then record the new version; existing accounts are not asked again
+automatically (add a re-acceptance prompt if the change requires consent).
 
 ## Cross-device e-mail verification
 
@@ -321,15 +454,20 @@ consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project
 1. **Google Cloud → Google Auth Platform → Clients →** the web client above →
    **Authorized JavaScript origins**: `https://dashboard.levelup-ecosystem.com` and
    `http://localhost:3000` (development; add preview domains if Google sign-in should work
-   there). Keep the existing redirect URI
+   there). Without the dashboard origin the GIS button cannot sign anyone in (Google
+   answers `origin_mismatch` / "The given origin is not allowed"); only a script that
+   fails to load switches to the redirect fallback, so this origin is required. Keep the existing redirect URI
    `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback` for the fallback flow.
 2. **Supabase → Authentication → Providers → Google**: put this client id in
    **Client IDs** (authorized client ids; the web client first if there are several) and
    leave **Skip nonce check** off.
 3. Optional: **Google Auth Platform → Branding** (app name, logo, authorized domain
    `levelup-ecosystem.com`) so the popup shows the LevelUp name and logo.
-4. If a Content-Security-Policy is added later: `script-src` and `frame-src`
-   `https://accounts.google.com/gsi/`, `connect-src https://accounts.google.com/gsi/`.
+4. Content-Security-Policy (`next.config.ts`, see
+   [deployment.md](./deployment.md#security-headers)) already allows
+   `https://accounts.google.com/gsi/` in `script-src`, `style-src`, `frame-src` and
+   `connect-src`, and `Cross-Origin-Opener-Policy: same-origin-allow-popups` keeps the
+   GIS popup working.
 
 ### Passkeys
 
@@ -364,5 +502,5 @@ validator): SHA-1 in the browser (`crypto.subtle`), only the first 5 hex charact
 to `https://api.pwnedpasswords.com/range/{prefix}` (`Add-Padding: true`), suffixes are
 compared locally. A match shows "Ce mot de passe est trop courant. Choisissez-en un
 autre." If the API fails or takes more than 3 s the password is accepted (fail open).
-There is no Content-Security-Policy header today; if one is added, `connect-src` must
-allow `api.pwnedpasswords.com`, the Supabase URL and `challenges.cloudflare.com`.
+The Content-Security-Policy allows `api.pwnedpasswords.com`, the Supabase URL and
+`challenges.cloudflare.com` in `connect-src` (see deployment.md).

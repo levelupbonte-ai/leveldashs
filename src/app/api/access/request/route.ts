@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { getLocale } from 'next-intl/server';
+import { accessRequestSchema } from '@/features/auth/lib/access-request-schema';
 import { userLocale } from '@/i18n/config';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice, TEAM_INBOX } from '@/lib/email/notice';
@@ -10,12 +11,8 @@ import { createClient } from '@/lib/supabase/server';
 // (submit_access_request decides; status is never the user's to set) and the
 // LevelUp team gets an e-mail.
 
-const Body = z.object({
-  businessName: z.string().trim().min(2).max(120),
-  website: z.string().trim().max(200).optional(),
-  phone: z.string().trim().max(40).optional(),
-  message: z.string().trim().max(1000).optional()
-});
+// Same rules as the form; the honeypot may be missing from an older page.
+const Body = accessRequestSchema().extend({ companyUrl: z.string().max(200).optional() });
 
 const DASHBOARD = 'https://dashboard.levelup-ecosystem.com';
 
@@ -31,6 +28,8 @@ export async function POST(request: NextRequest) {
 
   const parsed = Body.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+  // Honeypot filled: a bot. Answer like a success so it learns nothing.
+  if (parsed.data.companyUrl) return NextResponse.json({ status: 'pending' });
   const db = await createClient();
   const {
     data: { user }
@@ -50,6 +49,10 @@ export async function POST(request: NextRequest) {
   });
   if (error) {
     console.error('submit_access_request failed', error.code);
+    // 10 submissions or edits per account per hour (private.hit_rate_limit).
+    if (error.code === 'PT429') {
+      return NextResponse.json({ error: 'rate_limited' }, { status: 429 });
+    }
     return NextResponse.json(
       { error: error.code === 'PT403' ? 'unverified' : 'invalid' },
       { status: error.code === 'PT403' ? 403 : 400 }

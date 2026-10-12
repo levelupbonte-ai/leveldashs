@@ -13,9 +13,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Page(props: {
-  searchParams: Promise<{ next?: string; error?: string }>;
+  searchParams: Promise<{ next?: string; error?: string; reason?: string }>;
 }) {
-  const { next, error } = await props.searchParams;
+  const { next, error, reason } = await props.searchParams;
   // Already signed in (single LevelUp session): go straight to the destination.
   const supabase = await createClient();
   const {
@@ -27,5 +27,5 @@ export default async function Page(props: {
     redirect(safeNext(next));
   }
   const methods = await getAuthMethods();
-  return <SignInViewPage next={next} error={error} methods={methods} />;
+  return <SignInViewPage next={next} error={error} reason={reason} methods={methods} />;
 }

@@ -28,6 +28,8 @@ the schema from application code or by hand in the dashboard.
 | `20261007231000` | ai_key_state (shared AI key rotation, fingerprints only) | **Applied** |
 | `20261008110000` | project_requests (showcase "Start a project" + AI qualification) | **Applied** |
 | `20261008120000` | ai_catalog (`ai_models`, `ai_routes`, views `ai_usage_stats`, `ai_model_ranking`; staff read `ai_calls`) | **Applied** |
+| `20261011100000` | rate_limits (`private.rate_limit_events`, `private.hit_rate_limit`; access requests 10/hour per account) | **Applied** |
+| `20261011110000` | legal_acceptances (table + RLS, `accept_legal_terms` RPC, sign-up trigger; see auth.md) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -138,6 +140,49 @@ show in *Demandes de projet* on the same page.
 
 Note: deleting an auth user who is the last owner of an organization is blocked
 until ownership is transferred.
+
+## Storage uploads
+
+| Bucket | Used for | `file_size_limit` | `allowed_mime_types` | Paths (storage RLS) |
+|---|---|---|---|---|
+| `brand` (public) | avatars, organization logos | 2 MB | `image/png`, `image/jpeg`, `image/webp` | `avatars/<user id>/`, `orgs/<org id>/` |
+| `media` (public) | website media library | 10 MB | jpeg, png, webp, gif, avif, pdf, mp4, webm | `<organization id>/<website id>/` (editor+) |
+
+The bucket limits are enforced by Supabase Storage for every client. The dashboard checks
+the same rules before uploading (`src/lib/brand-images.ts`, `uploadMedia` in
+`src/features/site/api/service.ts`) and also reads the first bytes of the file
+(`src/lib/file-signature.ts`): the content must be one of the allowed formats **and**
+the declared one, so a renamed HTML or SVG file is refused. **SVG is never accepted**
+(it can carry scripts; there is no sanitizer). Brand images are re-encoded to a 512 px
+WebP in the browser (any picked PNG/JPEG/WebP up to 8 MB, stored file ≤ 2 MB). There is
+no upload route handler: files go straight to Storage as the signed-in user.
+
+## Backups
+
+The Free plan has no downloadable automatic backups, so
+[`.github/workflows/db-backup.yml`](../.github/workflows/db-backup.yml) runs every day
+(06:17 UTC) and on demand: `supabase db dump` (roles, schema, data) with a pinned
+Supabase CLI, `tar.gz`, encrypted with `gpg --symmetric` (AES-256), uploaded as a
+workflow artifact kept **30 days**, plus an optional copy in a private R2/S3 bucket.
+It needs the repository secrets `SUPABASE_DB_URL` (session pooler connection string)
+and `BACKUP_PASSPHRASE`; secrets are never printed. Restore guide and setup:
+[`scripts/restore-backup.md`](../scripts/restore-backup.md). Storage files are not
+included.
+
+## Security advisors (reviewed 2026-10-11)
+
+`get_advisors(security)` after the `rate_limits` and `legal_acceptances` migrations:
+
+- *RLS enabled, no policy* on `private.rate_limit_events`, `ai_key_state`, `ai_usage`,
+  `studio_usage`, `studio_rate_limits` — intentional: server-only tables, closed to every
+  API role (`studio_*` belong to LevelStudio).
+- *SECURITY DEFINER executable by anon/authenticated* — the public RPCs (`submit_form`,
+  `book_appointment`, …) and the authenticated ones (`accept_legal_terms`,
+  `submit_access_request`, admin RPCs) are the intended API; each checks the caller
+  and validates its input.
+- *Leaked password protection disabled* — Supabase Pro feature (HaveIBeenPwned check in
+  Auth). The dashboard already refuses common passwords client-side (Pwned Passwords
+  k-anonymity, see auth.md); enable it in Auth → Password security on Pro.
 
 ## Secrets
 

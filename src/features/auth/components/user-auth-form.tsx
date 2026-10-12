@@ -8,9 +8,12 @@ import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { passkeyErrorKind, usePasskeySupport } from '@/lib/auth/passkey';
 import { commonPasswordValidator } from '@/lib/auth/password-check';
 import { hasGoogleIdentity } from '@/lib/auth/identities';
+import { rememberNext } from '@/lib/auth/next-cookie';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
 import { useAppForm } from '@/lib/form';
+import { LEGAL_VERSION } from '@/lib/legal';
 import { createClient } from '@/lib/supabase/client';
+import { useStore } from '@tanstack/react-form';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -21,6 +24,7 @@ import * as z from 'zod';
 import { markPendingMethod, saveLastMethod, useLastMethod } from '../lib/last-method';
 import { AuthSteps } from './auth-steps';
 import { GoogleSignInButton } from './google-sign-in-button';
+import { LegalConsentLabel } from './legal-consent-label';
 import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
@@ -45,11 +49,14 @@ export default function UserAuthForm({
   mode,
   next,
   initialError,
+  reason,
   methods = { google: false, passkey: false }
 }: {
   mode: 'sign-in' | 'sign-up';
   next?: string;
   initialError?: string;
+  /** Why the visitor is here, e.g. `idle` after the inactivity sign-out. */
+  reason?: string;
   /** Sign-in methods enabled in Supabase (read server-side from /auth/v1/settings). */
   methods?: AuthMethods;
 }) {
@@ -57,12 +64,14 @@ export default function UserAuthForm({
   const destination = safeNext(next);
   const t = useTranslations('auth.form');
   const tv = useTranslations('validation');
+  const tl = useTranslations('legal');
   const locale = useLocale();
   const { signInSchema, signUpSchema } = useMemo(() => {
     const signIn = z.object({
       fullName: z.string(),
       email: z.string().email({ message: tv('email') }),
-      password: z.string().min(1, { message: tv('passwordRequired') })
+      password: z.string().min(1, { message: tv('passwordRequired') }),
+      acceptTerms: z.boolean()
     });
     return {
       signInSchema: signIn,
@@ -75,10 +84,12 @@ export default function UserAuthForm({
         password: z
           .string()
           .min(10, { message: tv('passwordMin', { min: 10 }) })
-          .max(72, { message: tv('passwordMax', { max: 72 }) })
+          .max(72, { message: tv('passwordMax', { max: 72 }) }),
+        // Terms of Service, Acceptable Use Policy and Privacy Policy (required).
+        acceptTerms: z.boolean().refine((v) => v, { message: tl('acceptRequired') })
       })
     };
-  }, [tv]);
+  }, [tv, tl]);
 
   // Another LevelUp app (LevelStudio, main site) gets a full page load.
   function goTo(target: string) {
@@ -122,7 +133,9 @@ export default function UserAuthForm({
           ? 'passkey'
           : null
       : null;
-  const [notice, setNotice] = useState<string | null>(initialError ? t('callbackFailed') : null);
+  const [notice, setNotice] = useState<string | null>(
+    initialError ? t('callbackFailed') : reason === 'idle' ? t('idleSignedOut') : null
+  );
   // Sign-up waiting for the e-mail link. The password stays in memory (React
   // state only, never stored) so this tab can sign in once the link is clicked,
   // even on another device.
@@ -136,7 +149,7 @@ export default function UserAuthForm({
     callbackUrl(`/auth/verified?next=${encodeURIComponent(onboardingUrl)}`);
 
   const form = useAppForm({
-    defaultValues: { fullName: '', email: '', password: '' },
+    defaultValues: { fullName: '', email: '', password: '', acceptTerms: false },
     validators: {
       onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema,
       // New passwords only: refuse very common ones (runs once the schema passes).
@@ -171,7 +184,14 @@ export default function UserAuthForm({
             password: value.password,
             options: {
               // The language of the sign-up, for LevelUp's e-mails (confirmation first).
-              data: { full_name: value.fullName.trim(), locale },
+              // legal_version: recorded in legal_acceptances by a database trigger
+              // when the account is created (server timestamp).
+              data: {
+                full_name: value.fullName.trim(),
+                locale,
+                legal_version: LEGAL_VERSION,
+                legal_accepted_at: new Date().toISOString()
+              },
               emailRedirectTo: signUpRedirect(),
               captchaToken: captcha.captchaToken
             }
@@ -192,6 +212,10 @@ export default function UserAuthForm({
       }
     }
   });
+
+  // Sign-up: Google is available once the terms are accepted.
+  const termsAccepted = useStore(form.store, (state) => state.values.acceptTerms);
+  const googleLocked = mode === 'sign-up' && !termsAccepted;
 
   // Same path for every sign-in method: second factor first, then the destination
   // (the dashboard layout sends accounts without access to onboarding).
@@ -264,6 +288,11 @@ export default function UserAuthForm({
         return;
       }
       saveLastMethod('google');
+      // Sign-up page: the terms checkbox was ticked before Google was enabled.
+      if (mode === 'sign-up') {
+        // Best effort (errors are returned, not thrown): onboarding asks again if missing.
+        await supabase.rpc('accept_legal_terms', { p_version: LEGAL_VERSION, p_source: 'google' });
+      }
       await afterSignIn(supabase);
     } finally {
       setPending(false);
@@ -275,6 +304,9 @@ export default function UserAuthForm({
     setPending(true);
     // Confirmed (saved as the last method) once a signed-in page loads.
     markPendingMethod('google');
+    // If Supabase drops `next` (redirect URL not allow-listed → Site URL), the
+    // callback still knows where to go: lu_next cookie on the shared domain.
+    rememberNext(destination);
     const { error } = await createClient().auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: callbackUrl(destination) }
@@ -306,12 +338,19 @@ export default function UserAuthForm({
     );
   }
 
+  const consentField = mode === 'sign-up' && (
+    <form.AppField
+      name='acceptTerms'
+      children={(field) => <field.CheckboxField label={<LegalConsentLabel />} />}
+    />
+  );
+
   const googleButton = (
     /* Official Google Identity Services button (falls back to our own if blocked). */
     <GoogleSignInButton
       mode={mode}
       oneTap={mode === 'sign-in'}
-      disabled={pending}
+      disabled={pending || googleLocked}
       onCredential={signInWithGoogleToken}
       onFallback={signInWithGoogleRedirect}
     />
@@ -359,6 +398,7 @@ export default function UserAuthForm({
   return (
     <div className='space-y-4'>
       {mode === 'sign-up' && <AuthSteps current={0} />}
+      {consentField}
       {(showGoogle || showPasskey) && (
         <>
           <div className='grid gap-2'>
@@ -366,6 +406,11 @@ export default function UserAuthForm({
               <div className='relative'>
                 {googleButton}
                 {mode === 'sign-in' && lastMethod === 'google' && <LastUsedBadge />}
+                {googleLocked && (
+                  <p className='text-muted-foreground mt-1.5 text-center text-xs'>
+                    {tl('googleNeedsAccept')}
+                  </p>
+                )}
               </div>
             )}
             {showPasskey && (

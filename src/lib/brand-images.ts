@@ -1,7 +1,13 @@
 import { AppError } from '@/lib/errors';
+import { assertFileSignature } from '@/lib/file-signature';
 import { createClient } from '@/lib/supabase/client';
 
 const MAX_SIDE = 512;
+const BRAND_TYPES = ['image/png', 'image/jpeg', 'image/webp'] as const;
+/** Picked file: resized below, so it may be larger than what is stored. */
+const MAX_INPUT_BYTES = 8 * 1024 * 1024;
+/** Stored file: the `brand` bucket's own limit (file_size_limit = 2 MB). */
+export const BRAND_MAX_BYTES = 2 * 1024 * 1024;
 
 /** Square-ish brand image (avatar, logo) resized in the browser to WebP, keeping transparency. */
 async function toWebp(file: File): Promise<Blob> {
@@ -25,9 +31,11 @@ async function toWebp(file: File): Promise<Blob> {
  * and returns the public URL.
  */
 export async function uploadBrandImage(file: File, folder: string): Promise<string> {
-  if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) throw new AppError('imageFormat');
-  if (file.size > 8 * 1024 * 1024) throw new AppError('imageTooLarge');
+  if (file.size > MAX_INPUT_BYTES) throw new AppError('imageTooLarge');
+  // PNG, JPEG or WebP by content, not just by name (never SVG).
+  await assertFileSignature(file, BRAND_TYPES, 'imageFormat');
   const blob = await toWebp(file);
+  if (blob.size > BRAND_MAX_BYTES) throw new AppError('imageTooLarge');
   const db = createClient();
   const path = `${folder}/${Date.now()}.webp`;
   const { error } = await db.storage
