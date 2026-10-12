@@ -7,6 +7,7 @@ import { InfobarProvider } from '@/components/ui/infobar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { IdleTimeout } from '@/features/auth/components/idle-timeout';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
+import { AccessGate } from '@/features/contracts/components/access-gate';
 import { getAccessState, noAccessPath } from '@/lib/auth/access';
 import { requireDashboardSession } from '@/lib/auth/session';
 import { SessionProvider } from '@/lib/auth/session-context';
@@ -60,7 +61,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Header />
             <SetupChecklist />
             <InfobarProvider defaultOpen={false} className='min-w-0'>
-              {children}
+              <AccessGate>{children}</AccessGate>
               <InfoSidebar side='right' />
             </InfobarProvider>
           </SidebarInset>

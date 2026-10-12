@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
 import { listAccessRequests, listAllWebsites, listFeatures } from './clients';
+import { listContractTemplates, listOrgContracts, listRequiredTasks } from './contracts';
 import { getAiInsights, listProjectRequests } from './service';
 
 export const adminInsightKeys = {
@@ -9,8 +10,32 @@ export const adminInsightKeys = {
   projectRequests: () => [...adminInsightKeys.all, 'project-requests'] as const,
   allWebsites: () => [...adminInsightKeys.all, 'all-websites'] as const,
   features: () => [...adminInsightKeys.all, 'features'] as const,
-  accessRequests: () => [...adminInsightKeys.all, 'access-requests'] as const
+  accessRequests: () => [...adminInsightKeys.all, 'access-requests'] as const,
+  contracts: () => [...adminInsightKeys.all, 'contracts'] as const,
+  orgContracts: (organizationId: string) =>
+    [...adminInsightKeys.contracts(), 'org', organizationId] as const,
+  requiredTasks: (organizationId: string) =>
+    [...adminInsightKeys.contracts(), 'tasks', organizationId] as const,
+  templates: () => [...adminInsightKeys.contracts(), 'templates'] as const
 };
+
+export const contractTemplatesQueryOptions = (db: SupabaseClient) =>
+  queryOptions({
+    queryKey: adminInsightKeys.templates(),
+    queryFn: () => listContractTemplates(db)
+  });
+
+export const orgContractsQueryOptions = (db: SupabaseClient, organizationId: string) =>
+  queryOptions({
+    queryKey: adminInsightKeys.orgContracts(organizationId),
+    queryFn: () => listOrgContracts(db, organizationId)
+  });
+
+export const requiredTasksQueryOptions = (db: SupabaseClient, organizationId: string) =>
+  queryOptions({
+    queryKey: adminInsightKeys.requiredTasks(organizationId),
+    queryFn: () => listRequiredTasks(db, organizationId)
+  });
 
 export const allWebsitesQueryOptions = (db: SupabaseClient) =>
   queryOptions({

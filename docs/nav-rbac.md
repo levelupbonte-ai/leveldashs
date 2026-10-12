@@ -31,6 +31,8 @@ synchronous: no client fetch, no loading state, no flashing.
 | `role` | `'viewer' \| 'editor' \| 'admin' \| 'owner'` | The user's role in the active organization is at least this one (`owner > admin > editor > viewer`). Platform admins always pass |
 | `feature` | `string \| string[]` | At least one of these `website_features` keys is enabled on the active website |
 | `platformAdmin` | `boolean` | The user is in `platform_admins` (LevelUp staff) |
+| `whenLocked` | `boolean` | Still shown while the active organization must sign its contract or finish blocking tasks. Every item without it is hidden then (see [contracts.md](./contracts.md)) |
+| `hasContracts` | `boolean` | LevelUp sent the active organization a contract (or it is locked) |
 
 Items without `access` are always visible. All keys on an item must pass. For an item with
 children, each child is filtered with its own `access` too.
@@ -79,6 +81,13 @@ Feature keys come from the `features` catalog and are switched on per website in
 pages server-side: `SitePage` / `loadSitePage(feature)` show an "unavailable" state when
 the feature is off, and the content collections in `src/features/site/config/collections.ts`
 declare their own `feature`.
+
+## Contract gate
+
+While `session.access.state` is not `active` (required contract to sign, blocking setup
+tasks, suspended), non-staff users only see `whenLocked` items (Account → Contract,
+Profile). This is UX: the proxy redirects every other `/dashboard/*` request to
+`/dashboard/contract`, and RLS refuses site content writes while the contract is unsigned.
 
 ## Platform Admins
 

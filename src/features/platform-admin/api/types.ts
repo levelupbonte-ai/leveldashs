@@ -110,3 +110,57 @@ export interface AdminWebsiteRow {
   organizationName: string;
   features: string[];
 }
+
+/** public.contract_templates row (staff only). */
+export interface AdminContractTemplate {
+  id: string;
+  key: 'msa' | 'order_form';
+  version: number;
+  locale: 'en' | 'fr';
+  title: string;
+  publishedAt: string | null;
+}
+
+/** A contract as LevelUp staff sees it (drafts included). */
+export interface AdminContractRow {
+  id: string;
+  organizationId: string;
+  websiteId: string | null;
+  templateKey: string;
+  templateVersion: number;
+  title: string;
+  locale: 'en' | 'fr';
+  status: 'draft' | 'sent' | 'signed' | 'void' | 'superseded';
+  required: boolean;
+  createdAt: string;
+  sentAt: string | null;
+  signedAt: string | null;
+  voidReason: string | null;
+  signerName: string | null;
+}
+
+export interface AdminContractInput {
+  organizationId: string;
+  websiteId: string | null;
+  locale: 'en' | 'fr';
+  required: boolean;
+  orderForm: {
+    projectName?: string;
+    packageName?: string;
+    scope?: string[];
+    buildPrice?: number;
+    paymentSchedule?: string;
+    monthlyPlan?: string;
+    monthlyPrice?: number;
+    startDate?: string;
+    notes?: string;
+  };
+}
+
+export interface PublishTemplateInput {
+  key: 'msa' | 'order_form';
+  locale: 'en' | 'fr';
+  version: number | null;
+  title: string;
+  body: string;
+}

@@ -9,6 +9,10 @@ export interface PermissionCheck {
   requireWebsite?: boolean;
   /** LevelUp staff only */
   platformAdmin?: boolean;
+  /** Stays visible while the organization must sign its contract / finish required tasks */
+  whenLocked?: boolean;
+  /** Only when LevelUp sent the organization a contract (or it is locked) */
+  hasContracts?: boolean;
 }
 
 export interface NavItem {

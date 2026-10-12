@@ -115,13 +115,15 @@
       "profile": "Profile",
       "notifications": "Notifications",
       "billing": "Billing",
-      "home": "Home"
+      "home": "Home",
+      "contract": "Contract"
     }
   },
   "admin": {
     "nav": {
       "levelupAdmin": "LevelUp admin",
-      "allClients": "All clients"
+      "allClients": "All clients",
+      "contracts": "Contracts"
     },
     "page": {
       "title": "All clients",
@@ -238,6 +240,90 @@
         "lost": "Lost",
         "rejected": "Declined"
       }
+    },
+    "contracts": {
+      "pageTitle": "Client contracts",
+      "pageDescription": "Prepare, send and follow the agreements clients sign in their dashboard.",
+      "clientTitle": "Client",
+      "clientDescription": "Choose the organization whose contracts you want to manage.",
+      "client": "Client",
+      "chooseClient": "Choose a client…",
+      "listTitle": "Contracts",
+      "listDescription": "Drafts are visible to LevelUp only. Sending freezes the text and order form and e-mails the client’s owners and admins.",
+      "new": "New contract",
+      "none": "No contract for this client yet.",
+      "meta": "Version {version} · {locale} · created {date}",
+      "signedBy": "signed by {name}",
+      "requiredBadge": "Required",
+      "newerVersion": "v{version} available",
+      "preview": "Preview",
+      "previewDescription": "What the client sees: order form and agreement.",
+      "certificate": "Certificate",
+      "edit": "Edit",
+      "send": "Send",
+      "sent": "Sent. {notified} of {recipients} people notified by e-mail.",
+      "makeOptional": "Let them in before signing",
+      "makeRequired": "Require signature",
+      "reissue": "Re-issue",
+      "reissued": "New draft created from the latest version. Review it, then send it.",
+      "void": "Void",
+      "voided": "Contract voided.",
+      "voidTitle": "Void this contract?",
+      "voidDescription": "The client can no longer sign it; a signed contract stays on record as void.",
+      "voidReason": "Reason (optional)",
+      "form": {
+        "createTitle": "New contract",
+        "editTitle": "Edit draft",
+        "description": "Latest published Master Services Agreement + this order form. Amounts in USD.",
+        "website": "Website",
+        "wholeOrganization": "Whole organization",
+        "locale": "Client language",
+        "localeHint": "English always prevails; French is shown as a translation.",
+        "required": "Required",
+        "requiredHint": "Locks the dashboard until signed.",
+        "projectName": "Project",
+        "packageName": "Package",
+        "buildPrice": "Build price (USD)",
+        "paymentSchedule": "Payment schedule",
+        "paymentSchedulePlaceholder": "50% deposit, 50% at launch",
+        "monthlyPlan": "Monthly plan",
+        "monthlyPrice": "Monthly price (USD)",
+        "startDate": "Start date",
+        "scope": "Scope",
+        "scopeHint": "One item per line (20 max).",
+        "notes": "Notes",
+        "amount": "Enter an amount like 2400 or 79.50.",
+        "date": "Use a valid date.",
+        "create": "Create draft",
+        "save": "Save draft",
+        "cancel": "Cancel",
+        "created": "Draft created.",
+        "saved": "Draft saved."
+      },
+      "tasks": {
+        "title": "Blocking setup tasks",
+        "description": "Steps of the setup checklist the client must finish before using the dashboard. Leave all unchecked to keep them optional.",
+        "save": "Save",
+        "saved": "Blocking tasks saved."
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Published texts are immutable. Publish a new version, then re-issue contracts so clients sign it again.",
+        "publish": "Publish a version",
+        "unpublished": "Not published",
+        "locale": "Language",
+        "english": "English (official)",
+        "french": "French (translation)",
+        "version": "Version",
+        "versionHint": "Empty for a new English version; for French, the English version it translates.",
+        "templateTitle": "Title",
+        "body": "Text (Markdown)",
+        "bodyHint": "Headings, lists, tables, **bold**. No HTML.",
+        "titleRequired": "Enter a title.",
+        "bodyRequired": "Paste the full text.",
+        "publishSubmit": "Publish",
+        "published": "Version {version} published."
+      }
     }
   },
   "mfaStep": {
@@ -296,7 +382,10 @@
     "mediaFormat": "Unsupported format (images, PDF, MP4, WebM).",
     "mediaTooLarge": "This file is too large (10 MB max).",
     "uploadForbidden": "Upload failed: you need editor access to add files.",
-    "invalidOrigin": "One of the domains isn’t valid (use https://example.com)."
+    "invalidOrigin": "One of the domains isn’t valid (use https://example.com).",
+    "contractChanged": "This agreement was updated. Review the new version, then sign again.",
+    "contractNotSignable": "This agreement can no longer be signed. Reload the page.",
+    "signFailed": "We couldn’t record your signature. Please try again."
   },
   "workspaces": {
     "title": "Organizations",
@@ -444,6 +533,56 @@
       "phone": "Phone: {value}",
       "message": "Message: {value}",
       "cta": "Review the request"
+    },
+    "contract": {
+      "sentSubject": "Your LevelUp agreement is ready to sign",
+      "sentTitle": "Your agreement is ready",
+      "sentLine1": "LevelUp prepared “{title}” for {organization}.",
+      "sentLine2": "Review and sign it in your dashboard. It only takes a minute.",
+      "sentCta": "Review and sign",
+      "signedSubject": "Signed copy: {title}",
+      "signedTitle": "Your agreement is signed",
+      "signedLine1": "{name} signed “{title}” for {organization} on {date} UTC.",
+      "signedLine2": "The signed PDF with its signature certificate is attached. Please keep it for your records.",
+      "teamSubject": "Contract signed: {organization}",
+      "pdf": {
+        "brand": "LevelUp Ecosystem",
+        "signedCopy": "Signed copy",
+        "unsignedCopy": "Copy for review (not signed)",
+        "client": "Client",
+        "contractId": "Contract ID",
+        "version": "Template version",
+        "orderForm": "Order form",
+        "orderFormEmpty": "No order details.",
+        "project": "Project",
+        "package": "Package",
+        "buildPrice": "Build price",
+        "paymentSchedule": "Payment schedule",
+        "monthlyPlan": "Monthly plan",
+        "monthlyPrice": "Monthly price",
+        "startDate": "Start date",
+        "scope": "Scope",
+        "notes": "Notes",
+        "agreement": "Agreement (official English version)",
+        "translation": "French translation",
+        "translationNotice": "Provided for information. The English version is the official one and prevails.",
+        "certificate": "Signature certificate",
+        "certificateIntro": "This page records how the agreement was signed electronically in the LevelUp Dashboard.",
+        "signer": "Signer",
+        "signerTitle": "Title",
+        "email": "E-mail",
+        "signedAt": "Signed at",
+        "sentAt": "Sent at",
+        "ip": "IP address",
+        "userAgent": "Device (user agent)",
+        "consent": "Consent",
+        "consentText": "The signer confirmed “I have read and agree to this agreement and its order form, and I sign it electronically” and agreed to use electronic records and signatures (U.S. ESIGN Act, California UETA).",
+        "hash": "Document SHA-256",
+        "hashNote": "SHA-256 (hex) of the stored snapshot: the English text, a blank line, the French translation (empty when none), a blank line, then the order form as stored (JSON), UTF-8 encoded.",
+        "drawnSignature": "Drawn signature",
+        "typedSignature": "Typed signature",
+        "page": "Page {current} of {total}"
+      }
     }
   },
   "brandImage": {
@@ -1228,5 +1367,103 @@
     "googleNeedsAccept": "Accept the terms above to continue with Google.",
     "dpa": "Data Processing Agreement",
     "levelstudioTerms": "LevelStudio Terms"
+  },
+  "contract": {
+    "title": "Contract",
+    "description": "Your agreement with LevelUp, its order form and your signed copies.",
+    "descriptionLocked": "Review and sign your agreement to open the rest of your dashboard.",
+    "intro": "LevelUp prepared your agreement. Review it and sign it whenever you are ready.",
+    "introRequired": "LevelUp prepared your agreement. Please review and sign it to open your dashboard — it only takes a minute.",
+    "downloadPdf": "Download PDF",
+    "steps": {
+      "label": "Signing progress",
+      "review": "Review",
+      "sign": "Sign",
+      "done": "Done"
+    },
+    "document": {
+      "version": "Version {version}",
+      "english": "English (official)",
+      "french": "Français (translation)",
+      "translationNotice": "This French translation is provided for information. The English version is the official one and prevails."
+    },
+    "orderForm": {
+      "title": "Order form",
+      "description": "Prepared by LevelUp for your project.",
+      "empty": "LevelUp will add the details of your order here.",
+      "client": "Client",
+      "project": "Project",
+      "package": "Package",
+      "buildPrice": "Build price",
+      "paymentSchedule": "Payment schedule",
+      "monthlyPlan": "Monthly plan",
+      "perMonth": "{amount}/month",
+      "startDate": "Start date",
+      "scope": "Scope",
+      "notes": "Notes"
+    },
+    "sign": {
+      "title": "Sign your agreement",
+      "description": "Type your full name and your title. Drawing a signature is optional.",
+      "fullName": "Full name",
+      "signerTitle": "Title or role",
+      "signerTitlePlaceholder": "Owner, Manager…",
+      "titleRequired": "Enter your title or role.",
+      "draw": "Draw your signature (optional)",
+      "drawDescription": "Use your mouse, finger or stylus.",
+      "drawHint": "Sign here",
+      "drawnLabel": "Your drawn signature",
+      "clear": "Clear",
+      "consent": "I have read and agree to this agreement and its order form, and I sign it electronically.",
+      "consentRequired": "Please confirm that you have read and agree.",
+      "legal": "By signing, you agree to use electronic records and electronic signatures for this agreement. Electronic signatures are recognized under the U.S. ESIGN Act and the California Uniform Electronic Transactions Act. You can download a copy at any time and ask LevelUp for a paper copy at contact@levelup-ecosystem.com.",
+      "submit": "Sign the agreement"
+    },
+    "done": {
+      "title": "Your agreement is signed",
+      "description": "{title}, signed on {date}. Thank you!",
+      "emailed": "A copy was emailed to you.",
+      "certificate": "Signature certificate",
+      "certificateDescription": "Recorded when the agreement was signed. The fingerprint identifies the exact text that was signed."
+    },
+    "waiting": {
+      "title": "Waiting for a signature",
+      "description": "An owner or administrator of {organization} signs the agreement. Your full dashboard opens as soon as it is signed."
+    },
+    "certificate": {
+      "signer": "Signer",
+      "email": "E-mail",
+      "signedAt": "Signed at",
+      "ip": "IP address",
+      "contractId": "Contract ID",
+      "hash": "Document SHA-256",
+      "unknown": "Not recorded"
+    },
+    "history": {
+      "title": "Contract history",
+      "description": "Signed agreements and earlier versions.",
+      "version": "Version {version}",
+      "signedOn": "signed on {date}"
+    },
+    "status": {
+      "draft": "Draft",
+      "sent": "To sign",
+      "signed": "Signed",
+      "superseded": "Earlier version",
+      "void": "Cancelled"
+    },
+    "tasks": {
+      "title": "Tasks to complete",
+      "description": "A few quick steps LevelUp asked for before you continue.",
+      "todo": "To do"
+    },
+    "suspended": {
+      "title": "Your account is paused",
+      "description": "Please contact LevelUp at contact@levelup-ecosystem.com to reactivate your dashboard."
+    },
+    "empty": {
+      "title": "No contract yet",
+      "description": "When LevelUp sends you an agreement, it appears here."
+    }
   }
 }

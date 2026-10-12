@@ -16,15 +16,22 @@ import { hasRole, type OrgRole } from '@/lib/auth/types';
 import type { NavItem, NavGroup } from '@/types';
 
 export function useFilteredNavItems(items: NavItem[]) {
-  const { activeOrg, activeWebsite, isPlatformAdmin } = useDashboardSession();
+  const { activeOrg, activeWebsite, isPlatformAdmin, access: orgAccess } = useDashboardSession();
 
   return useMemo(() => {
     const features = new Set(activeWebsite?.features ?? []);
     const role = activeOrg?.role ?? null;
 
+    // Contract to sign / blocking tasks: only the items marked `whenLocked`.
+    const locked = !isPlatformAdmin && orgAccess.state !== 'active';
+
     const allowed = (item: NavItem) => {
       const access = item.access;
+      if (locked && !access?.whenLocked) return false;
       if (!access) return true;
+      if (access.hasContracts && !(isPlatformAdmin || orgAccess.hasContracts || locked)) {
+        return false;
+      }
       if (access.platformAdmin && !isPlatformAdmin) return false;
       if (access.requireOrg && !activeOrg) return false;
       if (access.requireWebsite && !activeWebsite) return false;
@@ -41,7 +48,7 @@ export function useFilteredNavItems(items: NavItem[]) {
       .map((item) =>
         item.items && item.items.length > 0 ? { ...item, items: item.items.filter(allowed) } : item
       );
-  }, [items, activeOrg, activeWebsite, isPlatformAdmin]);
+  }, [items, activeOrg, activeWebsite, isPlatformAdmin, orgAccess]);
 }
 
 export function useFilteredNavGroups(groups: NavGroup[]) {

@@ -23,9 +23,14 @@ export async function sendNotice(input: {
   title: string;
   lines: string[];
   cta?: { label: string; url: string };
+  /** Files attached to the e-mail (e.g. a signed contract PDF). */
+  attachments?: { filename: string; content: Uint8Array }[];
 }): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
-  if (!key) return false;
+  if (!key) {
+    console.warn('sendNotice skipped: RESEND_API_KEY is not set');
+    return false;
+  }
   const body = input.lines
     .map((l) => `<p style="font-size:15px;line-height:1.6;margin:0 0 10px">${escapeHtml(l)}</p>`)
     .join('');
@@ -45,8 +50,21 @@ ${body}${button}
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: FROM, to: [input.to], subject: input.subject, html }),
-      signal: AbortSignal.timeout(8000)
+      body: JSON.stringify({
+        from: FROM,
+        to: [input.to],
+        subject: input.subject,
+        html,
+        ...(input.attachments?.length
+          ? {
+              attachments: input.attachments.map((a) => ({
+                filename: a.filename,
+                content: Buffer.from(a.content).toString('base64')
+              }))
+            }
+          : {})
+      }),
+      signal: AbortSignal.timeout(input.attachments?.length ? 15000 : 8000)
     });
     return res.ok;
   } catch {

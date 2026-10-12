@@ -30,6 +30,8 @@ the schema from application code or by hand in the dashboard.
 | `20261008120000` | ai_catalog (`ai_models`, `ai_routes`, views `ai_usage_stats`, `ai_model_ranking`; staff read `ai_calls`) | **Applied** |
 | `20261011100000` | rate_limits (`private.rate_limit_events`, `private.hit_rate_limit`; access requests 10/hour per account) | **Applied** |
 | `20261011110000` | legal_acceptances (table + RLS, `accept_legal_terms` RPC, sign-up trigger; see auth.md) | **Applied** |
+| `20261011130000` | contracts (templates, contracts, signatures, required tasks, gate helpers, restrictive content policies, private `contracts` bucket, staff + `sign_contract` RPCs; see [contracts.md](./contracts.md)) | **Applied** (through the MCP in parts: `contracts_tables`, `contracts_access_gate`, `contracts_order_form`, `contracts_staff_create_send`, `contracts_staff_manage`, `contracts_publish_template`, `contracts_sign`) |
+| `20261011130100` | contract_templates_seed (Master Services Agreement v1 EN + FR) | **Applied** (`contract_templates_seed_en`, `contract_templates_seed_fr`, `contract_templates_publish_v1`; bodies verified byte-for-byte by SHA-256) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -146,6 +148,7 @@ until ownership is transferred.
 | Bucket | Used for | `file_size_limit` | `allowed_mime_types` | Paths (storage RLS) |
 |---|---|---|---|---|
 | `brand` (public) | avatars, organization logos | 2 MB | `image/png`, `image/jpeg`, `image/webp` | `avatars/<user id>/`, `orgs/<org id>/` |
+| `contracts` (private) | signed contract PDFs | 5 MB | `application/pdf` | `<organization id>/<contract id>.pdf` (members read, owners/admins insert once signed, no update/delete) |
 | `media` (public) | website media library | 10 MB | jpeg, png, webp, gif, avif, pdf, mp4, webm | `<organization id>/<website id>/` (editor+) |
 
 The bucket limits are enforced by Supabase Storage for every client. The dashboard checks
