@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import { FieldGroup } from '@/components/ui/field';
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingButton } from '@/components/ui/loading-button';
@@ -202,29 +202,43 @@ function ContractFormFields({
           }}
         >
           <FieldGroup className='grid gap-4 md:grid-cols-3'>
-            <form.AppField
+            <form.Field
               name='websiteId'
               children={(field) => (
-                <field.SelectField
-                  label={t('website')}
-                  options={[
-                    { value: '', label: t('wholeOrganization') },
-                    ...orgSites.map((w) => ({ value: w.id, label: w.name }))
-                  ]}
-                />
+                <Field>
+                  <FieldLabel htmlFor='contract-website'>{t('website')}</FieldLabel>
+                  <NativeSelect
+                    id='contract-website'
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className='w-full'
+                  >
+                    <NativeSelectOption value=''>{t('wholeOrganization')}</NativeSelectOption>
+                    {orgSites.map((w) => (
+                      <NativeSelectOption key={w.id} value={w.id}>
+                        {w.name}
+                      </NativeSelectOption>
+                    ))}
+                  </NativeSelect>
+                </Field>
               )}
             />
-            <form.AppField
+            <form.Field
               name='locale'
               children={(field) => (
-                <field.SelectField
-                  label={t('locale')}
-                  description={t('localeHint')}
-                  options={[
-                    { value: 'en', label: 'English' },
-                    { value: 'fr', label: 'Français' }
-                  ]}
-                />
+                <Field>
+                  <FieldLabel htmlFor='contract-locale'>{t('locale')}</FieldLabel>
+                  <NativeSelect
+                    id='contract-locale'
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value as 'en' | 'fr')}
+                    className='w-full'
+                  >
+                    <NativeSelectOption value='en'>English</NativeSelectOption>
+                    <NativeSelectOption value='fr'>Français</NativeSelectOption>
+                  </NativeSelect>
+                  <FieldDescription>{t('localeHint')}</FieldDescription>
+                </Field>
               )}
             />
             <form.AppField
@@ -704,16 +718,21 @@ function TemplatesCard() {
             }}
           >
             <FieldGroup className='grid gap-4 md:grid-cols-3'>
-              <form.AppField
+              <form.Field
                 name='locale'
                 children={(field) => (
-                  <field.SelectField
-                    label={t('locale')}
-                    options={[
-                      { value: 'en', label: t('english') },
-                      { value: 'fr', label: t('french') }
-                    ]}
-                  />
+                  <Field>
+                    <FieldLabel htmlFor='template-locale'>{t('locale')}</FieldLabel>
+                    <NativeSelect
+                      id='template-locale'
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value as 'en' | 'fr')}
+                      className='w-full'
+                    >
+                      <NativeSelectOption value='en'>{t('english')}</NativeSelectOption>
+                      <NativeSelectOption value='fr'>{t('french')}</NativeSelectOption>
+                    </NativeSelect>
+                  </Field>
                 )}
               />
               <form.AppField
