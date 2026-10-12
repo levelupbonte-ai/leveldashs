@@ -5,7 +5,11 @@ dashboard, and finish the setup steps LevelUp marks as blocking, before using th
 of the dashboard. Existing clients are never locked unless LevelUp sends them a
 **required** contract or marks a task as blocking.
 
-## Data model (migration `20261011130000_contracts`, seed `20261011130100`)
+## Data model (migration `20261011130000_contracts`, seed `20261011130100`, MSA v2 `20261012130000`)
+
+Template history: **MSA v1** (2026-10-11), **MSA v2** (2026-10-12, non-solicitation
+clause removed, §12 renumbered). New contracts use the newest published version; contracts
+already created keep their frozen copy.
 
 | Table | Content | Access |
 |---|---|---|
