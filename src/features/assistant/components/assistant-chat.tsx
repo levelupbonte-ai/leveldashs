@@ -86,7 +86,7 @@ function ProposalCard({ proposal, canEdit }: { proposal: AssistantProposal; canE
     <Card className='mt-2 gap-3 py-4'>
       <CardHeader className='px-4'>
         <CardTitle className='flex items-center gap-2 text-sm'>
-          <Icons.sparkles className='size-4' aria-hidden />
+          <Icons.starMark className='size-4' aria-hidden />
           {title}
           {applied && <Badge variant='secondary'>{t('appliedBadge')}</Badge>}
         </CardTitle>
@@ -157,7 +157,7 @@ export function AssistantChat() {
         <Card>
           <CardHeader>
             <CardTitle className='flex items-center gap-2 text-base'>
-              <Icons.sparkles className='size-5' aria-hidden />
+              <Icons.starMark className='size-5' aria-hidden />
               {t('title', { name: website.name })}
             </CardTitle>
           </CardHeader>

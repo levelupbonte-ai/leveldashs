@@ -34,7 +34,7 @@ export const navGroups: NavGroup[] = [
       {
         title: 'assistant',
         url: '/dashboard/site/assistant',
-        icon: 'sparkles',
+        icon: 'starMark',
         isActive: false,
         items: [],
         access: { requireWebsite: true }
@@ -198,7 +198,7 @@ export const navGroups: NavGroup[] = [
       {
         title: 'aiChat',
         url: '/dashboard/ai-chat',
-        icon: 'sparkles',
+        icon: 'starMark',
         shortcut: ['a', 'i'],
         isActive: false,
         items: []
