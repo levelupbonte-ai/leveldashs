@@ -24,6 +24,7 @@ interface TurnstileApi {
       theme?: 'auto' | 'light' | 'dark';
       language?: string;
       size?: 'normal' | 'flexible' | 'compact';
+      appearance?: 'always' | 'execute' | 'interaction-only';
     }
   ) => string;
   reset: (widgetId: string) => void;
@@ -81,6 +82,7 @@ export function TurnstileWidget({
   const widgetIdRef = useRef<string | null>(null);
   const onTokenRef = useRef(onToken);
   const [failed, setFailed] = useState(false);
+  const [verified, setVerified] = useState(false);
   const locale = useLocale();
   const t = useTranslations('auth.captcha');
 
@@ -91,6 +93,7 @@ export function TurnstileWidget({
   useImperativeHandle(ref, () => ({
     reset() {
       onTokenRef.current(null);
+      setVerified(false);
       if (widgetIdRef.current && window.turnstile) window.turnstile.reset(widgetIdRef.current);
     }
   }));
@@ -106,9 +109,20 @@ export function TurnstileWidget({
           theme: 'auto',
           language: locale,
           size: 'flexible',
-          callback: (token) => onTokenRef.current(token),
-          'expired-callback': () => onTokenRef.current(null),
-          'error-callback': () => onTokenRef.current(null)
+          // Invisible unless Cloudflare needs the visitor to interact.
+          appearance: 'interaction-only',
+          callback: (token) => {
+            setVerified(true);
+            onTokenRef.current(token);
+          },
+          'expired-callback': () => {
+            setVerified(false);
+            onTokenRef.current(null);
+          },
+          'error-callback': () => {
+            setVerified(false);
+            onTokenRef.current(null);
+          }
         });
       })
       .catch(() => setFailed(true));
@@ -121,8 +135,8 @@ export function TurnstileWidget({
 
   if (!CAPTCHA_ENABLED) return null;
   return (
-    <div className='space-y-1'>
-      <div ref={containerRef} className='min-h-[65px]' />
+    <div className={verified ? 'hidden' : 'space-y-1 empty:hidden'}>
+      <div ref={containerRef} />
       {failed && <p className='text-muted-foreground text-xs'>{t('unavailable')}</p>}
     </div>
   );
