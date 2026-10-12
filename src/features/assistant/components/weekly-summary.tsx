@@ -81,7 +81,7 @@ export function WeeklySummaryCard() {
           {summary.isPending ? (
             <Icons.spinner className='size-4 animate-spin' aria-hidden />
           ) : (
-            <Icons.sparkles className='size-4' aria-hidden />
+            <Icons.starMark className='size-4' aria-hidden />
           )}
           {summary.data ? t('refresh') : t('generate')}
         </Button>

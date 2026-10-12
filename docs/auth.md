@@ -35,7 +35,7 @@ non-static route. It uses `auth.getUser()`, which validates the token with Supab
 
 | Route | What it does |
 |---|---|
-| `/auth/sign-in` | Email + password, the official Google button (Google Identity Services) and "Continue with a passkey" when enabled in Supabase, password reset link |
+| `/auth/sign-in` | Email + password, "Continue with Google" (Google Identity Services popup) and "Continue with a passkey" when enabled in Supabase, password reset link |
 | `/auth/sign-up` | Email + password + full name (stored in `user_metadata.full_name`), Google when enabled |
 | `/auth/verified` | Landing page of the sign-up confirmation link: "Congratulations, your email is verified", go back to the first device or "Continue here" (`next`, default `/auth/onboarding`) |
 | `/auth/pending` | "Your account is being reviewed": one paragraph, the request (business name + date), the typical delay, the e-mail to expect, "Edit request", "Sign out", contact link. Rejected requests: "We couldn’t approve your request", "Contact LevelUp", "Sign out" |
@@ -423,15 +423,31 @@ have no Google button.
 
 ### Google button (Google Identity Services)
 
-The sign-in and sign-up pages render **Google's official "Continue with Google" button**
-(`src/features/auth/components/google-sign-in-button.tsx`, script
-`https://accounts.google.com/gsi/client`). Its popup runs on our own origin, so Google's
-consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project URL.
+The sign-in and sign-up pages show **our own "Continue with Google" button**
+(`src/features/auth/components/google-sign-in-button.tsx`): the theme's outline button
+(`PROVIDER_BUTTON` in `src/features/auth/lib/provider-button.ts`, shared with the passkey
+button), Google's official four-colour "G", translated label. Sign-in still runs through
+**Google Identity Services** (script `https://accounts.google.com/gsi/client`): Google's
+official button is rendered **transparent on top of ours** and receives the click, so the
+popup runs on our own origin and Google's consent screen shows
+`dashboard.levelup-ecosystem.com`, not the Supabase project URL. Hover and focus of the
+invisible button are mirrored on ours (`group/provider`).
+
+Why not Google's button as is: its iframe cannot follow the theme (dark mode is a flat
+grey `filled_black` slab with a white "G" tile, 4 px corners, Google's font, no border),
+so it clashed with the passkey button, and the sign-up "disabled" state could only be a
+60 % opacity on a cross-origin iframe, which looked broken.
 
 - `google.accounts.id.initialize({ client_id, callback, nonce, ux_mode: 'popup',
-  use_fedcm_for_prompt: true, itp_support: true, context })`, then `renderButton` (theme
-  `outline` / `filled_black` with light/dark, `text: 'continue_with'`, `shape:
-  'rectangular'`, width = the auth card, `locale` = dashboard language).
+  use_fedcm_for_prompt: true, itp_support: true, context })`, then `renderButton` (width =
+  the auth card, `locale` = dashboard language, so screen readers get a translated label).
+- **Ready** once Google's button iframe has a size. It never gets one when the origin is
+  not authorized for the client id (Google answers 403) or Google's assets are blocked;
+  after 6 s (or when the script itself fails, 8 s), and before it is ready, a click on our
+  button uses the redirect flow instead.
+- **Sign-up**: until the terms box is ticked the button is disabled (muted "G", lock icon)
+  with "Accept the terms above to continue with Google." underneath; Google's layer is
+  hidden, so it cannot be clicked or focused.
 - **Nonce** (`src/features/auth/lib/google-identity.ts`): 32 random bytes
   (`crypto.getRandomValues`), Google gets the SHA-256 **hex** of the raw value, Supabase
   gets the raw value: `supabase.auth.signInWithIdToken({ provider: 'google', token:
@@ -441,9 +457,9 @@ consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project
   onboarding or the pending page); `lu_last_method = google`; `user_metadata.locale` saved
   if missing.
 - **One Tap** is prompted on the sign-in page only (FedCM), not on sign-up.
-- **Fallback** — if the GIS script cannot load (network, blocker, 8 s timeout), a
-  LevelUp-styled "Continue with Google" button uses the old redirect flow
-  (`signInWithOAuth`, `/auth/callback`), so nobody is stuck.
+- **Fallback** — if GIS is not ready (script or button blocked, origin not allowed), the
+  same button uses the old redirect flow (`signInWithOAuth`, `/auth/callback`), so nobody
+  is stuck.
 - Client id: `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, defaulting to the LevelUp web client
   `338931284223-7smftc9ekset4seun2er2tc3k5cb83p3.apps.googleusercontent.com`
   (`src/lib/auth/google.ts`; it is public, it appears in every Google popup).
@@ -454,9 +470,8 @@ consent screen shows `dashboard.levelup-ecosystem.com`, not the Supabase project
 1. **Google Cloud → Google Auth Platform → Clients →** the web client above →
    **Authorized JavaScript origins**: `https://dashboard.levelup-ecosystem.com` and
    `http://localhost:3000` (development; add preview domains if Google sign-in should work
-   there). Without the dashboard origin the GIS button cannot sign anyone in (Google
-   answers `origin_mismatch` / "The given origin is not allowed"); only a script that
-   fails to load switches to the redirect fallback, so this origin is required. Keep the existing redirect URI
+   there). Without the dashboard origin Google refuses its button (403) and every click
+   falls back to the redirect flow, which shows the Supabase URL; so this origin is required. Keep the existing redirect URI
    `https://rncuhmvykrmtxfzqpitc.supabase.co/auth/v1/callback` for the fallback flow.
 2. **Supabase → Authentication → Providers → Google**: put this client id in
    **Client IDs** (authorized client ids; the web client first if there are several) and

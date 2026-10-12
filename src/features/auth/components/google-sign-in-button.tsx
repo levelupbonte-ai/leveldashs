@@ -1,28 +1,37 @@
 'use client';
 import { useLocale, useTranslations } from 'next-intl';
-import { useTheme } from 'next-themes';
 import { useEffect, useRef, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { GOOGLE_CLIENT_ID } from '@/lib/auth/google';
 import { cn } from '@/lib/utils';
+import { PROVIDER_BUTTON, PROVIDER_BUTTON_COVERED } from '../lib/provider-button';
 import { createNonce, loadGoogleIdentity, type GoogleAccountsId } from '../lib/google-identity';
 
 // GIS accepts a width between 200 and 400 px.
 const clampWidth = (width: number) => Math.round(Math.min(400, Math.max(200, width)));
+// Google's button iframe has no size until its page has loaded; when it never
+// does (origin not authorized for the client id, Google's assets blocked), we
+// use the redirect flow instead.
+const IFRAME_TIMEOUT_MS = 6000;
 
 /**
- * The official "Sign in with Google" button (Google Identity Services). Its
- * popup shows the dashboard's own domain, not the Supabase project URL. On
- * success it hands the ID token and the raw nonce to `onCredential`
- * (`supabase.auth.signInWithIdToken`). If Google's script cannot load
- * (network, blocker), a LevelUp-styled button runs `onFallback` (OAuth redirect)
- * so nobody is stuck.
+ * "Continue with Google": our own button (theme colours, official "G"), so it
+ * matches the passkey button in light and dark mode.
+ *
+ * Sign-in still goes through Google Identity Services: Google's official button
+ * is rendered transparent over ours and receives the click, so the popup runs on
+ * the dashboard's origin (Google shows our domain, not the Supabase project URL)
+ * and returns an ID token bound to a fresh nonce, handed to `onCredential`
+ * (`supabase.auth.signInWithIdToken`). Until that button is ready, or when it
+ * cannot load (network, blocker, origin not allowed), a click on our button runs
+ * `onFallback` (OAuth redirect) so nobody is stuck.
  */
 export function GoogleSignInButton({
   mode,
   oneTap = false,
   disabled = false,
+  locked = false,
   onCredential,
   onFallback,
   className
@@ -31,19 +40,21 @@ export function GoogleSignInButton({
   /** Also show the One Tap prompt (sign-in page only). */
   oneTap?: boolean;
   disabled?: boolean;
+  /** Waiting for a precondition (sign-up terms): shows a lock. */
+  locked?: boolean;
   onCredential: (token: string, rawNonce: string) => void | Promise<void>;
   onFallback: () => void;
   className?: string;
 }) {
   const t = useTranslations('auth.google');
   const locale = useLocale();
-  const { resolvedTheme } = useTheme();
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLDivElement>(null);
+  const gisRef = useRef<HTMLDivElement>(null);
   const nonceRef = useRef<string | null>(null);
   const onCredentialRef = useRef(onCredential);
   const [gis, setGis] = useState<GoogleAccountsId | null>(null);
-  const [failed, setFailed] = useState(false);
+  // Google's button is rendered and sized: it takes the clicks.
+  const [gisReady, setGisReady] = useState(false);
   const [width, setWidth] = useState(0);
   // A new nonce for every attempt: bumping this re-initializes GIS.
   const [attempt, setAttempt] = useState(0);
@@ -56,7 +67,7 @@ export function GoogleSignInButton({
     let active = true;
     loadGoogleIdentity()
       .then((id) => active && setGis(id))
-      .catch(() => active && setFailed(true));
+      .catch(() => undefined);
     return () => {
       active = false;
     };
@@ -74,10 +85,10 @@ export function GoogleSignInButton({
   }, []);
 
   useEffect(() => {
-    if (!gis || !buttonRef.current || !width) return;
+    if (!gis || !gisRef.current || !width) return;
     let cancelled = false;
     void createNonce().then(({ raw, hashed }) => {
-      if (cancelled || !buttonRef.current) return;
+      if (cancelled || !gisRef.current) return;
       nonceRef.current = raw;
       gis.initialize({
         client_id: GOOGLE_CLIENT_ID,
@@ -95,14 +106,14 @@ export function GoogleSignInButton({
           void onCredentialRef.current(response.credential, rawNonce);
         }
       });
-      buttonRef.current.replaceChildren();
-      gis.renderButton(buttonRef.current, {
+      gisRef.current.replaceChildren();
+      // Invisible, so only its size and label matter (label: screen readers).
+      gis.renderButton(gisRef.current, {
         type: 'standard',
-        theme: resolvedTheme === 'dark' ? 'filled_black' : 'outline',
+        theme: 'outline',
         size: 'large',
         text: 'continue_with',
         shape: 'rectangular',
-        logo_alignment: 'center',
         width,
         locale
       });
@@ -111,47 +122,54 @@ export function GoogleSignInButton({
     return () => {
       cancelled = true;
     };
-  }, [gis, width, resolvedTheme, locale, mode, oneTap, attempt]);
+  }, [gis, width, locale, mode, oneTap, attempt]);
+
+  // Ready once Google's iframe has a size; never ready → redirect flow.
+  useEffect(() => {
+    if (!gis || gisReady) return;
+    const started = Date.now();
+    const timer = window.setInterval(() => {
+      const frame = gisRef.current?.querySelector('iframe');
+      if (frame && frame.getBoundingClientRect().width > 0) {
+        setGisReady(true);
+        window.clearInterval(timer);
+      } else if (Date.now() - started > IFRAME_TIMEOUT_MS) {
+        window.clearInterval(timer);
+      }
+    }, 150);
+    return () => window.clearInterval(timer);
+  }, [gis, gisReady]);
 
   // Stop One Tap when leaving the page.
   useEffect(() => () => gis?.cancel(), [gis]);
 
-  if (failed) {
-    return (
+  return (
+    <div ref={wrapperRef} className={cn('group/provider relative w-full', className)}>
       <Button
         variant='outline'
         type='button'
         disabled={disabled}
-        onClick={onFallback}
-        className={cn(
-          'h-10 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]',
-          className
-        )}
+        // Google's button on top takes the clicks and the focus.
+        tabIndex={gisReady ? -1 : undefined}
+        aria-hidden={gisReady || undefined}
+        onClick={gisReady ? undefined : onFallback}
+        className={cn(PROVIDER_BUTTON, gisReady && !disabled && PROVIDER_BUTTON_COVERED)}
       >
-        <Icons.googleColor size={20} />
+        <Icons.googleColor size={18} className={cn(locked && 'grayscale')} />
         {t('continue')}
+        {locked && (
+          <Icons.lock className='text-muted-foreground absolute right-3 size-4' aria-hidden />
+        )}
       </Button>
-    );
-  }
-
-  return (
-    <div
-      ref={wrapperRef}
-      className={cn(
-        'relative flex min-h-10 w-full items-center justify-center',
-        disabled && 'pointer-events-none opacity-60',
-        className
-      )}
-      aria-busy={!gis}
-    >
-      {!gis && (
+      {gis && (
         <div
-          role='status'
-          className='bg-muted/60 absolute inset-0 animate-pulse rounded-md border'
-          aria-label={t('loading')}
+          ref={gisRef}
+          className={cn(
+            'absolute inset-0 z-10 flex items-center justify-center overflow-hidden rounded-lg opacity-0',
+            (!gisReady || disabled) && 'pointer-events-none invisible'
+          )}
         />
       )}
-      <div ref={buttonRef} className='flex w-full justify-center [color-scheme:normal]' />
     </div>
   );
 }

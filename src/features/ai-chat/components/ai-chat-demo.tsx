@@ -77,7 +77,7 @@ export function AiChatDemo() {
       <div className='bg-card absolute inset-0 mx-auto flex w-full max-w-2xl flex-col overflow-hidden rounded-xl border'>
         <div className='flex shrink-0 items-center gap-2 border-b px-4 py-3'>
           <div className='bg-primary/10 text-primary flex size-8 items-center justify-center rounded-lg'>
-            <Icons.sparkles className='size-4' />
+            <Icons.starMark className='size-4' />
           </div>
           <div className='min-w-0'>
             <p className='text-sm font-medium'>Release Assistant</p>
@@ -94,7 +94,7 @@ export function AiChatDemo() {
               <MessageScrollerContent className='px-4 py-4'>
                 {messages.length === 0 ? (
                   <div className='text-muted-foreground flex flex-1 flex-col items-center justify-center gap-2 text-center text-sm'>
-                    <Icons.sparkles className='size-8' />
+                    <Icons.starMark className='size-8' />
                     <p>
                       Press <span className='text-foreground font-medium'>Send</span> to stream the
                       conversation.
@@ -121,7 +121,7 @@ export function AiChatDemo() {
                             {isUser ? (
                               <Icons.user className='size-4' />
                             ) : (
-                              <Icons.sparkles className='size-4' />
+                              <Icons.starMark className='size-4' />
                             )}
                           </MessageAvatar>
                           <MessageContent>
@@ -144,7 +144,7 @@ export function AiChatDemo() {
                                 return (
                                   <Marker key={key}>
                                     <MarkerIcon>
-                                      <Icons.sparkles />
+                                      <Icons.starMark />
                                     </MarkerIcon>
                                     <MarkerContent className='italic'>{part.text}</MarkerContent>
                                   </Marker>
@@ -166,7 +166,7 @@ export function AiChatDemo() {
                   <MessageScrollerItem messageId='pending'>
                     <Message align='start'>
                       <MessageAvatar className='bg-primary/10 text-primary size-8 self-start'>
-                        <Icons.sparkles className='size-4' />
+                        <Icons.starMark className='size-4' />
                       </MessageAvatar>
                       <MessageContent>
                         <Marker>

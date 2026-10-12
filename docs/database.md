@@ -32,6 +32,7 @@ the schema from application code or by hand in the dashboard.
 | `20261011110000` | legal_acceptances (table + RLS, `accept_legal_terms` RPC, sign-up trigger; see auth.md) | **Applied** |
 | `20261011130000` | contracts (templates, contracts, signatures, required tasks, gate helpers, restrictive content policies, private `contracts` bucket, staff + `sign_contract` RPCs; see [contracts.md](./contracts.md)) | **Applied** (through the MCP in parts: `contracts_tables`, `contracts_access_gate`, `contracts_order_form`, `contracts_staff_create_send`, `contracts_staff_manage`, `contracts_publish_template`, `contracts_sign`) |
 | `20261011130100` | contract_templates_seed (Master Services Agreement v1 EN + FR) | **Applied** (`contract_templates_seed_en`, `contract_templates_seed_fr`, `contract_templates_publish_v1`; bodies verified byte-for-byte by SHA-256) |
+| `20261012130000` | msa_v2 (Master Services Agreement v2 EN + FR: v1 without the §12.1 non-solicitation clause, §12 renumbered) | **Applied** (`msa_v2`, derived from v1 in SQL; bodies checked by MD5 against this file) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /

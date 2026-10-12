@@ -22,20 +22,17 @@ import { userLocale } from '@/i18n/config';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { markPendingMethod, saveLastMethod, useLastMethod } from '../lib/last-method';
+import { PROVIDER_BUTTON } from '../lib/provider-button';
 import { AuthSteps } from './auth-steps';
 import { GoogleSignInButton } from './google-sign-in-button';
 import { LegalConsentLabel } from './legal-consent-label';
 import { SignupEmailSent } from './signup-email-sent';
 import { TurnstileWidget, useCaptcha } from './turnstile';
 
-// Passkey button: outline, full width, 40 px, the height of Google's "large" button.
-const PROVIDER_BUTTON =
-  'h-10 w-full gap-3 border-[#747775] bg-white text-[15px] font-medium text-[#1F1F1F] shadow-sm hover:bg-[#F8F9FA] hover:text-[#1F1F1F] dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1E1F20] dark:hover:text-[#E3E3E3]';
-
 function LastUsedBadge() {
   const t = useTranslations('auth.form');
   return (
-    <span className='bg-primary text-primary-foreground pointer-events-none absolute -top-2 right-3 rounded-full px-2 py-0.5 text-[10px] leading-none font-medium shadow-sm'>
+    <span className='bg-primary text-primary-foreground pointer-events-none absolute -top-2 right-3 z-20 rounded-full px-2 py-0.5 text-[10px] leading-none font-medium shadow-sm'>
       {t('lastUsed')}
     </span>
   );
@@ -346,11 +343,12 @@ export default function UserAuthForm({
   );
 
   const googleButton = (
-    /* Official Google Identity Services button (falls back to our own if blocked). */
+    /* Our button, Google Identity Services popup underneath (redirect flow if blocked). */
     <GoogleSignInButton
       mode={mode}
       oneTap={mode === 'sign-in'}
       disabled={pending || googleLocked}
+      locked={googleLocked}
       onCredential={signInWithGoogleToken}
       onFallback={signInWithGoogleRedirect}
     />
@@ -407,7 +405,8 @@ export default function UserAuthForm({
                 {googleButton}
                 {mode === 'sign-in' && lastMethod === 'google' && <LastUsedBadge />}
                 {googleLocked && (
-                  <p className='text-muted-foreground mt-1.5 text-center text-xs'>
+                  <p className='text-muted-foreground mt-2 flex items-center justify-center gap-1.5 text-xs'>
+                    <Icons.arrowUp className='size-3.5 shrink-0' aria-hidden />
                     {tl('googleNeedsAccept')}
                   </p>
                 )}

@@ -148,6 +148,42 @@ function LevelUpStar({ size = 24, className, title }: IconProps) {
   );
 }
 
+// LevelUp star, monochrome (currentColor) for UI icons: the mark's silhouette a
+// shade lighter, the shaded facets on top at full strength, so it still reads as
+// the faceted star at 16 px.
+const STAR_OUTLINE =
+  '256,38 310,192 484,204 344,280 397,470 256,362 115,470 168,280 28,204 202,192';
+const STAR_SHADED_FACETS = STAR_FACETS.map(([points]) => points).filter(
+  (points) =>
+    ![
+      '256,278 256,38 202,192',
+      '256,278 28,204 202,192',
+      '256,278 168,280 28,204',
+      '256,278 115,470 168,280'
+    ].includes(points)
+);
+
+function LevelUpStarMark({ size = 24, className, title }: IconProps) {
+  return (
+    <svg
+      xmlns='http://www.w3.org/2000/svg'
+      viewBox='20 30 472 448'
+      width={size}
+      height={size}
+      className={className}
+      fill='currentColor'
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : true}
+    >
+      {title && <title>{title}</title>}
+      <polygon points={STAR_OUTLINE} fillOpacity={0.5} />
+      {STAR_SHADED_FACETS.map((points) => (
+        <polygon key={points} points={points} />
+      ))}
+    </svg>
+  );
+}
+
 // Official multicolor Google "G" (Google Sign-In branding guidelines): never recolor.
 function GoogleG({ size = 18, className }: IconProps) {
   return (
@@ -245,6 +281,7 @@ export const Icons = {
   hourglass: IconHourglass,
   twitter: IconBrandTwitter,
   logo: LevelUpStar,
+  starMark: LevelUpStarMark,
 
   // Communication
   chat: IconMessage,
