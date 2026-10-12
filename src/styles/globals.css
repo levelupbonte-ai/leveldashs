@@ -639,3 +639,184 @@
     -webkit-text-fill-color: currentColor;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Auth billboard (left panel of the sign-in / sign-up pages, desktop only).
+   Violet is the LevelUp brand colour whatever the dashboard theme; neutrals
+   come from the theme tokens. Motion is transform / opacity only.
+--------------------------------------------------------------------------- */
+.auth-billboard {
+  --bb-violet: oklch(0.56 0.24 293);
+  --bb-violet-soft: oklch(0.74 0.16 295);
+}
+
+.dark .auth-billboard {
+  --bb-violet: oklch(0.62 0.23 293);
+}
+
+.bb-aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  mask-image: linear-gradient(to right, black 62%, transparent);
+}
+
+.bb-blob {
+  position: absolute;
+  border-radius: 9999px;
+  opacity: 0.4;
+  will-change: transform;
+  animation: bb-drift 26s ease-in-out infinite alternate;
+}
+
+.dark .bb-blob {
+  opacity: 0.5;
+}
+
+@keyframes bb-drift {
+  from {
+    transform: translate3d(-4%, -3%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(5%, 4%, 0) scale(1.08);
+  }
+}
+
+.bb-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(
+      to right,
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--foreground) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 75% 60% at 62% 32%, black, transparent 75%);
+}
+
+.bb-fade-x {
+  mask-image: linear-gradient(to right, transparent, black 9%, black 91%, transparent);
+}
+
+.bb-frame {
+  box-shadow:
+    0 18px 40px -18px color-mix(in oklab, var(--bb-violet) 60%, transparent),
+    0 2px 10px -2px rgb(0 0 0 / 0.12);
+}
+
+.bb-viewport {
+  container-type: size;
+}
+
+.bb-card[data-current] .bb-shot {
+  transform: translateY(calc(var(--bb-scroll, 0) * 0.85 * (100cqh - 100%)));
+}
+
+.bb-card:not([data-current]) .bb-shot {
+  transition: transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.bb-caption {
+  transition: opacity 500ms ease;
+}
+
+.bb-card:not([data-current]) .bb-caption {
+  opacity: 0;
+}
+
+/* A card that wraps from one side to the other fades back in instead of crossing. */
+.bb-card-wrap {
+  animation: bb-wrap-in 900ms ease both;
+}
+
+@keyframes bb-wrap-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.bb-progress {
+  background: var(--bb-violet);
+}
+
+.bb-shimmer {
+  background: linear-gradient(
+    100deg,
+    rgb(120 110 140 / 0.12) 30%,
+    rgb(150 120 255 / 0.28) 50%,
+    rgb(120 110 140 / 0.12) 70%
+  );
+  background-size: 220% 100%;
+  animation: bb-shimmer 1.6s linear infinite;
+}
+
+@keyframes bb-shimmer {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+.bb-caret {
+  display: inline-block;
+  width: 1px;
+  height: 1.05em;
+  margin-left: 1px;
+  vertical-align: -2px;
+  background: #a78bfa;
+  animation: bb-blink 1s steps(2, start) infinite;
+}
+
+@keyframes bb-blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+.bb-dots i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: #8b5cf6;
+  animation: bb-dot 1.2s ease-in-out infinite;
+}
+
+.bb-dots i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bb-dots i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bb-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-blob,
+  .bb-shimmer,
+  .bb-caret,
+  .bb-dots i,
+  .bb-card-wrap {
+    animation: none;
+  }
+}

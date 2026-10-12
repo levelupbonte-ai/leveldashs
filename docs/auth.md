@@ -504,3 +504,13 @@ compared locally. A match shows "Ce mot de passe est trop courant. Choisissez-en
 autre." If the API fails or takes more than 3 s the password is accepted (fail open).
 The Content-Security-Policy allows `api.pwnedpasswords.com`, the Supabase URL and
 `challenges.cloudflare.com` in `connect-src` (see deployment.md).
+
+## Sign-in / sign-up billboard (desktop left panel)
+
+The left panel of `AuthShell` (`src/features/auth/components/auth-shell.tsx`) is the LevelUp billboard, visible from `lg` up only:
+
+- **Server-rendered**: tagline, value points, the two links (templates, LevelStudio) and the aurora/grid backdrop. Copy lives in `messages/*.json` under `auth.shell`.
+- **Lazy client chunks** (`billboard/billboard-slot.tsx`): the particle star (`particle-star.tsx`, ported from the showcase) and the rotating deck (`showcase-deck.tsx`: real templates in `template-carousel.tsx`, LevelStudio AI demo in `studio-demo.tsx`). They mount only when `(min-width: 1024px)` matches and the browser is idle, so phones and tablets never download them and the form is never delayed.
+- **Motion**: one `SceneClock` drives the deck; transforms/opacity only; paused off screen and in hidden tabs; `prefers-reduced-motion` shows the static star, the first template and the finished demo.
+- **Template screenshots**: `public/billboard/*.webp` (about 880 px wide, quality ~64, under 200 KB in total). To refresh one, re-capture the template's desktop home page, crop the top 1440x1800 and convert to webp at the same width, then keep the file name.
+- **Adding a template**: add an entry to `TEMPLATES` in `template-carousel.tsx` and its name/label in `messages/*.json` (`tpl*` keys); the carousel timing adapts to the count.
