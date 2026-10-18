@@ -97,6 +97,13 @@ rate-limit (5/hour per contact, 300/hour per site) and return ticket codes
 instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 `PT409`, `PT429`).
 
+## Showcase CMS (showcase_cms)
+
+`showcase_templates`, `showcase_projects` and `showcase_sections` drive the
+LevelUp showcase site (feature `showcase_cms`): same tenant model and RLS as
+the content tables, exposed under `showcase` in `get_site_bundle`, revalidate
+trigger on every write. See [showcase-cms.md](./showcase-cms.md).
+
 ## AI catalog and usage (ai_catalog)
 
 | Object | Content | Access |
