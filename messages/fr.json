@@ -116,7 +116,10 @@
       "notifications": "Notifications",
       "billing": "Facturation",
       "home": "Accueil",
-      "contract": "Contrat"
+      "contract": "Contrat",
+      "showcaseTemplates": "Modèles",
+      "showcaseCaseStudies": "Études de cas",
+      "showcaseSections": "Sections des pages"
     }
   },
   "admin": {
@@ -999,7 +1002,15 @@
       "notesDescription": "Notes internes, visibles uniquement par votre équipe.",
       "loading": "Chargement…",
       "loadMore": "Charger plus",
-      "invalidJson": "Format invalide : vérifiez les guillemets, virgules et accolades."
+      "invalidJson": "Format invalide : vérifiez les guillemets, virgules et accolades.",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "remove": "Retirer",
+      "addImage": "Ajouter",
+      "orderSaved": "Ordre enregistré",
+      "hiddenOnSite": "Masquée sur le site",
+      "liveHint": "Les modifications apparaissent sur le site en quelques secondes.",
+      "openSite": "Ouvrir {domain}"
     },
     "validation": {
       "https": "Lien https:// requis.",
@@ -1012,7 +1023,8 @@
     "status": {
       "published": "Publié",
       "draft": "Brouillon",
-      "archived": "Archivé"
+      "archived": "Archivé",
+      "hidden": "Masqué"
     },
     "commonFields": {
       "status": "Statut",
@@ -1113,6 +1125,144 @@
           "expires_at": "Expire le"
         },
         "hints": {}
+      },
+      "templates": {
+        "title": "Modèles",
+        "description": "Les modèles de sites de démo de l’accueil et de /projects.",
+        "addTitle": "Ajouter un modèle",
+        "empty": "Ajoutez votre premier modèle : il apparaît sur le site une fois publié.",
+        "fields": {
+          "name": "Nom",
+          "url": "Lien de la démo",
+          "domain": "Domaine affiché",
+          "category_en": "Catégorie",
+          "tagline_en": "Accroche",
+          "description_en": "Description",
+          "features_en": "Points forts",
+          "category_fr": "Catégorie",
+          "tagline_fr": "Accroche",
+          "description_fr": "Description",
+          "features_fr": "Points forts",
+          "desktop_image": "Capture ordinateur",
+          "mobile_image": "Capture téléphone",
+          "featured_on_home": "Afficher sur l’accueil",
+          "layout": "Mise en page",
+          "animation": "Animation",
+          "accent": "Couleur d’accent"
+        },
+        "hints": {
+          "url": "Lien https de la démo, ouvert dans un nouvel onglet.",
+          "domain": "Affiché dans le cadre du navigateur. Vide : le domaine du lien.",
+          "features_en": "Trois points courts, c’est l’idéal. Appuyez sur Entrée après chacun.",
+          "features_fr": "Les mêmes points, en français.",
+          "desktop_image": "1440 × 900 px (16:10), WebP ou JPEG : le haut de la page est affiché.",
+          "mobile_image": "Capture téléphone, 780 × 1688 px (écran 390 × 844 en 2×).",
+          "status": "Publié : sur le site. Brouillon : en préparation. Masqué : conservé, non affiché.",
+          "featured_on_home": "Désactivé : seulement sur /projects.",
+          "layout": "Présentation sur l’accueil. Mise en avant : une grande rangée, en alternance. Image à gauche / à droite : une grande rangée avec l’image de ce côté. Bande horizontale : les modèles en bande consécutifs défilent de côté sur grand écran. Carte : une carte compacte. /projects affiche toujours des cartes.",
+          "animation": "La façon dont l’image entre à l’écran pendant le défilement.",
+          "accent": "Couleur du badge, des puces et des liens de cet élément. Automatique : la couleur de la page.",
+          "sort_order": "Les plus petits nombres apparaissent en premier. Vous pouvez aussi utiliser les flèches de la liste."
+        }
+      },
+      "case-studies": {
+        "title": "Études de cas",
+        "description": "Projets clients : la sélection de l’accueil, la liste /projects et les pages d’étude de cas.",
+        "addTitle": "Ajouter un projet",
+        "empty": "Ajoutez votre premier projet : il apparaît sur le site une fois publié.",
+        "fields": {
+          "name": "Nom du projet",
+          "url": "Site ou page en ligne",
+          "domain": "Domaine affiché",
+          "year": "Année",
+          "case_study": "Page d’étude de cas",
+          "label_en": "Surtitre",
+          "summary_en": "Résumé",
+          "industry_en": "Secteur",
+          "location_en": "Lieu",
+          "project_status_en": "Statut du projet",
+          "scope_en": "Périmètre",
+          "what_we_built_en": "Ce que nous avons réalisé",
+          "tags_en": "Étiquettes de l’accueil",
+          "steps_en": "Étapes (facultatif)",
+          "label_fr": "Surtitre",
+          "summary_fr": "Résumé",
+          "industry_fr": "Secteur",
+          "location_fr": "Lieu",
+          "project_status_fr": "Statut du projet",
+          "scope_fr": "Périmètre",
+          "what_we_built_fr": "Ce que nous avons réalisé",
+          "tags_fr": "Étiquettes de l’accueil",
+          "steps_fr": "Étapes (facultatif)",
+          "card_title": "Titre sur /projects",
+          "card_badge_en": "Badge (anglais)",
+          "card_description_en": "Description (anglais)",
+          "card_cta_en": "Texte du bouton (anglais)",
+          "card_badge_fr": "Badge (français)",
+          "card_description_fr": "Description (français)",
+          "card_cta_fr": "Texte du bouton (français)",
+          "desktop_image": "Capture ordinateur",
+          "mobile_image": "Capture téléphone (page entière)",
+          "cover_image": "Image de la liste /projects",
+          "gallery_images": "Galerie",
+          "image_alt_en": "Description de la capture ordinateur (anglais)",
+          "image_alt_fr": "Description de la capture ordinateur (français)",
+          "mobile_alt_en": "Description de la capture téléphone (anglais)",
+          "mobile_alt_fr": "Description de la capture téléphone (français)",
+          "gallery_captions_en": "Légendes de la galerie (anglais)",
+          "gallery_captions_fr": "Légendes de la galerie (français)",
+          "featured_on_home": "Afficher sur l’accueil",
+          "layout": "Mise en page",
+          "animation": "Animation",
+          "accent": "Couleur d’accent"
+        },
+        "hints": {
+          "url": "Lien https du site, ou une page de ce site comme /projects/mon-projet.",
+          "domain": "Affiché dans le cadre du navigateur et sur le lien Visiter.",
+          "case_study": "Crée la page /projects/<slug> (fiche, galerie, étapes). Le slug vient du nom à la création du projet.",
+          "label_en": "Courte ligne au-dessus du titre, par ex. « Barbier · San Diego, Californie ».",
+          "project_status_en": "Par exemple : En ligne.",
+          "tags_en": "Deux ou trois étiquettes courtes, affichées sur l’accueil.",
+          "steps_en": "Une étape par ligne, sous la forme « Titre : texte ». Vide : les quatre étapes standard.",
+          "card_title": "Vide : le nom du projet.",
+          "desktop_image": "1440 × 900 px (16:10), WebP ou JPEG.",
+          "mobile_image": "Capture de page entière, 440 px de large, toute hauteur : elle défile dans le téléphone.",
+          "cover_image": "Image large de la liste /projects, environ 1278 × 596 px. Vide : la capture ordinateur.",
+          "gallery_images": "Images supplémentaires de l’étude de cas, au moins 1200 px de large.",
+          "gallery_captions_en": "Une légende par image de la galerie, dans le même ordre.",
+          "status": "Publié : sur le site. Brouillon : en préparation. Masqué : conservé, non affiché.",
+          "featured_on_home": "Affiché dans « Réalisations » sur l’accueil.",
+          "layout": "Mise en avant : la grande scène au défilement sur /projects et une grande rangée sur l’accueil. Image à gauche / à droite : une grande rangée avec l’image de ce côté. Bande horizontale : les projets en bande consécutifs défilent de côté sur grand écran. Carte : une carte compacte.",
+          "animation": "La façon dont l’image entre à l’écran pendant le défilement.",
+          "accent": "Couleur du badge, des puces et des liens de cet élément. Automatique : la couleur de la page.",
+          "sort_order": "Les plus petits nombres apparaissent en premier. Vous pouvez aussi utiliser les flèches de la liste."
+        }
+      },
+      "page-sections": {
+        "title": "Sections des pages",
+        "description": "Affichez, masquez et réordonnez les sections de chaque page, modifiez leurs titres et choisissez leur animation.",
+        "addTitle": "Ajouter une section",
+        "empty": "Les sections de chaque page sont créées avec le site.",
+        "fields": {
+          "page": "Page",
+          "section_key": "Section",
+          "enabled": "Affichée sur le site",
+          "eyebrow_en": "Surtitre",
+          "title_en": "Titre",
+          "body_en": "Texte",
+          "eyebrow_fr": "Surtitre",
+          "title_fr": "Titre",
+          "body_fr": "Texte",
+          "animation": "Animation d’entrée"
+        },
+        "hints": {
+          "section_key": "Chaque page a un ensemble fixe de sections.",
+          "enabled": "Désactivé : la section n’est pas affichée.",
+          "eyebrow_en": "Petite ligne au-dessus du titre. Vide : le texte intégré. Seuls les textes affichés par la section sont utilisés.",
+          "title_en": "Une deuxième ligne s’affiche en gris sur les sections qui en ont une. Vide : le texte intégré.",
+          "animation": "Comme prévu : l’animation propre à la section. Les autres choix ajoutent une entrée à toute la section ; Aucune l’affiche sans apparition.",
+          "sort_order": "Les plus petits nombres apparaissent en premier dans la page. Vous pouvez aussi utiliser les flèches."
+        }
       }
     },
     "appointments": {
@@ -1254,6 +1404,91 @@
       "allOrigins": "Tous les domaines (non restreint).",
       "serverKeysTitle": "Clés serveur",
       "serverKeysDescription": "Pour connecter un back-office ou une application à LevelUp côté serveur, demandez une clé secrète à LevelUp. Elle ne doit jamais apparaître dans le code d’une page web."
+    },
+    "fieldGroups": {
+      "general": "Général",
+      "english": "Texte en anglais",
+      "french": "Texte en français",
+      "images": "Images",
+      "card": "Carte de la page Projets",
+      "display": "Affichage"
+    },
+    "fieldOptions": {
+      "layout": {
+        "spotlight": "Mise en avant (grand)",
+        "card": "Carte",
+        "band": "Bande horizontale",
+        "split-left": "Image à gauche",
+        "split-right": "Image à droite"
+      },
+      "animation": {
+        "rise": "Montée",
+        "clip": "Lever de rideau",
+        "tilt": "Inclinaison",
+        "parallax": "Profondeur / parallaxe",
+        "none": "Aucune"
+      },
+      "sectionAnimation": {
+        "auto": "Comme prévu",
+        "rise": "Montée",
+        "clip": "Lever de rideau",
+        "tilt": "Inclinaison",
+        "parallax": "Profondeur / parallaxe",
+        "none": "Aucune"
+      },
+      "accent": {
+        "auto": "Couleur de la page (automatique)",
+        "home": "Violet (accueil)",
+        "services": "Émeraude (services)",
+        "projects": "Saphir (projets)",
+        "studio": "Indigo (LevelStudio)",
+        "pricing": "Or champagne (tarifs)",
+        "about": "Terre cuite (à propos)",
+        "faq": "Prune (FAQ)",
+        "contact": "Rose (contact)",
+        "legal": "Graphite (juridique)"
+      },
+      "page": {
+        "home": "Accueil",
+        "projects": "Projets",
+        "services": "Services",
+        "studio": "LevelStudio",
+        "about": "À propos",
+        "pricing": "Tarifs",
+        "faq": "FAQ",
+        "contact": "Contact"
+      },
+      "section": {
+        "hero": "Haut de page",
+        "capabilities": "Savoir-faire",
+        "how-it-works": "Comment ça marche",
+        "work": "Réalisations",
+        "templates": "Modèles",
+        "ecosystem": "Écosystème",
+        "pricing": "Tarifs",
+        "cta": "Appel à l’action",
+        "header": "En-tête de page",
+        "list": "Liste des projets",
+        "next": "Votre projet pourrait être le prochain",
+        "concepts": "Concepts et prototypes",
+        "booking": "Sites avec réservation",
+        "security": "Vérifications de sécurité",
+        "care": "Plans de maintenance",
+        "creators": "Sites de créateurs et portfolios",
+        "how": "Comment ça marche",
+        "features": "Ce que vous obtenez",
+        "questions": "Questions",
+        "story": "Histoire et principes",
+        "how-we-build": "Notre façon de travailler",
+        "plans": "Formules",
+        "comparison": "Tableau comparatif",
+        "faq": "Questions et réponses",
+        "reviews": "Avis clients",
+        "contact": "Formulaire et coordonnées"
+      }
+    },
+    "fieldBadges": {
+      "featured_on_home": "Accueil"
     }
   },
   "assistant": {

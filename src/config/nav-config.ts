@@ -100,7 +100,25 @@ export const navGroups: NavGroup[] = [
             icon: 'speakerphone',
             access: { feature: ['announcements', 'promotions', 'blog'] }
           },
-          { title: 'faq', url: '/dashboard/site/faq', icon: 'help' }
+          { title: 'faq', url: '/dashboard/site/faq', icon: 'help' },
+          {
+            title: 'showcaseTemplates',
+            url: '/dashboard/site/templates',
+            icon: 'template',
+            access: { feature: 'showcase_cms' }
+          },
+          {
+            title: 'showcaseCaseStudies',
+            url: '/dashboard/site/case-studies',
+            icon: 'briefcase',
+            access: { feature: 'showcase_cms' }
+          },
+          {
+            title: 'showcaseSections',
+            url: '/dashboard/site/page-sections',
+            icon: 'layoutRows',
+            access: { feature: 'showcase_cms' }
+          }
         ]
       },
       {

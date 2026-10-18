@@ -45,10 +45,9 @@ export async function listCollection(
   def: CollectionDef,
   websiteId: string
 ): Promise<ContentRow[]> {
-  const { data, error } = await db
-    .from(def.table)
-    .select('*')
-    .eq('website_id', websiteId)
+  let query = db.from(def.table).select('*').eq('website_id', websiteId);
+  if (def.groupBy) query = query.order(def.groupBy, { ascending: true });
+  const { data, error } = await query
     .order(def.orderBy.column, { ascending: def.orderBy.ascending })
     .order('created_at', { ascending: true })
     .limit(500);
@@ -114,6 +113,25 @@ export async function updateCollectionItem(
     .single();
   if (error) fail(error);
   return data as ContentRow;
+}
+
+/**
+ * Saves a new display order: `ids` in their new order get sort_order 10, 20, …
+ * Only rows whose position changed are written (each write pings the site).
+ */
+export async function reorderCollection(
+  db: SupabaseClient,
+  def: CollectionDef,
+  rows: { id: string; sort_order: number }[]
+) {
+  const changed = rows
+    .map((row, i) => ({ id: row.id, sort_order: (i + 1) * 10, before: row.sort_order }))
+    .filter((row) => row.sort_order !== row.before);
+  const results = await Promise.all(
+    changed.map((row) => db.from(def.table).update({ sort_order: row.sort_order }).eq('id', row.id))
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) fail(failed.error);
 }
 
 export async function deleteCollectionItem(db: SupabaseClient, def: CollectionDef, id: string) {

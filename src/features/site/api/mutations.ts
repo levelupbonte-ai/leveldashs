@@ -10,6 +10,7 @@ import {
   createCollectionItem,
   deleteCollectionItem,
   deleteMedia,
+  reorderCollection,
   saveSetting,
   updateAppointment,
   updateCollectionItem,
@@ -45,6 +46,16 @@ export function useSiteMutations(scope: SiteScope) {
         id
           ? updateCollectionItem(db, def, id, values)
           : createCollectionItem(db, def, scope, values),
+      ...common
+    }),
+    reorderItems: useMutation({
+      mutationFn: ({
+        def,
+        rows
+      }: {
+        def: CollectionDef;
+        rows: { id: string; sort_order: number }[];
+      }) => reorderCollection(db, def, rows),
       ...common
     }),
     deleteItem: useMutation({

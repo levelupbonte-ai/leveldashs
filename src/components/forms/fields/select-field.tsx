@@ -35,6 +35,8 @@ export function SelectField({
       </FieldLabel>
       <Select
         name={field.name}
+        // Lets the trigger show the option's label instead of its raw value.
+        items={options}
         value={field.state.value}
         onValueChange={(value) => field.handleChange(value ?? '')}
       >
