@@ -1,6 +1,7 @@
 'use client';
 
 import { Icons } from '@/components/icons';
+import { mailtoHref, telHref } from '@/lib/validation/sanitize';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -113,22 +114,28 @@ function Submissions({ view }: { view: SubmissionView }) {
                     </span>
                   </div>
                   <div className='text-muted-foreground flex flex-wrap gap-x-4 text-sm'>
-                    {s.email && (
-                      <a
-                        className='hover:text-primary underline-offset-4 hover:underline'
-                        href={`mailto:${s.email}`}
-                      >
-                        {s.email}
-                      </a>
-                    )}
-                    {s.phone && (
-                      <a
-                        className='hover:text-primary underline-offset-4 hover:underline'
-                        href={`tel:${s.phone}`}
-                      >
-                        {s.phone}
-                      </a>
-                    )}
+                    {s.email &&
+                      (mailtoHref(s.email) ? (
+                        <a
+                          className='hover:text-primary underline-offset-4 hover:underline'
+                          href={mailtoHref(s.email)!}
+                        >
+                          {s.email}
+                        </a>
+                      ) : (
+                        <span>{s.email}</span>
+                      ))}
+                    {s.phone &&
+                      (telHref(s.phone) ? (
+                        <a
+                          className='hover:text-primary underline-offset-4 hover:underline'
+                          href={telHref(s.phone)!}
+                        >
+                          {s.phone}
+                        </a>
+                      ) : (
+                        <span>{s.phone}</span>
+                      ))}
                   </div>
                   {s.message && <p className='text-sm whitespace-pre-wrap'>{s.message}</p>}
                   {extraFields(s.data).length > 0 && (

@@ -344,11 +344,20 @@
     "passwordMax": "Use {max} characters or fewer.",
     "passwordsMatch": "Passwords don’t match.",
     "commonPassword": "This password is too common. Please choose another one.",
-    "url": "Enter a valid URL (https://…).",
+    "url": "Enter a valid link (https://…).",
     "phone": "Enter a valid phone number.",
     "code": "Enter the 6-digit code.",
     "maxLength": "{max} characters maximum.",
-    "invalidJson": "Invalid JSON."
+    "invalidJson": "Invalid JSON.",
+    "minLength": "Use at least {min} characters.",
+    "maxItems": "{max} items maximum.",
+    "noHtml": "HTML tags aren’t allowed here.",
+    "slug": "Use lowercase letters, digits and dashes only.",
+    "color": "Enter a colour such as #1a2b3c.",
+    "date": "Enter a valid date.",
+    "choice": "Choose one of the options.",
+    "invalid": "This value isn’t valid.",
+    "unsafeContent": "This content contains code or a link that isn’t allowed ({path})."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
@@ -1018,7 +1027,9 @@
       "amount": "Enter a valid amount.",
       "required": "Required",
       "date": "Enter a valid date.",
-      "tooLong": "Too long."
+      "tooLong": "Too long.",
+      "unsafeJson": "This content contains code or a link that isn’t allowed ({path}).",
+      "origin": "Each domain must look like https://example.com (one per line)."
     },
     "status": {
       "published": "Published",
@@ -1529,7 +1540,8 @@
       "generate": "Generate",
       "limit": "You’ve reached today’s AI limit. Please try again tomorrow.",
       "unavailable": "The summary is temporarily unavailable. Please try again in a moment."
-    }
+    },
+    "refused": "I can’t share that. I can help you with your website and your dashboard: what would you like to do?"
   },
   "forms": {
     "selectOption": "Select an option",

@@ -12,6 +12,7 @@ import { useMemo, useState } from 'react';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { createClientSite } from '../api/clients';
 import { adminInsightKeys, featuresQueryOptions } from '../api/queries';
 
@@ -19,40 +20,24 @@ export function NewClientForm() {
   const t = useTranslations('admin.newClient');
   const tv = useTranslations('validation');
   const errorMessage = useErrorMessage();
+  const f = useFields();
   const schema = useMemo(
     () =>
       z.object({
-        organizationName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('nameRequired') })
-          .max(120),
-        websiteName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('nameRequired') })
-          .max(120),
-        primaryDomain: z
-          .string()
-          .trim()
+        organizationName: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') }),
+        websiteName: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') }),
+        primaryDomain: f
+          .text(260)
           .refine((v) => v === '' || /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}\/?$/i.test(v), {
             message: t('invalidDomain')
           }),
-        siteType: z
-          .string()
-          .trim()
-          .refine((v) => v === '' || /^[a-z][a-z0-9_]{1,47}$/.test(v), {
-            message: t('invalidSiteType')
-          }),
-        features: z.array(z.string()),
-        ownerEmail: z
-          .string()
-          .trim()
-          .refine((v) => v === '' || z.string().email().safeParse(v).success, {
-            message: tv('email')
-          })
+        siteType: f.text(48).refine((v) => v === '' || /^[a-z][a-z0-9_]{1,47}$/.test(v), {
+          message: t('invalidSiteType')
+        }),
+        features: z.array(z.string().regex(/^[a-z0-9_]{1,64}$/)).max(50),
+        ownerEmail: f.email()
       }),
-    [t, tv]
+    [t, tv, f]
   );
   const db = createClient();
   const queryClient = useQueryClient();
@@ -71,7 +56,7 @@ export function NewClientForm() {
     validators: { onSubmit: schema },
     onSubmit: async ({ value, formApi }) => {
       try {
-        const res = await createClientSite(db, value);
+        const res = await createClientSite(db, schema.parse(value));
         setResult({ websiteId: res.website_id, owner: res.owner });
         toast.success(t('created'));
         formApi.reset();

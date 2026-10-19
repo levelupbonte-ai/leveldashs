@@ -1,13 +1,20 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import * as z from 'zod';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice } from '@/lib/email/notice';
-import { DASHBOARD_URL, isSameOrigin, isUuid } from '@/features/contracts/server/http';
+import { DASHBOARD_URL, isUuid } from '@/features/contracts/server/http';
 import { createClient } from '@/lib/supabase/server';
+import { readJsonBody } from '@/lib/validation/http';
+
+// No parameters besides the id: the body must be exactly `{}`.
+const Body = z.strictObject({});
 
 // LevelUp staff send a draft contract: the database checks the caller (platform
 // admin, aal2), freezes the snapshot and returns the owners/admins to notify.
 export async function POST(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  if (!isSameOrigin(request)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  // Same origin (CSRF), JSON only, empty object only.
+  const body = await readJsonBody(request, Body, { maxBytes: 64 });
+  if (!body.ok) return body.response;
   const { id } = await ctx.params;
   if (!isUuid(id)) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const db = await createClient();

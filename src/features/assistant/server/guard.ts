@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { getDashboardSession } from '@/lib/auth/session';
 import { hasRole } from '@/lib/auth/types';
 import { createClient } from '@/lib/supabase/server';
+import { isSameOrigin } from '@/lib/validation/http';
 
-const ALLOWED_ORIGINS = new Set([
+export const ASSISTANT_ORIGINS = new Set([
   'https://dashboard.levelup-ecosystem.com',
   ...(process.env.NODE_ENV === 'production' ? [] : ['http://localhost:3000'])
 ]);
@@ -15,17 +16,9 @@ const ALLOWED_ORIGINS = new Set([
  * an active site, and one unit of the organization's daily AI allowance.
  */
 export async function guardAssistantRequest(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  let sameHost = false;
-  try {
-    sameHost = !!origin && new URL(origin).host === request.headers.get('host');
-  } catch {
-    sameHost = false;
-  }
   if (
     !request.headers.get('content-type')?.startsWith('application/json') ||
-    !origin ||
-    !(sameHost || ALLOWED_ORIGINS.has(origin))
+    !isSameOrigin(request, ASSISTANT_ORIGINS)
   ) {
     return { error: NextResponse.json({ error: 'forbidden' }, { status: 403 }) };
   }

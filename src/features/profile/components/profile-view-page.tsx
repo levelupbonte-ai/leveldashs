@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { BrandImageInput } from '@/components/brand-image-input';
 import { hasRole } from '@/lib/auth/types';
 import { PasskeysCard } from './passkeys-card';
@@ -31,14 +32,11 @@ export default function ProfileViewPage({
   const router = useRouter();
   const t = useTranslations('profile');
   const tv = useTranslations('validation');
+  const f = useFields();
   const { nameSchema, passwordSchema } = useMemo(
     () => ({
       nameSchema: z.object({
-        fullName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('fullName') })
-          .max(120)
+        fullName: f.text(120).refine((v) => v.length >= 2, { message: tv('fullName') })
       }),
       passwordSchema: z
         .object({
@@ -53,7 +51,7 @@ export default function ProfileViewPage({
           path: ['confirm']
         })
     }),
-    [tv]
+    [tv, f]
   );
   const canBrandOrg = !!activeOrg && (isPlatformAdmin || hasRole(activeOrg.role, 'admin'));
 
@@ -87,7 +85,7 @@ export default function ProfileViewPage({
     validators: { onSubmit: nameSchema },
     onSubmit: async ({ value }) => {
       const db = createClient();
-      const fullName = value.fullName.trim();
+      const { fullName } = nameSchema.parse(value);
       const { error } = await db.from('profiles').update({ full_name: fullName }).eq('id', user.id);
       if (error) {
         toast.error(t('saveFailed'));

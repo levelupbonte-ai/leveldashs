@@ -12,6 +12,7 @@ import type { DashboardUser } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
 import { LEGAL_VERSION } from '@/lib/legal';
 import { createClient } from '@/lib/supabase/client';
+import { useFieldMessages, useFields } from '@/lib/validation/use-fields';
 import { accessRequestSchema } from '../lib/access-request-schema';
 import { AuthSteps } from './auth-steps';
 import { LegalConsentLabel } from './legal-consent-label';
@@ -46,27 +47,19 @@ export default function OnboardingFlow({
   const tv = useTranslations('validation');
   const tl = useTranslations('legal');
   const locale = useLocale();
+  const fieldMessages = useFieldMessages();
+  const f = useFields();
   const profileSchema = useMemo(
     () =>
       z.object({
-        fullName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('fullName') })
-          .max(120),
+        fullName: f.text(120).refine((v) => v.length >= 2, { message: tv('fullName') }),
         acceptTerms: z.boolean().refine((v) => v, { message: tl('acceptRequired') })
       }),
-    [tv, tl]
+    [f, tv, tl]
   );
   const accessSchema = useMemo(
-    () =>
-      accessRequestSchema({
-        business: t('businessRequired'),
-        website: tv('url'),
-        phone: tv('phone'),
-        tooLong: (max) => tv('maxLength', { max })
-      }),
-    [t, tv]
+    () => accessRequestSchema({ ...fieldMessages, business: t('businessRequired') }),
+    [fieldMessages, t]
   );
   const forOtherApp = isExternalNext(destination);
   const [step, setStep] = useState<'profile' | 'access'>(initialStep);
@@ -107,7 +100,7 @@ export default function OnboardingFlow({
           return;
         }
       }
-      const fullName = value.fullName.trim();
+      const { fullName } = profileSchema.parse(value);
       const { error } = await db.from('profiles').update({ full_name: fullName }).eq('id', user.id);
       if (error) {
         toast.error(t('saveFailed'));
@@ -134,7 +127,8 @@ export default function OnboardingFlow({
       const res = await fetch('/api/access/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(value)
+        // The cleaned values (hidden characters removed, whitespace tidied).
+        body: JSON.stringify(accessSchema.parse(value))
       });
       const body = (await res.json().catch(() => ({}))) as {
         status?: string;

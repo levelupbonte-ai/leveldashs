@@ -1,16 +1,19 @@
 import 'server-only';
+import {
+  cleanHeader,
+  escapeHtml,
+  isEmail,
+  safeFileName,
+  safeHttpUrl
+} from '@/lib/validation/sanitize';
 
 /**
  * Plain LevelUp notices (access requests and decisions), same look as the auth
  * e-mails, sent through Resend from the LevelUp domain. Every dynamic value is
- * escaped. Never throws: returns whether Resend accepted the e-mail.
+ * escaped, the subject is one header-safe line, the recipient must be a valid
+ * address and the button an https link. Never throws: returns whether Resend
+ * accepted the e-mail.
  */
-
-const escapeHtml = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
-  );
 
 export const TEAM_INBOX = 'teams@levelup-ecosystem.com';
 const FROM = process.env.AUTH_EMAIL_FROM || 'LevelUp Ecosystem <account@levelup-ecosystem.com>';
@@ -31,12 +34,19 @@ export async function sendNotice(input: {
     console.warn('sendNotice skipped: RESEND_API_KEY is not set');
     return false;
   }
+  const to = input.to.trim().toLowerCase();
+  if (!isEmail(to)) {
+    console.warn('sendNotice skipped: invalid recipient');
+    return false;
+  }
+  const ctaUrl = input.cta ? safeHttpUrl(input.cta.url, { httpsOnly: true }) : null;
   const body = input.lines
     .map((l) => `<p style="font-size:15px;line-height:1.6;margin:0 0 10px">${escapeHtml(l)}</p>`)
     .join('');
-  const button = input.cta
-    ? `<p style="margin:24px 0 0"><a href="${escapeHtml(input.cta.url)}" style="background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600;display:inline-block">${escapeHtml(input.cta.label)}</a></p>`
-    : '';
+  const button =
+    input.cta && ctaUrl
+      ? `<p style="margin:24px 0 0"><a href="${escapeHtml(ctaUrl)}" style="background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600;display:inline-block">${escapeHtml(input.cta.label)}</a></p>`
+      : '';
   const html = `<!doctype html><html lang="${input.locale === 'fr' ? 'fr' : 'en'}"><body style="margin:0;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0a0a0a">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border-radius:16px;padding:32px"><tr><td>
@@ -52,13 +62,13 @@ ${body}${button}
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: FROM,
-        to: [input.to],
-        subject: input.subject,
+        to: [to],
+        subject: cleanHeader(input.subject),
         html,
         ...(input.attachments?.length
           ? {
               attachments: input.attachments.map((a) => ({
-                filename: a.filename,
+                filename: safeFileName(a.filename, 'attachment.pdf'),
                 content: Buffer.from(a.content).toString('base64')
               }))
             }

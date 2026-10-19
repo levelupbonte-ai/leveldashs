@@ -344,11 +344,20 @@
     "passwordMax": "{max} caractères maximum.",
     "passwordsMatch": "Les mots de passe ne correspondent pas.",
     "commonPassword": "Ce mot de passe est trop courant. Choisissez-en un autre.",
-    "url": "Adresse invalide (https://…).",
+    "url": "Lien invalide (https://…).",
     "phone": "Numéro de téléphone invalide.",
     "code": "Entrez le code à 6 chiffres.",
     "maxLength": "{max} caractères maximum.",
-    "invalidJson": "JSON invalide."
+    "invalidJson": "JSON invalide.",
+    "minLength": "{min} caractères minimum.",
+    "maxItems": "{max} éléments maximum.",
+    "noHtml": "Les balises HTML ne sont pas autorisées ici.",
+    "slug": "Lettres minuscules, chiffres et tirets uniquement.",
+    "color": "Indiquez une couleur comme #1a2b3c.",
+    "date": "Date invalide.",
+    "choice": "Choisissez une des options.",
+    "invalid": "Cette valeur n’est pas valide.",
+    "unsafeContent": "Ce contenu contient du code ou un lien non autorisé ({path})."
   },
   "errors": {
     "generic": "Une erreur est survenue. Réessayez.",
@@ -1018,7 +1027,9 @@
       "amount": "Montant invalide.",
       "required": "Requis",
       "date": "Date invalide.",
-      "tooLong": "Trop long."
+      "tooLong": "Trop long.",
+      "unsafeJson": "Ce contenu contient du code ou un lien non autorisé ({path}).",
+      "origin": "Chaque domaine doit ressembler à https://example.com (un par ligne)."
     },
     "status": {
       "published": "Publié",
@@ -1529,7 +1540,8 @@
       "generate": "Générer",
       "limit": "Limite quotidienne de l’IA atteinte. Réessayez demain.",
       "unavailable": "Le résumé est momentanément indisponible. Réessayez dans un instant."
-    }
+    },
+    "refused": "Je ne peux pas partager cela. Je peux vous aider avec votre site et votre tableau de bord : que souhaitez-vous faire ?"
   },
   "forms": {
     "selectOption": "Choisir une option",

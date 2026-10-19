@@ -1,17 +1,12 @@
 import 'server-only';
 import { getTranslatorFor } from '@/i18n/messages';
+import { escapeHtml } from '@/lib/validation/sanitize';
 
 /**
  * LevelUp-branded authentication e-mails (sign-up, magic link, password reset,
  * invitations, e-mail change). Sent by our own Resend domain through the
  * Supabase "Send Email Hook" (/api/auth/email-hook), never by Supabase defaults.
  */
-
-const escapeHtml = (value: string) =>
-  value.replace(
-    /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!
-  );
 
 export type AuthEmail = { subject: string; html: string };
 

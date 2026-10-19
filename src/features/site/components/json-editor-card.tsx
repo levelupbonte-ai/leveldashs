@@ -13,6 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { cleanJson, findUnsafeJson } from '@/lib/validation/sanitize';
 
 /** Edits one JSON value; validates before saving. */
 export function JsonEditorCard({
@@ -37,6 +38,7 @@ export function JsonEditorCard({
   const [error, setError] = useState<string | null>(null);
   const dirty = text !== initial;
   const t = useTranslations('site.content');
+  const tsv = useTranslations('site.validation');
 
   return (
     <Card>
@@ -67,13 +69,27 @@ export function JsonEditorCard({
             size='sm'
             disabled={!dirty || saving}
             onClick={() => {
+              let parsed: unknown;
               try {
-                const parsed = JSON.parse(text);
                 if (text.length > 64000) throw new Error('too large');
-                onSave(parsed);
+                parsed = JSON.parse(text);
               } catch {
                 setError(t('invalidJson'));
+                return;
               }
+              // Same rules as the service: cleaned strings, bounded, no
+              // prototype keys, no script-capable HTML or javascript: links.
+              const clean = cleanJson(parsed);
+              if (clean === null) {
+                setError(t('invalidJson'));
+                return;
+              }
+              const unsafe = findUnsafeJson(clean);
+              if (unsafe) {
+                setError(tsv('unsafeJson', { path: unsafe }));
+                return;
+              }
+              onSave(clean);
             }}
           >
             {t('save')}

@@ -1,7 +1,17 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { assertFileSignature } from '@/lib/file-signature';
 import { AppError, isMfaError } from '@/lib/errors';
+import { fields } from '@/lib/validation/fields';
 import type { CollectionDef } from '../config/collections';
+import { sanitizeRow } from '../components/item-form-schema';
+import {
+  cleanJson,
+  cleanLine,
+  findUnsafeJson,
+  isWebOrigin,
+  PATTERNS,
+  safeFileName
+} from '@/lib/validation/sanitize';
 import type {
   Appointment,
   AppointmentStatus,
@@ -67,12 +77,15 @@ export function slugify(value: string): string {
   return base || 'item';
 }
 
+/**
+ * The collection's own columns from `values`, re-checked before writing (every
+ * caller: the item form, the assistant's proposals): cleaned strings, no
+ * HTML/script, https links, select values among the options.
+ */
 function pick(def: CollectionDef, values: Record<string, unknown>) {
-  const out: Record<string, unknown> = {};
-  for (const field of def.fields) {
-    if (field.name in values) out[field.name] = values[field.name];
-  }
-  return out;
+  const row = sanitizeRow(def, values);
+  if (!row) throw new AppError('invalidValues');
+  return row;
 }
 
 export async function createCollectionItem(
@@ -180,12 +193,26 @@ export async function listAppointments(
   return (data ?? []) as Appointment[];
 }
 
+/** Private staff notes: cleaned and bounded (4000 characters), empty = null. */
+function cleanNotes<T extends { staff_notes?: string | null }>(patch: T): T {
+  if (typeof patch.staff_notes !== 'string') return patch;
+  const notes = sanitizeNotes(patch.staff_notes);
+  if (notes === undefined) throw new AppError('invalidValues');
+  return { ...patch, staff_notes: notes };
+}
+
+/** Notes as stored: cleaned, null when empty, undefined when too long or holding HTML. */
+export function sanitizeNotes(value: string): string | null | undefined {
+  const notes = fields.text(4000, { multiline: true }).safeParse(value);
+  return notes.success ? notes.data || null : undefined;
+}
+
 export async function updateAppointment(
   db: SupabaseClient,
   id: string,
   patch: { status?: AppointmentStatus; staff_notes?: string | null }
 ) {
-  const { error } = await db.from('appointments').update(patch).eq('id', id);
+  const { error } = await db.from('appointments').update(cleanNotes(patch)).eq('id', id);
   if (error) fail(error);
 }
 
@@ -232,7 +259,7 @@ export async function updateSubmission(
   id: string,
   patch: { status?: SubmissionStatus; staff_notes?: string | null }
 ) {
-  const { error } = await db.from('form_submissions').update(patch).eq('id', id);
+  const { error } = await db.from('form_submissions').update(cleanNotes(patch)).eq('id', id);
   if (error) fail(error);
 }
 
@@ -301,10 +328,10 @@ export async function uploadMedia(
       website_id: scope.websiteId,
       bucket: MEDIA_BUCKET,
       storage_path: path,
-      filename: file.name.slice(0, 255) || `upload.${ext}`,
+      filename: safeFileName(file.name, `upload.${ext}`, 200),
       mime_type: file.type,
       size_bytes: file.size,
-      alt_text: altText?.slice(0, 500) || null,
+      alt_text: cleanLine(altText ?? '').slice(0, 500) || null,
       created_by: user.id
     })
     .select('id, storage_path, filename, mime_type, size_bytes, alt_text, created_at')
@@ -341,12 +368,24 @@ export async function listSettings(db: SupabaseClient, websiteId: string) {
   return (data ?? []) as WebsiteSetting[];
 }
 
+/**
+ * Free-form JSON shown by the website: cleaned (hidden characters), bounded,
+ * no prototype keys, and no script-capable HTML or javascript:/data: links.
+ */
+export function sanitizeContent(value: unknown): unknown {
+  const clean = cleanJson(value, { maxString: 20000 });
+  if (clean === null || findUnsafeJson(clean) !== null) throw new AppError('invalidValues');
+  return clean;
+}
+
 export async function saveSetting(
   db: SupabaseClient,
   scope: SiteScope,
   key: string,
-  value: unknown
+  rawValue: unknown
 ) {
+  if (!/^[a-z0-9_]{1,64}$/.test(key)) throw new AppError('invalidValues');
+  const value = sanitizeContent(rawValue);
   const { error } = await db.from('website_settings').upsert(
     {
       website_id: scope.websiteId,
@@ -376,6 +415,16 @@ export async function updateContentBlock(
   id: string,
   patch: { data?: Record<string, unknown>; status?: string }
 ) {
+  if (patch.data !== undefined) {
+    const data = sanitizeContent(patch.data);
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      throw new AppError('invalidValues');
+    }
+    patch = { ...patch, data: data as Record<string, unknown> };
+  }
+  if (patch.status !== undefined && !['published', 'draft', 'archived'].includes(patch.status)) {
+    throw new AppError('invalidValues');
+  }
   const { error } = await db.from('content_blocks').update(patch).eq('id', id);
   if (error) fail(error);
 }
@@ -435,13 +484,23 @@ export async function adminUpdateWebsite(
     primaryDomain?: string;
   }
 ) {
+  // Exact origins only (https://host, no path); http only for local development.
+  const origins = patch.allowedOrigins?.map((o) => cleanLine(o).replace(/\/$/, ''));
+  if (origins && (origins.length > 50 || origins.some((o) => !isWebOrigin(o)))) {
+    throw new AppError('invalidOrigin');
+  }
+  const domain = patch.primaryDomain === undefined ? undefined : cleanLine(patch.primaryDomain);
+  if (domain && !PATTERNS.domain.test(domain)) throw new AppError('invalidDomain');
+  if (patch.features?.some((f) => !/^[a-z0-9_]{1,64}$/.test(f))) {
+    throw new AppError('invalidValues');
+  }
   const { error } = await db.rpc('admin_update_website', {
     p_website_id: websiteId,
-    p_allowed_origins: patch.allowedOrigins ?? null,
+    p_allowed_origins: origins ?? null,
     p_features: patch.features ?? null,
     p_show_powered_by: patch.showPoweredBy ?? null,
     p_status: patch.status ?? null,
-    p_primary_domain: patch.primaryDomain ?? null
+    p_primary_domain: domain ?? null
   });
   if (error) {
     if (error.code === '22023') throw new AppError('invalidOrigin', { cause: error });

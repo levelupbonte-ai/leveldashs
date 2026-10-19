@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { EXTERNAL_LINK_REL, mailtoHref, safeHttpUrl, telHref } from '@/lib/validation/sanitize';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useErrorMessage } from '@/hooks/use-error-message';
@@ -26,16 +27,7 @@ const tabOf = (r: ProjectRequest): ProjectVerdict =>
   r.ai_verdict === 'qualified' || r.ai_verdict === 'rejected' ? r.ai_verdict : 'review';
 
 /** Only http(s) links are clickable; bare domains get https://. */
-function safeHref(raw: string): string | null {
-  const value = raw.trim();
-  if (!value) return null;
-  try {
-    const url = new URL(/^[a-z][a-z0-9+.-]*:/i.test(value) ? value : `https://${value}`);
-    return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : null;
-  } catch {
-    return null;
-  }
-}
+const safeHref = (raw: string) => safeHttpUrl(raw, { allowBareDomain: true });
 
 function ExternalLink({ href, label }: { href: string; label?: string }) {
   const url = safeHref(href);
@@ -44,7 +36,7 @@ function ExternalLink({ href, label }: { href: string; label?: string }) {
     <a
       href={url}
       target='_blank'
-      rel='noopener noreferrer nofollow'
+      rel={EXTERNAL_LINK_REL}
       className='text-primary inline-flex max-w-full items-center gap-1 break-all underline-offset-4 hover:underline'
     >
       {label ?? url.replace(/^https?:\/\//, '').replace(/\/$/, '')}
@@ -170,15 +162,23 @@ function RequestCard({ request: r }: { request: ProjectRequest }) {
           <dt className='text-muted-foreground'>{t('contact')}</dt>
           <dd className='min-w-0'>
             {r.name} ·{' '}
-            <a href={`mailto:${r.email}`} className='text-primary break-all hover:underline'>
-              {r.email}
-            </a>
+            {mailtoHref(r.email) ? (
+              <a href={mailtoHref(r.email)!} className='text-primary break-all hover:underline'>
+                {r.email}
+              </a>
+            ) : (
+              <span className='break-all'>{r.email}</span>
+            )}
             {r.phone && (
               <>
                 {' · '}
-                <a href={`tel:${r.phone.replace(/[^\d+]/g, '')}`} className='hover:underline'>
-                  {r.phone}
-                </a>
+                {telHref(r.phone) ? (
+                  <a href={telHref(r.phone)!} className='hover:underline'>
+                    {r.phone}
+                  </a>
+                ) : (
+                  <span>{r.phone}</span>
+                )}
               </>
             )}
           </dd>

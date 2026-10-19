@@ -3,30 +3,23 @@ import { z } from 'zod';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice } from '@/lib/email/notice';
 import { createClient } from '@/lib/supabase/server';
+import { readJsonBody } from '@/lib/validation/http';
 
 // LevelUp staff approve or reject an access request. The database checks the
 // caller (platform admin, 2FA session); the applicant is told by e-mail.
 
-const Body = z.object({
-  userId: z.string().uuid(),
+const Body = z.strictObject({
+  userId: z.uuid(),
   approve: z.boolean(),
-  organizationId: z.string().uuid().optional()
+  organizationId: z.uuid().optional()
 });
 
 const DASHBOARD = 'https://dashboard.levelup-ecosystem.com';
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  let sameHost = false;
-  try {
-    sameHost = !!origin && new URL(origin).host === request.headers.get('host');
-  } catch {
-    sameHost = false;
-  }
-  if (!sameHost) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-
-  const parsed = Body.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+  // Same origin (CSRF), JSON only, 1 KB at most, unknown keys refused.
+  const parsed = await readJsonBody(request, Body, { maxBytes: 1024 });
+  if (!parsed.ok) return parsed.response;
   const db = await createClient();
   const { data, error } = await db.rpc('review_access_request', {
     p_user_id: parsed.data.userId,
