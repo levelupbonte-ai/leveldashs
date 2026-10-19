@@ -14,6 +14,10 @@ import {
   IconAlertTriangle,
   IconArrowRight,
   IconArrowUp,
+  IconArrowDown,
+  IconBriefcase,
+  IconLayoutRows,
+  IconTemplate,
   IconBell,
   IconBold,
   IconBox,
@@ -221,6 +225,7 @@ export const Icons = {
   warning: IconAlertTriangle,
   arrowRight: IconArrowRight,
   arrowUp: IconArrowUp,
+  arrowDown: IconArrowDown,
   check: IconCheck,
   checks: IconChecks,
   circleCheck: IconCircleCheck,
@@ -249,6 +254,9 @@ export const Icons = {
 
   // Layout
   dashboard: IconLayoutDashboard,
+  template: IconTemplate,
+  briefcase: IconBriefcase,
+  layoutRows: IconLayoutRows,
   kanban: IconLayoutKanban,
   panelLeft: IconLayoutSidebar,
 

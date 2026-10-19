@@ -13,7 +13,8 @@ export function ImageInput({
   onChange,
   onUpload,
   invalid,
-  disabled
+  disabled,
+  preview = true
 }: {
   id: string;
   value: string;
@@ -21,6 +22,8 @@ export function ImageInput({
   onUpload: (file: File) => Promise<string>;
   invalid?: boolean;
   disabled?: boolean;
+  /** Show the picture above the input (off inside a gallery). */
+  preview?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -28,7 +31,7 @@ export function ImageInput({
 
   return (
     <div className='space-y-2'>
-      {value.startsWith('https://') && (
+      {preview && value.startsWith('https://') && (
         // eslint-disable-next-line @next/next/no-img-element -- arbitrary storage/remote URLs
         <img src={value} alt='' className='bg-muted h-32 w-full rounded-md border object-cover' />
       )}

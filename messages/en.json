@@ -116,7 +116,10 @@
       "notifications": "Notifications",
       "billing": "Billing",
       "home": "Home",
-      "contract": "Contract"
+      "contract": "Contract",
+      "showcaseTemplates": "Templates",
+      "showcaseCaseStudies": "Case studies",
+      "showcaseSections": "Page sections"
     }
   },
   "admin": {
@@ -999,7 +1002,15 @@
       "notesDescription": "Internal notes, visible only to your team.",
       "loading": "Loading…",
       "loadMore": "Load more",
-      "invalidJson": "Invalid format: check the quotes, commas and braces."
+      "invalidJson": "Invalid format: check the quotes, commas and braces.",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove",
+      "addImage": "Add",
+      "orderSaved": "Order saved",
+      "hiddenOnSite": "Hidden on the site",
+      "liveHint": "Changes appear on the site within a few seconds.",
+      "openSite": "Open {domain}"
     },
     "validation": {
       "https": "Enter an https:// link.",
@@ -1012,7 +1023,8 @@
     "status": {
       "published": "Published",
       "draft": "Draft",
-      "archived": "Archived"
+      "archived": "Archived",
+      "hidden": "Hidden"
     },
     "commonFields": {
       "status": "Status",
@@ -1113,6 +1125,144 @@
           "expires_at": "Expires on"
         },
         "hints": {}
+      },
+      "templates": {
+        "title": "Templates",
+        "description": "Demo-site templates of the home page and of /projects.",
+        "addTitle": "Add a template",
+        "empty": "Add your first template: it appears on the site once published.",
+        "fields": {
+          "name": "Name",
+          "url": "Live demo link",
+          "domain": "Domain shown",
+          "category_en": "Category",
+          "tagline_en": "Tagline",
+          "description_en": "Description",
+          "features_en": "Key features",
+          "category_fr": "Category",
+          "tagline_fr": "Tagline",
+          "description_fr": "Description",
+          "features_fr": "Key features",
+          "desktop_image": "Desktop screenshot",
+          "mobile_image": "Phone screenshot",
+          "featured_on_home": "Show on the home page",
+          "layout": "Layout",
+          "animation": "Animation",
+          "accent": "Accent colour"
+        },
+        "hints": {
+          "url": "https link of the live demo, opened in a new tab.",
+          "domain": "Shown in the browser frame. Empty: the domain of the link.",
+          "features_en": "Three short points work best. Press Enter after each one.",
+          "features_fr": "Same points, in French.",
+          "desktop_image": "1440 × 900 px (16:10), WebP or JPEG: the top of the page is shown.",
+          "mobile_image": "Phone capture, 780 × 1688 px (a 390 × 844 screen at 2×).",
+          "status": "Published: on the site. Draft: being prepared. Hidden: kept, not shown.",
+          "featured_on_home": "Off: listed on /projects only.",
+          "layout": "How it is shown on the home page. Spotlight: a large row, alternating sides. Image left / right: a large row with the picture on that side. Horizontal band: consecutive band templates slide sideways on large screens. Card: a compact card. /projects always shows cards.",
+          "animation": "How the picture enters the screen as the visitor scrolls.",
+          "accent": "Colour of the badge, dots and links of this item. Automatic: the colour of the page.",
+          "sort_order": "Lower numbers appear first. You can also use the arrows in the list."
+        }
+      },
+      "case-studies": {
+        "title": "Case studies",
+        "description": "Client projects: the home page selection, the /projects list and the case study pages.",
+        "addTitle": "Add a project",
+        "empty": "Add your first project: it appears on the site once published.",
+        "fields": {
+          "name": "Project name",
+          "url": "Live site or page",
+          "domain": "Domain shown",
+          "year": "Year",
+          "case_study": "Case study page",
+          "label_en": "Eyebrow",
+          "summary_en": "Summary",
+          "industry_en": "Industry",
+          "location_en": "Location",
+          "project_status_en": "Project status",
+          "scope_en": "Scope",
+          "what_we_built_en": "What we built",
+          "tags_en": "Home page tags",
+          "steps_en": "Steps (optional)",
+          "label_fr": "Eyebrow",
+          "summary_fr": "Summary",
+          "industry_fr": "Industry",
+          "location_fr": "Location",
+          "project_status_fr": "Project status",
+          "scope_fr": "Scope",
+          "what_we_built_fr": "What we built",
+          "tags_fr": "Home page tags",
+          "steps_fr": "Steps (optional)",
+          "card_title": "Title on /projects",
+          "card_badge_en": "Badge (English)",
+          "card_description_en": "Description (English)",
+          "card_cta_en": "Button text (English)",
+          "card_badge_fr": "Badge (French)",
+          "card_description_fr": "Description (French)",
+          "card_cta_fr": "Button text (French)",
+          "desktop_image": "Desktop screenshot",
+          "mobile_image": "Phone screenshot (full page)",
+          "cover_image": "Image of the /projects list",
+          "gallery_images": "Gallery",
+          "image_alt_en": "Desktop screenshot description (English)",
+          "image_alt_fr": "Desktop screenshot description (French)",
+          "mobile_alt_en": "Phone screenshot description (English)",
+          "mobile_alt_fr": "Phone screenshot description (French)",
+          "gallery_captions_en": "Gallery captions (English)",
+          "gallery_captions_fr": "Gallery captions (French)",
+          "featured_on_home": "Show on the home page",
+          "layout": "Layout",
+          "animation": "Animation",
+          "accent": "Accent colour"
+        },
+        "hints": {
+          "url": "https link of the live site, or a page of this site such as /projects/my-project.",
+          "domain": "Shown in the browser frame and on the Visit link.",
+          "case_study": "Creates the page /projects/<slug> (facts, gallery, steps). The slug comes from the name when the project is added.",
+          "label_en": "Short line above the title, e.g. “Barbershop · San Diego, CA”.",
+          "project_status_en": "For example: Live.",
+          "tags_en": "Two or three short tags, shown on the home page.",
+          "steps_en": "One step per line, written “Title: text”. Empty: the four standard steps.",
+          "card_title": "Empty: the project name.",
+          "desktop_image": "1440 × 900 px (16:10), WebP or JPEG.",
+          "mobile_image": "Full-page phone capture, 440 px wide, any height: it scrolls inside the phone.",
+          "cover_image": "Wide picture of the large /projects list, about 1278 × 596 px. Empty: the desktop screenshot.",
+          "gallery_images": "Extra pictures of the case study page, at least 1200 px wide.",
+          "gallery_captions_en": "One caption per gallery picture, in the same order.",
+          "status": "Published: on the site. Draft: being prepared. Hidden: kept, not shown.",
+          "featured_on_home": "Shown in “Selected work” on the home page.",
+          "layout": "Spotlight: the large scroll scene on /projects and a large row on the home page. Image left / right: a large row with the picture on that side. Horizontal band: consecutive band projects slide sideways on large screens. Card: a compact card.",
+          "animation": "How the picture enters the screen as the visitor scrolls.",
+          "accent": "Colour of the badge, dots and links of this item. Automatic: the colour of the page.",
+          "sort_order": "Lower numbers appear first. You can also use the arrows in the list."
+        }
+      },
+      "page-sections": {
+        "title": "Page sections",
+        "description": "Show, hide and reorder the sections of each page, edit their headings and choose their animation.",
+        "addTitle": "Add a section",
+        "empty": "The sections of each page are created with the site.",
+        "fields": {
+          "page": "Page",
+          "section_key": "Section",
+          "enabled": "Shown on the site",
+          "eyebrow_en": "Eyebrow",
+          "title_en": "Title",
+          "body_en": "Text",
+          "eyebrow_fr": "Eyebrow",
+          "title_fr": "Title",
+          "body_fr": "Text",
+          "animation": "Entrance animation"
+        },
+        "hints": {
+          "section_key": "Each page has a fixed set of sections.",
+          "enabled": "Off: the section is not shown.",
+          "eyebrow_en": "Small line above the title. Empty: the built-in text. Only the texts a section shows are used.",
+          "title_en": "A second line is shown in grey on sections that have one. Empty: the built-in text.",
+          "animation": "As designed: the section’s own motion. The other choices add an entrance to the whole section; None shows it without reveals.",
+          "sort_order": "Lower numbers appear first within the page. You can also use the arrows."
+        }
       }
     },
     "appointments": {
@@ -1254,6 +1404,91 @@
       "allOrigins": "All domains (unrestricted).",
       "serverKeysTitle": "Server keys",
       "serverKeysDescription": "To connect a back office or an app to LevelUp from a server, ask LevelUp for a secret key. It must never appear in a web page’s code."
+    },
+    "fieldGroups": {
+      "general": "General",
+      "english": "English text",
+      "french": "French text",
+      "images": "Images",
+      "card": "Card on the projects page",
+      "display": "Display"
+    },
+    "fieldOptions": {
+      "layout": {
+        "spotlight": "Spotlight (large)",
+        "card": "Card",
+        "band": "Horizontal band",
+        "split-left": "Image left",
+        "split-right": "Image right"
+      },
+      "animation": {
+        "rise": "Rise",
+        "clip": "Curtain reveal",
+        "tilt": "Tilt",
+        "parallax": "Depth / parallax",
+        "none": "None"
+      },
+      "sectionAnimation": {
+        "auto": "As designed",
+        "rise": "Rise",
+        "clip": "Curtain reveal",
+        "tilt": "Tilt",
+        "parallax": "Depth / parallax",
+        "none": "None"
+      },
+      "accent": {
+        "auto": "Page colour (automatic)",
+        "home": "Violet (home)",
+        "services": "Emerald (services)",
+        "projects": "Sapphire (projects)",
+        "studio": "Indigo (LevelStudio)",
+        "pricing": "Champagne gold (pricing)",
+        "about": "Terracotta (about)",
+        "faq": "Plum (FAQ)",
+        "contact": "Rose (contact)",
+        "legal": "Graphite (legal)"
+      },
+      "page": {
+        "home": "Home",
+        "projects": "Projects",
+        "services": "Services",
+        "studio": "LevelStudio",
+        "about": "About",
+        "pricing": "Pricing",
+        "faq": "FAQ",
+        "contact": "Contact"
+      },
+      "section": {
+        "hero": "Hero (top of the page)",
+        "capabilities": "Capabilities",
+        "how-it-works": "How it works",
+        "work": "Selected work",
+        "templates": "Templates",
+        "ecosystem": "Ecosystem",
+        "pricing": "Pricing",
+        "cta": "Call to action",
+        "header": "Page header",
+        "list": "Project list",
+        "next": "Your project could be next",
+        "concepts": "Concepts & prototypes",
+        "booking": "Websites with booking",
+        "security": "Security checks",
+        "care": "Care plans",
+        "creators": "Creator & portfolio sites",
+        "how": "How it works",
+        "features": "What you get",
+        "questions": "Questions",
+        "story": "Story & principles",
+        "how-we-build": "How we build",
+        "plans": "Plans",
+        "comparison": "Comparison table",
+        "faq": "Questions & answers",
+        "reviews": "Client reviews",
+        "contact": "Contact form & details"
+      }
+    },
+    "fieldBadges": {
+      "featured_on_home": "Home page"
     }
   },
   "assistant": {

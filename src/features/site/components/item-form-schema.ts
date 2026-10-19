@@ -28,7 +28,25 @@ function fieldSchema(field: FieldDef, m: SchemaMessages) {
     case 'switch':
       return z.boolean();
     case 'tags':
-      return z.array(z.string().trim().min(1).max(80)).max(30);
+      return z
+        .array(
+          z
+            .string()
+            .trim()
+            .min(1)
+            .max(field.max ?? 80)
+        )
+        .max(30);
+    case 'images':
+      return z
+        .array(
+          z
+            .string()
+            .trim()
+            .max(2048)
+            .refine((v) => /^https:\/\/[^\s]+$/.test(v), { message: m.https })
+        )
+        .max(12);
     case 'image':
     case 'url':
       return field.required ? httpsUrl.refine((v) => v !== '', { message: m.required }) : httpsUrl;
@@ -63,9 +81,10 @@ export function toFormValues(def: CollectionDef, row: ContentRow | null): FormVa
         out[f.name] = typeof v === 'number' ? v / 100 : undefined;
         break;
       case 'switch':
-        out[f.name] = v === true;
+        out[f.name] = row ? v === true : f.defaultValue === true;
         break;
       case 'tags':
+      case 'images':
         out[f.name] = Array.isArray(v) ? v : [];
         break;
       case 'date':
@@ -74,11 +93,13 @@ export function toFormValues(def: CollectionDef, row: ContentRow | null): FormVa
       case 'select':
         out[f.name] =
           v === null || v === undefined
-            ? f.name === 'status'
-              ? def.key === 'announcements'
-                ? 'draft'
-                : 'published'
-              : ''
+            ? typeof f.defaultValue === 'string'
+              ? f.defaultValue
+              : f.name === 'status'
+                ? def.key === 'announcements'
+                  ? 'draft'
+                  : 'published'
+                : ''
             : String(v);
         break;
       default:
@@ -104,6 +125,7 @@ export function toRow(def: CollectionDef, values: FormValues): Record<string, un
         out[f.name] = v === true;
         break;
       case 'tags':
+      case 'images':
         out[f.name] = Array.isArray(v) ? v : [];
         break;
       case 'select':
