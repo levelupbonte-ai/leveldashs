@@ -12,6 +12,7 @@
     "start": "next start",
     "cleanup": "node scripts/cleanup.js",
     "typecheck": "tsc --noEmit",
+    "test": "bun test src",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix && bun format",
     "lint:strict": "oxlint --deny-warnings",

@@ -6,28 +6,24 @@ import { userLocale } from '@/i18n/config';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice, TEAM_INBOX } from '@/lib/email/notice';
 import { createClient } from '@/lib/supabase/server';
+import { readJsonBody } from '@/lib/validation/http';
 
 // A new account asks for dashboard access: the request is stored by the database
 // (submit_access_request decides; status is never the user's to set) and the
 // LevelUp team gets an e-mail.
 
-// Same rules as the form; the honeypot may be missing from an older page.
-const Body = accessRequestSchema().extend({ companyUrl: z.string().max(200).optional() });
+// Same rules as the form (strings cleaned, HTML refused), unknown keys refused;
+// the honeypot may be missing from an older page.
+const Body = accessRequestSchema()
+  .extend({ companyUrl: z.string().max(200).optional() })
+  .strict();
 
 const DASHBOARD = 'https://dashboard.levelup-ecosystem.com';
 
 export async function POST(request: NextRequest) {
-  const origin = request.headers.get('origin');
-  let sameHost = false;
-  try {
-    sameHost = !!origin && new URL(origin).host === request.headers.get('host');
-  } catch {
-    sameHost = false;
-  }
-  if (!sameHost) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
-
-  const parsed = Body.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: 'invalid' }, { status: 400 });
+  // Same origin (CSRF), JSON only, 8 KB at most, validated by the form's schema.
+  const parsed = await readJsonBody(request, Body, { maxBytes: 8 * 1024 });
+  if (!parsed.ok) return parsed.response;
   // Honeypot filled: a bot. Answer like a success so it learns nothing.
   if (parsed.data.companyUrl) return NextResponse.json({ status: 'pending' });
   const db = await createClient();

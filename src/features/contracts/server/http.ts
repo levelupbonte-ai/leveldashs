@@ -1,19 +1,9 @@
 import 'server-only';
-import type { NextRequest } from 'next/server';
+import { PATTERNS } from '@/lib/validation/sanitize';
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Same-origin and body checks live in `@/lib/validation/http` (readJsonBody).
 
-export const isUuid = (value: string) => UUID.test(value);
-
-/** State-changing calls must come from this dashboard (Origin = Host). */
-export function isSameOrigin(request: NextRequest): boolean {
-  const origin = request.headers.get('origin');
-  try {
-    return !!origin && new URL(origin).host === request.headers.get('host');
-  } catch {
-    return false;
-  }
-}
+export const isUuid = (value: string) => PATTERNS.uuid.test(value);
 
 export const DASHBOARD_URL = 'https://dashboard.levelup-ecosystem.com';
 export const LEVELUP_CONTACT = 'contact@levelup-ecosystem.com';

@@ -28,6 +28,7 @@ import { useSiteMutations } from '../api/mutations';
 import type { CollectionDef, FieldDef } from '../config/collections';
 import { ImageInput } from './image-input';
 import { ImagesInput } from './images-input';
+import { useFieldMessages } from '@/lib/validation/use-fields';
 import { buildSchema, toFormValues, toRow, type FormValues } from './item-form-schema';
 import { useCollectionText } from './use-collection-text';
 import { useSiteScope } from './use-site-scope';
@@ -87,6 +88,7 @@ function ItemForm({
   const text = useCollectionText(def);
   const t = useTranslations('site.content');
   const tv = useTranslations('site.validation');
+  const shared = useFieldMessages();
   const schema = useMemo(
     () =>
       buildSchema(def, {
@@ -95,9 +97,13 @@ function ItemForm({
         amount: tv('amount'),
         required: tv('required'),
         date: tv('date'),
-        tooLong: tv('tooLong')
+        tooLong: tv('tooLong'),
+        noHtml: shared.noHtml,
+        choice: shared.choice,
+        email: shared.email,
+        phone: shared.phone
       }),
-    [def, tv]
+    [def, tv, shared]
   );
 
   const form = useAppForm({
@@ -105,7 +111,9 @@ function ItemForm({
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       try {
-        await saveItem.mutateAsync({ def, id: item?.id, values: toRow(def, value as FormValues) });
+        // The cleaned values (the schema output), not the raw input.
+        const clean = schema.parse(value) as FormValues;
+        await saveItem.mutateAsync({ def, id: item?.id, values: toRow(def, clean) });
         toast.success(item ? t('saved') : t('added'));
         onDone();
       } catch {

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { Icons } from '@/components/icons';
 import { MfaStepNotice } from '@/components/mfa-step-notice';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,23 +40,21 @@ export function SignContractForm({
   const router = useRouter();
   const [needsMfa, setNeedsMfa] = useState(false);
 
+  const f = useFields();
   const schema = useMemo(
     () =>
       z.object({
-        fullName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('nameRequired') })
-          .max(120),
-        title: z
-          .string()
-          .trim()
-          .min(1, { message: t('titleRequired') })
-          .max(120),
+        fullName: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') }),
+        title: f.text(120).min(1, { message: t('titleRequired') }),
         consent: z.boolean().refine((v) => v, { message: t('consentRequired') }),
-        drawnSignature: z.string().nullable()
+        // SVG path of the signature pad: `M`/`L` + integers only (same rule as the database).
+        drawnSignature: z
+          .string()
+          .max(60_000)
+          .regex(/^[ML0-9 -]+$/)
+          .nullable()
       }),
-    [t, tv]
+    [t, tv, f]
   );
 
   const form = useAppForm({
@@ -66,7 +65,8 @@ export function SignContractForm({
       drawnSignature: null as string | null
     },
     validators: { onSubmit: schema },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: raw }) => {
+      const value = schema.parse(raw);
       setNeedsMfa(false);
       const db = createClient();
       try {

@@ -12,6 +12,8 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useFieldMessages } from '@/lib/validation/use-fields';
+import { sanitizeNotes } from '../api/service';
 
 /** Private staff notes (never shown to the customer). */
 export function NotesDialog({
@@ -28,7 +30,9 @@ export function NotesDialog({
   onSave: (notes: string | null) => void;
 }) {
   const [value, setValue] = useState(initial);
+  const [error, setError] = useState<string | null>(null);
   const t = useTranslations('site.content');
+  const messages = useFieldMessages();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -40,15 +44,26 @@ export function NotesDialog({
           rows={5}
           maxLength={4000}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          aria-invalid={!!error}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError(null);
+          }}
         />
+        {error && <p className='text-destructive text-xs'>{error}</p>}
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             {t('cancel')}
           </Button>
           <Button
             onClick={() => {
-              onSave(value.trim() || null);
+              // Same rules as the service: cleaned, 4000 characters, no HTML.
+              const notes = sanitizeNotes(value);
+              if (notes === undefined) {
+                setError(messages.noHtml ?? null);
+                return;
+              }
+              onSave(notes);
               onOpenChange(false);
             }}
           >

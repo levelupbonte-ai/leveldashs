@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { MfaStepNotice } from '@/components/mfa-step-notice';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { errorCode } from '@/lib/errors';
@@ -28,7 +29,6 @@ export function TeamManager() {
   const { activeOrg, user, isPlatformAdmin } = useDashboardSession();
   const t = useTranslations('team');
   const tRole = useTranslations('common.roles');
-  const tv = useTranslations('validation');
   const errorMessage = useErrorMessage();
   // The database asked for two-step verification first: calm notice, not an error.
   const [mfaBlocked, setMfaBlocked] = useState(false);
@@ -36,16 +36,14 @@ export function TeamManager() {
     if (errorCode(e) === 'mfaRequired') setMfaBlocked(true);
     else toast.error(errorMessage(e));
   };
+  const f = useFields();
   const inviteSchema = useMemo(
     () =>
       z.object({
-        email: z
-          .string()
-          .trim()
-          .email({ message: tv('email') }),
-        role: z.enum(['viewer', 'editor', 'admin', 'owner'])
+        email: f.email({ required: true }),
+        role: f.oneOf(['viewer', 'editor', 'admin', 'owner'])
       }),
-    [tv]
+    [f]
   );
   const org = activeOrg!;
   const db = createClient();
@@ -93,7 +91,8 @@ export function TeamManager() {
     validators: { onSubmit: inviteSchema },
     onSubmit: async ({ value, formApi }) => {
       try {
-        const result = await addMember(db, org.id, value.email, value.role);
+        const clean = inviteSchema.parse(value);
+        const result = await addMember(db, org.id, clean.email, clean.role);
         toast.success(
           result === 'invited'
             ? t('invited')

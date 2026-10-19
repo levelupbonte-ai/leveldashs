@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { FieldGroup } from '@/components/ui/field';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
@@ -14,17 +15,8 @@ const redirectTo = () =>
 
 export default function ForgotPasswordForm() {
   const t = useTranslations('auth.forgot');
-  const tv = useTranslations('validation');
-  const schema = useMemo(
-    () =>
-      z.object({
-        email: z
-          .string()
-          .trim()
-          .email({ message: tv('email') })
-      }),
-    [tv]
-  );
+  const f = useFields();
+  const schema = useMemo(() => z.object({ email: f.email({ required: true }) }), [f]);
   const captcha = useCaptcha();
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -49,8 +41,9 @@ export default function ForgotPasswordForm() {
       }
       setNotice(null);
       try {
-        await send(value.email.trim(), captcha.captchaToken);
-        setSentTo(value.email.trim());
+        const { email } = schema.parse(value);
+        await send(email, captcha.captchaToken);
+        setSentTo(email);
       } catch {
         setNotice(t('rateLimited'));
       } finally {

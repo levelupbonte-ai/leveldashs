@@ -12,13 +12,14 @@ import { useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { useSiteMutations } from '../api/mutations';
 import { seoQueryOptions } from '../api/queries';
 import type { SeoSettings } from '../api/types';
 import { JsonEditorCard } from './json-editor-card';
 import { useSiteScope } from './use-site-scope';
 
-const BUSINESS_TYPES = [
+const BUSINESS_TYPE_VALUES = [
   'LocalBusiness',
   'BarberShop',
   'BeautySalon',
@@ -30,7 +31,8 @@ const BUSINESS_TYPES = [
   'SportsActivityLocation',
   'Organization',
   'Person'
-].map((v) => ({ value: v, label: v }));
+] as const;
+const BUSINESS_TYPES = BUSINESS_TYPE_VALUES.map((v) => ({ value: v, label: v }));
 
 const PAGES_EXAMPLE = '{ "/services": { "title": "…", "description": "…" } }';
 
@@ -52,35 +54,24 @@ export function SeoForm() {
   const { data: seo } = useSuspenseQuery(seoQueryOptions(createClient(), scope.websiteId));
   const { saveSetting } = useSiteMutations(scope);
   const t = useTranslations('site.seo');
-  const tv = useTranslations('validation');
-  const tsv = useTranslations('site.validation');
+  const f = useFields();
   const seoSchema = useMemo(
     () =>
       z.object({
         enabled: z.boolean(),
-        title: z
-          .string()
-          .trim()
-          .max(70, { message: tv('maxLength', { max: 70 }) }),
-        description: z
-          .string()
-          .trim()
-          .max(320, { message: tv('maxLength', { max: 320 }) }),
-        keywords: z.array(z.string().trim().min(1).max(60)).max(20),
-        image: z
-          .string()
-          .trim()
-          .refine((v) => v === '' || /^https:\/\/\S+$/.test(v), { message: tsv('https') }),
-        business_name: z.string().trim().max(120),
-        business_type: z.string(),
-        google_site_verification: z
-          .string()
-          .trim()
+        title: f.text(70),
+        description: f.text(320, { multiline: true }),
+        keywords: f.tags(20, 60),
+        image: f.url({ httpsOnly: true }),
+        business_name: f.text(120),
+        business_type: f.oneOf(BUSINESS_TYPE_VALUES),
+        google_site_verification: f
+          .text(100)
           .refine((v) => v === '' || /^[A-Za-z0-9_-]{10,100}$/.test(v), {
             message: t('invalidCode')
           })
       }),
-    [t, tv, tsv]
+    [f, t]
   );
 
   const save = (next: SeoSettings) =>
@@ -89,7 +80,9 @@ export function SeoForm() {
   const form = useAppForm({
     defaultValues: toValues(seo),
     validators: { onSubmit: seoSchema },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: raw }) => {
+      // The cleaned values (schema output), never the raw input.
+      const value = seoSchema.parse(raw);
       const next: SeoSettings = { ...seo, enabled: value.enabled, keywords: value.keywords };
       for (const k of [
         'title',

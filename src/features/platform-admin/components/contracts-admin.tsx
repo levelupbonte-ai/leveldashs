@@ -6,6 +6,7 @@ import { parseAsString, useQueryState } from 'nuqs';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { Icons } from '@/components/icons';
 import { MfaStepNotice } from '@/components/mfa-step-notice';
 import { Badge } from '@/components/ui/badge';
@@ -114,25 +115,26 @@ function ContractFormFields({
   const { data: websites = [] } = useQuery(allWebsitesQueryOptions(db));
   const orgSites = websites.filter((w) => w.organizationId === organizationId);
 
+  const f = useFields();
   const schema = useMemo(
     () =>
       z.object({
         websiteId: z.string(),
         locale: z.enum(['en', 'fr']),
         required: z.boolean(),
-        projectName: z.string().max(120),
-        packageName: z.string().max(120),
-        scope: z.string().max(4000),
+        projectName: f.text(120),
+        packageName: f.text(120),
+        scope: f.text(4000, { multiline: true }),
         buildPrice: z.string().refine((v) => v === '' || /^\d+(\.\d{1,2})?$/.test(v), t('amount')),
-        paymentSchedule: z.string().max(500),
-        monthlyPlan: z.string().max(120),
+        paymentSchedule: f.text(500),
+        monthlyPlan: f.text(120),
         monthlyPrice: z
           .string()
           .refine((v) => v === '' || /^\d+(\.\d{1,2})?$/.test(v), t('amount')),
-        startDate: z.string().refine((v) => v === '' || /^\d{4}-\d{2}-\d{2}$/.test(v), t('date')),
-        notes: z.string().max(1000)
+        startDate: f.date(),
+        notes: f.text(1000, { multiline: true })
       }),
-    [t]
+    [t, f]
   );
 
   const form = useAppForm({
@@ -151,8 +153,10 @@ function ContractFormFields({
       notes: form0.notes ?? ''
     },
     validators: { onSubmit: schema },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: raw }) => {
       reset();
+      // The cleaned values (schema output), never the raw input.
+      const value = schema.parse(raw);
       const input: AdminContractInput = {
         organizationId,
         websiteId: value.websiteId || null,
@@ -647,21 +651,24 @@ function TemplatesCard() {
   const { data: templates = [] } = useQuery(contractTemplatesQueryOptions(db));
   const [open, setOpen] = useState(false);
   const { needsMfa, onError, reset } = useMfaAwareError();
+  const f = useFields();
   const schema = useMemo(
     () =>
       z.object({
         locale: z.enum(['en', 'fr']),
         version: z.string().refine((v) => v === '' || /^\d{1,4}$/.test(v), t('versionHint')),
-        title: z.string().trim().min(1, t('titleRequired')).max(200),
-        body: z.string().trim().min(20, t('bodyRequired')).max(200000)
+        title: f.text(200).min(1, t('titleRequired')),
+        // Markdown, rendered by our own safe renderer (raw HTML stays text).
+        body: f.text(200000, { multiline: true, allowMarkup: true }).min(20, t('bodyRequired'))
       }),
-    [t]
+    [t, f]
   );
   const form = useAppForm({
     defaultValues: { locale: 'en' as 'en' | 'fr', version: '', title: '', body: '' },
     validators: { onSubmit: schema },
-    onSubmit: async ({ value, formApi }) => {
+    onSubmit: async ({ value: raw, formApi }) => {
       reset();
+      const value = schema.parse(raw);
       try {
         const version = await publishTemplate(db, {
           key: 'msa',

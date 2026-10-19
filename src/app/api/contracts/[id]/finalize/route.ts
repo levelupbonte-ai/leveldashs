@@ -1,9 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import * as z from 'zod';
 import { getLocale } from 'next-intl/server';
 import { getTranslatorFor } from '@/i18n/messages';
 import { sendNotice } from '@/lib/email/notice';
 import { getContract } from '@/features/contracts/api/service';
-import { isSameOrigin, isUuid, LEVELUP_CONTACT } from '@/features/contracts/server/http';
+import { isUuid, LEVELUP_CONTACT } from '@/features/contracts/server/http';
 import { contractPdfLabels } from '@/features/contracts/server/labels';
 import {
   buildContractPdf,
@@ -11,13 +12,19 @@ import {
   contractPdfPath
 } from '@/features/contracts/server/pdf';
 import { createClient } from '@/lib/supabase/server';
+import { readJsonBody } from '@/lib/validation/http';
+
+// No parameters besides the id: the body must be exactly `{}`.
+const Body = z.strictObject({});
 
 // After sign_contract (called from the browser so the database records the
 // signer's IP): archive the signed PDF in the private `contracts` bucket and
 // e-mail it once to the signer and to LevelUp. Everything runs as the signed-in
 // user; the database decides (storage policy, mark_contract_emailed).
 export async function POST(request: NextRequest, ctx: { params: Promise<{ id: string }> }) {
-  if (!isSameOrigin(request)) return NextResponse.json({ error: 'forbidden' }, { status: 403 });
+  // Same origin (CSRF), JSON only, empty object only.
+  const body = await readJsonBody(request, Body, { maxBytes: 64 });
+  if (!body.ok) return body.response;
   const { id } = await ctx.params;
   if (!isUuid(id)) return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const db = await createClient();

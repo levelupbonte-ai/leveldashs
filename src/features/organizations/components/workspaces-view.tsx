@@ -17,6 +17,7 @@ import { useTranslations } from 'next-intl';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { createOrganization } from '../api/service';
 
 export function WorkspacesView() {
@@ -27,16 +28,13 @@ export function WorkspacesView() {
   const tRole = useTranslations('common.roles');
   const tv = useTranslations('validation');
   const errorMessage = useErrorMessage();
+  const f = useFields();
   const createSchema = useMemo(
     () =>
       z.object({
-        name: z
-          .string()
-          .trim()
-          .min(2, { message: tv('nameRequired') })
-          .max(120)
+        name: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') })
       }),
-    [tv]
+    [f, tv]
   );
 
   const open = (id: string, href = '/dashboard/site') =>
@@ -49,7 +47,8 @@ export function WorkspacesView() {
   const form = useAppForm({
     defaultValues: { name: '' },
     validators: { onSubmit: createSchema },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: raw }) => {
+      const value = createSchema.parse(raw);
       try {
         const slug = `${slugify(value.name).slice(0, 40)}-${Math.random().toString(36).slice(2, 6)}`;
         const org = await createOrganization(createClient(), value.name.trim(), slug);

@@ -21,6 +21,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { userLocale } from '@/i18n/config';
 import { toast } from 'sonner';
 import * as z from 'zod';
+import { useFields } from '@/lib/validation/use-fields';
 import { markPendingMethod, saveLastMethod, useLastMethod } from '../lib/last-method';
 import { PROVIDER_BUTTON } from '../lib/provider-button';
 import { AuthSteps } from './auth-steps';
@@ -63,21 +64,18 @@ export default function UserAuthForm({
   const tv = useTranslations('validation');
   const tl = useTranslations('legal');
   const locale = useLocale();
+  const f = useFields();
   const { signInSchema, signUpSchema } = useMemo(() => {
     const signIn = z.object({
-      fullName: z.string(),
-      email: z.string().email({ message: tv('email') }),
+      fullName: z.string().max(200),
+      email: f.email({ required: true }),
       password: z.string().min(1, { message: tv('passwordRequired') }),
       acceptTerms: z.boolean()
     });
     return {
       signInSchema: signIn,
       signUpSchema: signIn.extend({
-        fullName: z
-          .string()
-          .trim()
-          .min(2, { message: tv('fullName') })
-          .max(120),
+        fullName: f.text(120).refine((v) => v.length >= 2, { message: tv('fullName') }),
         password: z
           .string()
           .min(10, { message: tv('passwordMin', { min: 10 }) })
@@ -86,7 +84,7 @@ export default function UserAuthForm({
         acceptTerms: z.boolean().refine((v) => v, { message: tl('acceptRequired') })
       })
     };
-  }, [tv, tl]);
+  }, [tv, tl, f]);
 
   // Another LevelUp app (LevelStudio, main site) gets a full page load.
   function goTo(target: string) {
@@ -152,7 +150,9 @@ export default function UserAuthForm({
       // New passwords only: refuse very common ones (runs once the schema passes).
       onSubmitAsync: mode === 'sign-up' ? commonPasswordValidator(tv('commonPassword')) : undefined
     },
-    onSubmit: async ({ value }) => {
+    onSubmit: async ({ value: raw }) => {
+      // Cleaned name and e-mail (the password is never altered).
+      const value = { ...raw, ...(mode === 'sign-up' ? signUpSchema : signInSchema).parse(raw) };
       if (!captcha.ready) {
         setNotice(t('captcha'));
         return;

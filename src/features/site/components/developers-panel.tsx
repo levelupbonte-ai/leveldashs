@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/client';
+import { cleanLine, isWebOrigin } from '@/lib/validation/sanitize';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -49,6 +50,8 @@ export function DevelopersPanel() {
   const { data: site } = useSuspenseQuery(integrationQueryOptions(createClient(), scope.websiteId));
   const { adminUpdateWebsite } = useSiteMutations(scope);
   const [origins, setOrigins] = useState(site.allowed_origins.join('\n'));
+  const [originsError, setOriginsError] = useState<string | null>(null);
+  const tsv = useTranslations('site.validation');
   const t = useTranslations('site.developers');
   const format = useFormatter();
 
@@ -163,23 +166,32 @@ export function DevelopersPanel() {
                   rows={4}
                   className='font-mono text-xs'
                   value={origins}
-                  onChange={(e) => setOrigins(e.target.value)}
+                  maxLength={4000}
+                  aria-invalid={!!originsError}
+                  onChange={(e) => {
+                    setOrigins(e.target.value);
+                    setOriginsError(null);
+                  }}
                   placeholder='https://example.com'
                 />
+                {originsError && <p className='text-destructive text-xs'>{originsError}</p>}
                 <Button
                   size='sm'
                   disabled={adminUpdateWebsite.isPending}
-                  onClick={() =>
+                  onClick={() => {
+                    const list = origins
+                      .split(/[\s,]+/)
+                      .map((o) => cleanLine(o).replace(/\/$/, ''))
+                      .filter(Boolean);
+                    if (list.length > 50 || list.some((o) => !isWebOrigin(o))) {
+                      setOriginsError(tsv('origin'));
+                      return;
+                    }
                     adminUpdateWebsite.mutate(
-                      {
-                        allowedOrigins: origins
-                          .split(/[\s,]+/)
-                          .map((o) => o.trim())
-                          .filter(Boolean)
-                      },
+                      { allowedOrigins: list },
                       { onSuccess: () => toast.success(t('originsSaved')) }
-                    )
-                  }
+                    );
+                  }}
                 >
                   {t('save')}
                 </Button>

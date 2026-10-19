@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { guardAssistantRequest } from '@/features/assistant/server/guard';
+import * as z from 'zod';
+import { ASSISTANT_ORIGINS, guardAssistantRequest } from '@/features/assistant/server/guard';
+import { readJsonBody } from '@/lib/validation/http';
 import { getLocale } from 'next-intl/server';
 import { generateWithTarget, logAiCall } from '@/lib/ai/router';
 
@@ -12,6 +14,12 @@ const system = (language: string) =>
   `You are a small business owner's right hand. From this week's numbers for their website, write a summary in ${language}, in Markdown: a short bold title, 3 to 5 concrete bullet points (what changed, what needs action), then one practical recommendation for the coming week. Exact numbers, direct and kind tone, no emoji, no jargon, 110 words max. If there was no activity, say so simply and suggest one action to attract customers. Never mention AI models, providers or tools.`;
 
 export async function POST(request: NextRequest) {
+  // Nothing to send but `{}`: anything else is refused before the allowance is used.
+  const body = await readJsonBody(request, z.strictObject({}), {
+    maxBytes: 64,
+    allowedOrigins: ASSISTANT_ORIGINS
+  });
+  if (!body.ok) return body.response;
   const guard = await guardAssistantRequest(request);
   if ('error' in guard) return guard.error;
   const { db, website } = guard;
