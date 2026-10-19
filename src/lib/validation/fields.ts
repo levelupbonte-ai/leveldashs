@@ -63,6 +63,10 @@ export interface UrlOptions {
 const msg = (message: string | undefined) => (message ? { message } : undefined);
 const isHexColor = (v: string) => PATTERNS.hexColor.test(v);
 
+/** An empty string, or a value matching `test` (optional formatted fields). */
+const optional = (s: z.ZodString, test: (v: string) => boolean, message?: string) =>
+  s.refine((v) => v === '' || test(v), msg(message));
+
 export function createFields(m: FieldMessages = {}) {
   const str = () => z.string(msg(m.invalid));
 
@@ -77,10 +81,6 @@ export function createFields(m: FieldMessages = {}) {
     if (!options.allowMarkup) s = s.refine((v) => !containsMarkup(v), msg(m.noHtml));
     return s;
   }
-
-  /** An empty string, or a value matching `test` (optional formatted fields). */
-  const optional = (s: z.ZodString, test: (v: string) => boolean, message?: string) =>
-    s.refine((v) => v === '' || test(v), msg(message));
 
   /** Email address (lower-cased). `required` refuses the empty string. */
   function email(options: { required?: boolean } = {}) {
