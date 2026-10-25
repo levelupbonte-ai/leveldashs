@@ -136,10 +136,15 @@ export function ReviewForm({
     () =>
       context.organizations
         .map((o) => ({ ...o, score: nameSimilarity(req.business_name, o.name) }))
-        .filter((o) => o.score >= NAME_MATCH_THRESHOLD && o.id !== req.organization_id)
+        .filter(
+          (o) =>
+            o.score >= NAME_MATCH_THRESHOLD &&
+            o.id !== req.organization_id &&
+            !suggestions.some((m) => m.site.organization_id === o.id)
+        )
         .toSorted((a, b) => b.score - a.score)
         .slice(0, 4),
-    [context.organizations, req.business_name, req.organization_id]
+    [context.organizations, req.business_name, req.organization_id, suggestions]
   );
 
   const schema = useMemo(
@@ -601,7 +606,7 @@ export function ReviewForm({
         </section>
       )}
 
-      <DialogFooter className='gap-2 sm:justify-between'>
+      <DialogFooter className='mx-0 mb-0 gap-2 rounded-xl border sm:justify-between'>
         {!fix && req.status === 'pending' ? (
           <Button type='button' variant='ghost' onClick={decline} disabled={decide.isPending}>
             {t('decline')}
