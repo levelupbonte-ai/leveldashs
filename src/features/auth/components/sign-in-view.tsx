@@ -8,12 +8,14 @@ export default async function SignInViewPage({
   next,
   error,
   reason,
-  methods
+  methods,
+  lockedEmail = null
 }: {
   next?: string;
   error?: string;
   reason?: string;
   methods: AuthMethods;
+  lockedEmail?: string | null;
 }) {
   const t = await getTranslations('auth.signIn');
   return (
@@ -24,10 +26,14 @@ export default async function SignInViewPage({
         initialError={error}
         reason={reason}
         methods={methods}
+        lockedEmail={lockedEmail}
       />
       <p className='text-muted-foreground text-center text-sm'>
         {t('noAccount')}{' '}
-        <Link href='/auth/sign-up' className='hover:text-primary underline underline-offset-4'>
+        <Link
+          href={next ? `/auth/sign-up?next=${encodeURIComponent(next)}` : '/auth/sign-up'}
+          className='hover:text-primary underline underline-offset-4'
+        >
           {t('createAccount')}
         </Link>
       </p>

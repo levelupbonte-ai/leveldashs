@@ -21,7 +21,15 @@ import { MfaStepNotice } from '@/components/mfa-step-notice';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { errorCode } from '@/lib/errors';
 import { invitationsQueryOptions, membersQueryOptions, orgKeys } from '../api/queries';
-import { addMember, cancelInvitation, removeMember, updateMemberRole } from '../api/service';
+import {
+  inviteMember,
+  removeMember,
+  resendInvitation,
+  revokeInvitation,
+  updateMemberRole,
+  type InviteResult
+} from '../api/service';
+import { InvitationList } from './invitation-list';
 
 const ROLES: OrgRole[] = ['owner', 'admin', 'editor', 'viewer'];
 
@@ -59,10 +67,35 @@ export function TeamManager() {
     void queryClient.invalidateQueries({ queryKey: orgKeys.members(org.id) });
     void queryClient.invalidateQueries({ queryKey: orgKeys.invitations(org.id) });
   };
-  const cancelMutation = useMutation({
-    mutationFn: (id: string) => cancelInvitation(db, id),
+  // Never claim an e-mail went out when Resend refused it: warn and offer a retry.
+  const announce = (result: InviteResult, email: string) => {
+    if (result.status === 'sent') {
+      toast.success(t('invitationSent', { email }));
+      return;
+    }
+    toast.error(t('inviteEmailFailed', { email }), {
+      duration: 15000,
+      action: {
+        label: t('retry'),
+        onClick: () => resendMutation.mutate({ id: result.invitationId, email })
+      }
+    });
+  };
+  const resendMutation = useMutation({
+    mutationFn: ({ id }: { id: string; email: string }) => resendInvitation(id),
+    onSuccess: (result, vars) => {
+      announce(result, vars.email);
+      refresh();
+    },
+    onError: (e) => {
+      onError(e);
+      refresh();
+    }
+  });
+  const revokeMutation = useMutation({
+    mutationFn: (id: string) => revokeInvitation(db, id),
     onSuccess: () => {
-      toast.success(t('invitationCancelled'));
+      toast.success(t('invitationRevoked'));
       refresh();
     },
     onError
@@ -92,14 +125,8 @@ export function TeamManager() {
     onSubmit: async ({ value, formApi }) => {
       try {
         const clean = inviteSchema.parse(value);
-        const result = await addMember(db, org.id, clean.email, clean.role);
-        toast.success(
-          result === 'invited'
-            ? t('invited')
-            : result === 'added'
-              ? t('memberAdded')
-              : t('roleUpdated')
-        );
+        const result = await inviteMember(org.id, clean.email, clean.role);
+        announce(result, clean.email);
         formApi.reset();
         refresh();
       } catch (e) {
@@ -175,27 +202,6 @@ export function TeamManager() {
               </div>
             );
           })}
-          {invitations.map((inv) => (
-            <div key={inv.id} className='flex items-center gap-3 py-3'>
-              <div className='bg-muted flex size-9 items-center justify-center rounded-full'>
-                <Icons.mail className='size-4' />
-              </div>
-              <div className='min-w-0 flex-1'>
-                <p className='truncate font-medium'>{inv.email}</p>
-                <p className='text-muted-foreground text-xs'>
-                  {t('pendingInvitation', { role: tRole(inv.role) })}
-                </p>
-              </div>
-              <Button
-                size='icon'
-                variant='ghost'
-                aria-label={t('cancelInvitation')}
-                onClick={() => cancelMutation.mutate(inv.id)}
-              >
-                <Icons.close className='size-4' />
-              </Button>
-            </div>
-          ))}
         </CardContent>
       </Card>
 
@@ -232,6 +238,7 @@ export function TeamManager() {
                 selector={(s) => s.isSubmitting}
                 children={(submitting) => (
                   <LoadingButton type='submit' loading={submitting} className='w-full'>
+                    <Icons.send className='size-4' aria-hidden />
                     {t('add')}
                   </LoadingButton>
                 )}
@@ -239,6 +246,19 @@ export function TeamManager() {
             </form>
           </CardContent>
         </Card>
+      )}
+      {canManage && (
+        <InvitationList
+          className='lg:col-span-2'
+          invitations={invitations}
+          canRevokeOwner={isOwner || isPlatformAdmin}
+          busy={resendMutation.isPending || revokeMutation.isPending}
+          onResend={(inv) => resendMutation.mutate({ id: inv.id, email: inv.email })}
+          onRevoke={(inv) => {
+            if (window.confirm(t('revokeConfirm', { email: inv.email })))
+              revokeMutation.mutate(inv.id);
+          }}
+        />
       )}
     </div>
   );

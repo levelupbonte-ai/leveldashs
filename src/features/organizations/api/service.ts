@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrgRole } from '@/lib/auth/types';
+import { dbErrorCode, responseErrorCode } from '@/lib/access/db-errors';
 import { AppError, isMfaError } from '@/lib/errors';
 import type { OrgMember } from './types';
 
@@ -29,26 +30,6 @@ export async function listMembers(
       createdAt: m.created_at
     };
   });
-}
-
-export async function addMember(
-  db: SupabaseClient,
-  organizationId: string,
-  email: string,
-  role: OrgRole
-): Promise<'added' | 'updated' | 'invited'> {
-  const { data, error } = await db.rpc('add_organization_member', {
-    p_organization_id: organizationId,
-    p_email: email,
-    p_role: role
-  });
-  if (error) {
-    throw new AppError(
-      isMfaError(error) ? 'mfaRequired' : error.code === 'PT403' ? 'forbidden' : 'addMemberFailed',
-      { cause: error }
-    );
-  }
-  return data as 'added' | 'updated' | 'invited';
 }
 
 export async function updateMemberRole(
@@ -110,33 +91,72 @@ export async function createOrganization(db: SupabaseClient, name: string, slug:
   return data as { id: string };
 }
 
-export interface PendingInvitation {
+export interface Invitation {
   id: string;
   email: string;
   role: OrgRole;
   created_at: string;
   expires_at: string;
+  accepted_at: string | null;
+  revoked_at: string | null;
+  email_status: 'pending' | 'sent' | 'failed';
+  last_sent_at: string | null;
+  send_count: number;
 }
 
+/** Pending invitations and the ones accepted in the last 30 days (never revoked ones). */
 export async function listInvitations(db: SupabaseClient, organizationId: string) {
+  const since = new Date(Date.now() - 30 * 86400000).toISOString();
   const { data, error } = await db
     .from('organization_invitations')
-    .select('id, email, role, created_at, expires_at')
+    .select(
+      'id, email, role, created_at, expires_at, accepted_at, revoked_at, email_status, last_sent_at, send_count'
+    )
     .eq('organization_id', organizationId)
-    .is('accepted_at', null)
-    .order('created_at', { ascending: false });
-  if (error) return [];
-  return (data ?? []) as PendingInvitation[];
+    .is('revoked_at', null)
+    .or(`accepted_at.is.null,accepted_at.gte.${since}`)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) throw new AppError('loadFailed', { cause: error });
+  return (data ?? []) as Invitation[];
 }
 
-export async function cancelInvitation(db: SupabaseClient, id: string) {
-  const { error, count } = await db
-    .from('organization_invitations')
-    .delete({ count: 'exact' })
-    .eq('id', id);
-  if (error || !count) {
-    throw new AppError(isMfaError(error) ? 'mfaRequired' : 'cancelInvitationFailed', {
-      cause: error
-    });
-  }
+export interface InviteResult {
+  status: 'sent' | 'email_failed';
+  invitationId: string;
+}
+
+async function postInvitation(path: string, body: unknown): Promise<InviteResult> {
+  const res = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  }).catch((cause) => {
+    throw new AppError('network', { cause });
+  });
+  const json = (await res.json().catch(() => ({}))) as Partial<InviteResult> & { error?: string };
+  if (!res.ok || !json.invitationId) throw new AppError(responseErrorCode(json.error));
+  return json as InviteResult;
+}
+
+/**
+ * Invites someone by e-mail: the server creates the invitation (single-use
+ * link) and e-mails it. `email_failed` means the invitation exists but Resend
+ * did not accept the e-mail: offer a retry, never say it was sent.
+ */
+export function inviteMember(organizationId: string, email: string, role: OrgRole) {
+  return postInvitation('/api/team/invitations', { organizationId, email, role });
+}
+
+/** New link e-mailed again (the previous link stops working). */
+export function resendInvitation(invitationId: string) {
+  return postInvitation('/api/team/invitations/resend', { invitationId });
+}
+
+/** Revoked (kept for the record); the link stops working. */
+export async function revokeInvitation(db: SupabaseClient, invitationId: string) {
+  const { error } = await db.rpc('revoke_organization_invitation', {
+    p_invitation_id: invitationId
+  });
+  if (error) throw new AppError(dbErrorCode(error, 'cancelInvitationFailed'), { cause: error });
 }

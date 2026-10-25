@@ -48,7 +48,8 @@ export default function UserAuthForm({
   next,
   initialError,
   reason,
-  methods = { google: false, passkey: false }
+  methods = { google: false, passkey: false },
+  lockedEmail = null
 }: {
   mode: 'sign-in' | 'sign-up';
   next?: string;
@@ -57,6 +58,8 @@ export default function UserAuthForm({
   reason?: string;
   /** Sign-in methods enabled in Supabase (read server-side from /auth/v1/settings). */
   methods?: AuthMethods;
+  /** Invited address (invitation link): prefilled and read-only. */
+  lockedEmail?: string | null;
 }) {
   const router = useRouter();
   const destination = safeNext(next);
@@ -144,7 +147,7 @@ export default function UserAuthForm({
     callbackUrl(`/auth/verified?next=${encodeURIComponent(onboardingUrl)}`);
 
   const form = useAppForm({
-    defaultValues: { fullName: '', email: '', password: '', acceptTerms: false },
+    defaultValues: { fullName: '', email: lockedEmail ?? '', password: '', acceptTerms: false },
     validators: {
       onSubmit: mode === 'sign-up' ? signUpSchema : signInSchema,
       // New passwords only: refuse very common ones (runs once the schema passes).
@@ -222,6 +225,12 @@ export default function UserAuthForm({
     if (data.user && !userLocale(data.user)) {
       void supabase.auth.updateUser({ data: { locale } }).catch(() => undefined);
     }
+    // Pre-registered owner e-mail: the database links this account to its site
+    // (confirmed e-mail, exact match, organization without owner). Best effort.
+    await supabase.rpc('claim_site_ownership').then(
+      () => undefined,
+      () => undefined
+    );
     // A verified authenticator app: the second factor comes next.
     if (await needsMfaChallenge(supabase)) {
       router.replace(mfaChallengeUrl(destination));
@@ -454,6 +463,8 @@ export default function UserAuthForm({
                 autoComplete={showPasskey ? 'username webauthn' : 'email'}
                 placeholder={t('emailPlaceholder')}
                 disabled={pending}
+                readOnly={!!lockedEmail}
+                description={lockedEmail ? t('emailLocked') : undefined}
               />
             )}
           />
