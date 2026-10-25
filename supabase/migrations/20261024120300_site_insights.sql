@@ -142,7 +142,7 @@ as $$
       'traffic_days', (select count(*) from public.site_traffic_daily where website_id = w.id),
       'api_keys', (select count(*) from public.site_api_keys
                    where website_id = w.id and revoked_at is null)
-    ),
+    ) || public.site_owned_source_counts(w.id),
     'forms', coalesce((select jsonb_agg(x order by (x ->> 'total')::int desc) from (
       select jsonb_build_object('form_type', s.form_type, 'total', count(*),
         'new', count(*) filter (where s.status = 'new'), 'last_at', max(s.created_at)) as x
@@ -277,7 +277,9 @@ begin
           'visitors', visitors) order by day) filter (where day >= v_from_day), '[]'::jsonb))
       from public.site_traffic_daily
       where website_id = p_website_id and day >= v_today - (2 * v_days - 1)),
-    'payments', public.site_payments_summary(p_website_id, v_days, true)
+    'payments', public.site_payments_summary(p_website_id, v_days, true),
+    'project_requests', public.site_project_requests_stats(p_website_id, v_days),
+    'studio', public.site_studio_summary(p_website_id, v_days)
   );
 end;
 $$;
@@ -285,7 +287,7 @@ $$;
 -- ---------------------------------------------------------------- activity
 
 -- Latest things that happened on the website (bell in the header). Payments
--- show the offer and amount only.
+-- show the offer and amount only; project requests (LevelUp) no contact.
 create or replace function public.site_recent_activity(p_website_id text, p_limit integer default 20)
 returns jsonb
 language sql
@@ -323,6 +325,9 @@ as $$
           'label', coalesce(source, ''), 'title', author, 'rating', rating, 'status', status), created_at
         from public.reviews where website_id = p_website_id
         order by created_at desc limit 20)
+      union all
+      (select o.value, (o.value ->> 'at')::timestamptz
+        from jsonb_array_elements(public.site_owned_activity(p_website_id)) as o)
     ) x
     order by x.at desc
     limit least(greatest(coalesce(p_limit, 20), 1), 50)
