@@ -1,62 +1,72 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
-import { getTranslatorFor } from '@/i18n/messages';
-import { sendNotice } from '@/lib/email/notice';
+import { dbErrorCode, ERROR_STATUS } from '@/lib/access/db-errors';
+import { sendDecisionEmail, type ApprovalResult } from '@/lib/email/access-emails';
 import { createClient } from '@/lib/supabase/server';
+import { fields } from '@/lib/validation/fields';
 import { readJsonBody } from '@/lib/validation/http';
 
-// LevelUp staff approve or reject an access request. The database checks the
-// caller (platform admin, 2FA session); the applicant is told by e-mail.
+// LevelUp staff decide on an access request, explicitly: connect the account to
+// an existing website (by its id), create a new client, or decline. The database
+// checks everything (platform admin on aal2, confirmed e-mail, archived sites,
+// duplicates, second confirmation when the organization already has an owner)
+// and audits the decision; the applicant is told by e-mail.
+
+const ROLES = ['owner', 'admin', 'editor', 'viewer'] as const;
 
 const Body = z.strictObject({
   userId: z.uuid(),
-  approve: z.boolean(),
-  organizationId: z.uuid().optional()
+  mode: z.enum(['connect', 'create', 'reject']),
+  websiteId: fields.websiteId().optional(),
+  role: z.enum(ROLES).optional(),
+  confirmWebsiteId: z.string().max(40).optional(),
+  organizationName: fields.text(120).optional(),
+  websiteName: fields.text(120).optional(),
+  websiteDomain: z.string().max(253).optional()
 });
 
-const DASHBOARD = 'https://dashboard.levelup-ecosystem.com';
-
 export async function POST(request: NextRequest) {
-  // Same origin (CSRF), JSON only, 1 KB at most, unknown keys refused.
-  const parsed = await readJsonBody(request, Body, { maxBytes: 1024 });
+  // Same origin (CSRF), JSON only, 2 KB at most, unknown keys refused.
+  const parsed = await readJsonBody(request, Body, { maxBytes: 2048 });
   if (!parsed.ok) return parsed.response;
+  const b = parsed.data;
   const db = await createClient();
-  const { data, error } = await db.rpc('review_access_request', {
-    p_user_id: parsed.data.userId,
-    p_approve: parsed.data.approve,
-    p_organization_id: parsed.data.organizationId ?? null
+  const { data, error } = await db.rpc('admin_review_access_request', {
+    p_user_id: b.userId,
+    p_mode: b.mode,
+    p_website_id: b.websiteId || null,
+    p_role: b.role ?? null,
+    p_confirm_website_id: b.confirmWebsiteId || null,
+    p_organization_name: b.organizationName || null,
+    p_website_name: b.websiteName || null,
+    p_website_domain: b.websiteDomain || null
   });
   if (error) {
-    // Codes only: the database message stays in the server logs.
-    console.error('review_access_request failed', error.code);
-    const mfa = error.message.includes('aal2');
-    return NextResponse.json(
-      { error: mfa ? 'mfa' : error.code === 'PT403' ? 'forbidden' : 'failed' },
-      { status: mfa || error.code === 'PT403' ? 403 : 400 }
-    );
+    // Codes only: the database message stays a short code, never shown as is.
+    const code = dbErrorCode(error, 'reviewFailed');
+    console.error('admin_review_access_request failed', error.code, code);
+    return NextResponse.json({ error: code }, { status: ERROR_STATUS[code] ?? 400 });
   }
-  const result = data as { status: string; email?: string; locale?: string | null };
-  if (result.email) {
-    // The applicant's language when they chose one, English otherwise.
-    const { locale, t } = await getTranslatorFor(result.locale);
-    await sendNotice(
-      parsed.data.approve
-        ? {
-            to: result.email,
-            locale,
-            subject: t('emails.accessApproved.subject'),
-            title: t('emails.accessApproved.title'),
-            lines: [t('emails.accessApproved.line1'), t('emails.accessApproved.line2')],
-            cta: { label: t('emails.accessApproved.cta'), url: `${DASHBOARD}/dashboard/site` }
-          }
-        : {
-            to: result.email,
-            locale,
-            subject: t('emails.accessRejected.subject'),
-            title: t('emails.accessRejected.title'),
-            lines: [t('emails.accessRejected.line1'), t('emails.accessRejected.line2')]
-          }
-    );
-  }
-  return NextResponse.json({ status: result.status });
+  const result = data as ApprovalResult & {
+    mode: string;
+    organization_id?: string;
+    website_id?: string | null;
+    role?: string;
+    unchanged?: boolean;
+    archived_organization_id?: string | null;
+  };
+  // The same decision twice: no second e-mail.
+  const emailSent = result.unchanged ? false : await sendDecisionEmail(result);
+  return NextResponse.json({
+    status: result.status,
+    mode: result.mode,
+    organizationId: result.organization_id ?? null,
+    organizationName: result.organization_name ?? null,
+    websiteId: result.website_id ?? null,
+    websiteName: result.website_name ?? null,
+    role: result.role ?? null,
+    archivedOrganizationId: result.archived_organization_id ?? null,
+    unchanged: !!result.unchanged,
+    emailSent
+  });
 }

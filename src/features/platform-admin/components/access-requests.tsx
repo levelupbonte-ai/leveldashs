@@ -1,15 +1,16 @@
 'use client';
 
-import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
-import { toast } from 'sonner';
-import { useErrorMessage } from '@/hooks/use-error-message';
+import { useState } from 'react';
+import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { createClient } from '@/lib/supabase/client';
-import { decideAccessRequest, type AccessRequest } from '../api/clients';
-import { accessRequestsQueryOptions, adminInsightKeys } from '../api/queries';
+import { accessRequestsQueryOptions } from '../api/queries';
+import type { AccessRequest } from '../api/types';
+import { AccessReviewDialog } from './access-review-dialog';
 
 const STATUS_VARIANT: Record<AccessRequest['status'], 'default' | 'secondary' | 'outline'> = {
   pending: 'default',
@@ -17,22 +18,21 @@ const STATUS_VARIANT: Record<AccessRequest['status'], 'default' | 'secondary' | 
   rejected: 'outline'
 };
 
-/** LevelUp staff: who asked for dashboard access, approve (creates their organization) or reject. */
+/** Approved into an organization that has no website (the "moni" case). */
+export const needsFix = (r: AccessRequest) =>
+  r.status === 'approved' && !!r.organization_id && r.organization_websites === 0;
+
+/**
+ * LevelUp staff: who asked for dashboard access. Nothing is approved in one
+ * click: "Review" opens the explicit decision dialog (connect to an existing
+ * site, or create a new client), "Fix" reconnects an account that was approved
+ * into an empty organization.
+ */
 export function AccessRequests() {
-  const queryClient = useQueryClient();
   const t = useTranslations('admin.accessRequests');
   const format = useFormatter();
-  const errorMessage = useErrorMessage();
   const { data } = useSuspenseQuery(accessRequestsQueryOptions(createClient()));
-  const decide = useMutation({
-    mutationFn: decideAccessRequest,
-    onSuccess: (_, vars) => {
-      toast.success(vars.approve ? t('approved') : t('rejected'));
-      void queryClient.invalidateQueries({ queryKey: adminInsightKeys.accessRequests() });
-      void queryClient.invalidateQueries({ queryKey: adminInsightKeys.allWebsites() });
-    },
-    onError: (e) => toast.error(errorMessage(e))
-  });
+  const [open, setOpen] = useState<{ userId: string; fix: boolean } | null>(null);
   const pending = data.filter((r) => r.status === 'pending').length;
 
   return (
@@ -57,14 +57,29 @@ export function AccessRequests() {
                   {t(`status.${r.status}`)}
                 </Badge>
               </p>
-              <p className='text-muted-foreground'>
+              <p className='text-muted-foreground break-all'>
                 {r.full_name ? `${r.full_name} · ` : ''}
                 {r.email}
-                {r.phone ? ` · ${r.phone}` : ''}
+                {r.phone ? ` · ${r.phone}` : ''}{' '}
+                {!r.email_confirmed && (
+                  <Badge variant='outline' className='text-amber-700 dark:text-amber-300'>
+                    {t('emailUnconfirmed')}
+                  </Badge>
+                )}
               </p>
               {r.website && <p className='text-muted-foreground truncate'>{r.website}</p>}
-              {r.message && (
-                <p className='text-muted-foreground whitespace-pre-wrap'>{r.message}</p>
+              {r.status === 'approved' && r.organization_name && (
+                <p className='text-muted-foreground'>
+                  {t('connectedTo', {
+                    place: r.website_domain ?? r.website_name ?? r.organization_name
+                  })}
+                </p>
+              )}
+              {needsFix(r) && (
+                <p className='flex items-center gap-1 text-amber-700 dark:text-amber-300'>
+                  <Icons.warning className='size-4' aria-hidden />
+                  {t('fixHint', { name: r.organization_name ?? '' })}
+                </p>
               )}
               <p className='text-muted-foreground text-xs'>
                 {format.dateTime(new Date(r.created_at), {
@@ -73,28 +88,29 @@ export function AccessRequests() {
                 })}
               </p>
             </div>
-            {r.status === 'pending' && (
-              <div className='flex shrink-0 gap-2'>
-                <Button
-                  size='sm'
-                  disabled={decide.isPending}
-                  onClick={() => decide.mutate({ userId: r.user_id, approve: true })}
-                >
-                  {t('approve')}
-                </Button>
-                <Button
-                  size='sm'
-                  variant='outline'
-                  disabled={decide.isPending}
-                  onClick={() => decide.mutate({ userId: r.user_id, approve: false })}
-                >
-                  {t('reject')}
-                </Button>
-              </div>
+            {r.status !== 'approved' && (
+              <Button size='sm' onClick={() => setOpen({ userId: r.user_id, fix: false })}>
+                {t('review')}
+              </Button>
+            )}
+            {needsFix(r) && (
+              <Button
+                size='sm'
+                variant='outline'
+                onClick={() => setOpen({ userId: r.user_id, fix: true })}
+              >
+                <Icons.adjustments className='size-4' aria-hidden />
+                {t('fix')}
+              </Button>
             )}
           </div>
         ))}
       </CardContent>
+      <AccessReviewDialog
+        userId={open?.userId ?? null}
+        fix={open?.fix}
+        onOpenChange={(v) => !v && setOpen(null)}
+      />
     </Card>
   );
 }
