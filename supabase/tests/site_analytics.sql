@@ -47,7 +47,10 @@ BEGIN
   PERFORM public.track_pageview(ws_a, '/about', NULL, 'fr');
   PERFORM set_config('request.headers', replace(h_good, '203.0.113.7', '198.51.100.9'), true);
   PERFORM public.track_pageview(ws_a, '/pricing', NULL, 'en-US');
-  BEGIN SELECT count(*) INTO n FROM public.site_traffic_daily; r := r || 'FAIL anon reads traffic'::text;
+  -- through the tag proxy: same proxy address, the visitor comes in x-lu-client-*
+  PERFORM set_config('request.headers', '{"origin":"https://shop-a.example","user-agent":"node","x-forwarded-for":"10.9.9.9","x-lu-client-ip":"203.0.113.7","x-lu-client-ua":"Mozilla/5.0 (Macintosh) Safari/605"}', true);
+  PERFORM public.track_pageview(ws_a, '/contact');
+    BEGIN SELECT count(*) INTO n FROM public.site_traffic_daily; r := r || 'FAIL anon reads traffic'::text;
   EXCEPTION WHEN insufficient_privilege THEN r := r || 'PASS anon cannot read traffic'::text; END;
 
   -- rate limit: one bucket accepts 60 views per 5 minutes
@@ -59,9 +62,9 @@ BEGIN
   r := r || (CASE WHEN n = 60 THEN 'PASS' ELSE 'FAIL ' || n END || ' rate limit: 60 views per bucket');
   EXECUTE 'RESET ROLE';
 
-  r := r || (CASE WHEN (SELECT views FROM public.site_traffic_daily WHERE website_id = ws_a) = 64
+  r := r || (CASE WHEN (SELECT views FROM public.site_traffic_daily WHERE website_id = ws_a) = 65
     AND (SELECT visitors FROM public.site_traffic_daily WHERE website_id = ws_a) = 3 THEN 'PASS'
-    ELSE 'FAIL ' || (SELECT views || '/' || visitors FROM public.site_traffic_daily WHERE website_id = ws_a) END || ' 64 views, 3 unique visitors');
+    ELSE 'FAIL ' || (SELECT views || '/' || visitors FROM public.site_traffic_daily WHERE website_id = ws_a) END || ' 65 views, 3 unique visitors (proxy headers identify the same visitor)');
   r := r || (CASE WHEN (SELECT sum(views) FROM public.site_pageviews_daily WHERE website_id = ws_a AND path = '/pricing') = 3
     AND (SELECT sum(unique_visitors) FROM public.site_pageviews_daily WHERE website_id = ws_a AND path = '/pricing') = 2 THEN 'PASS' ELSE 'FAIL' END || ' /pricing: 3 views, 2 visitors');
   r := r || (CASE WHEN EXISTS (SELECT 1 FROM public.site_pageviews_daily WHERE website_id = ws_a AND referrer_host = 'google.com' AND lang = 'fr')
@@ -74,7 +77,7 @@ BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
   EXECUTE 'SET LOCAL ROLE authenticated';
   j := public.site_analytics_summary(ws_a, 7);
-  r := r || (CASE WHEN (j->'totals'->>'views')::int = 64 AND (j->'totals'->>'visitors')::int = 3 AND j->'pages'->0->>'path' = '/spam'
+  r := r || (CASE WHEN (j->'totals'->>'views')::int = 65 AND (j->'totals'->>'visitors')::int = 3 AND j->'pages'->0->>'path' = '/spam'
     AND j->'referrers'->0->>'host' = 'google.com' AND (j->>'has_data')::boolean THEN 'PASS' ELSE 'FAIL ' || j::text END || ' viewer reads the summary');
   EXECUTE 'RESET ROLE';
   PERFORM set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);

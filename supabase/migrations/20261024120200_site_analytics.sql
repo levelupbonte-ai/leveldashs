@@ -238,12 +238,17 @@ begin
     return false;
   end if;
 
-  v_ua := left(coalesce(v_headers ->> 'user-agent', ''), 400);
+  -- Behind the LevelUp tag proxy (levelup-ecosystem.com/api/v1/pageview) the
+  -- visitor address and browser come in x-lu-client-ip / x-lu-client-ua;
+  -- called directly, from the gateway headers. Spoofing them only skews the
+  -- counts of that website (bounded by the per-site daily cap).
+  v_ua := left(coalesce(nullif(v_headers ->> 'x-lu-client-ua', ''), v_headers ->> 'user-agent', ''), 400);
   if v_ua = '' or v_ua ~* '(bot|crawl|spider|slurp|preview|headless|lighthouse|monitor|curl|wget|python|httpclient)' then
     return false;
   end if;
-  v_ip := coalesce(v_headers ->> 'cf-connecting-ip', v_headers ->> 'x-real-ip',
-                   btrim(split_part(coalesce(v_headers ->> 'x-forwarded-for', ''), ',', 1)), '');
+  v_ip := left(coalesce(nullif(v_headers ->> 'x-lu-client-ip', ''), v_headers ->> 'cf-connecting-ip',
+                        v_headers ->> 'x-real-ip',
+                        btrim(split_part(coalesce(v_headers ->> 'x-forwarded-for', ''), ',', 1)), ''), 64);
 
   -- Salt of the day: replaced (the old one is gone) when the day changes.
   insert into private.analytics_salt (id, day, salt)

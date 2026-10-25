@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { integrationQueryOptions } from '@/features/site/api/queries';
+import { apiKeysQueryOptions } from '@/features/api-keys/api/queries';
 import { DevelopersPanel } from '@/features/site/components/developers-panel';
 import { SitePage } from '@/features/site/components/site-page';
 
@@ -15,9 +16,10 @@ export default async function Page() {
     <SitePage
       title={t('title')}
       description={t('description')}
-      prefetch={(qc, db, websiteId) =>
-        void qc.prefetchQuery(integrationQueryOptions(db, websiteId))
-      }
+      prefetch={(qc, db, websiteId) => {
+        void qc.prefetchQuery(integrationQueryOptions(db, websiteId));
+        void qc.prefetchQuery(apiKeysQueryOptions(db, websiteId));
+      }}
     >
       <DevelopersPanel />
     </SitePage>

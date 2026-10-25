@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { useSiteMutations } from '../api/mutations';
 import { integrationQueryOptions, siteKeys } from '../api/queries';
 import { useSiteScope } from './use-site-scope';
+import { ServerKeysCard } from '@/features/api-keys/components/server-keys-card';
 
 export const TAG_URL = 'https://levelup-ecosystem.com/sdk/v1/levelup.js';
 const INSTALLED_WITHIN_MS = 7 * 24 * 3600 * 1000;
@@ -115,6 +116,43 @@ export function DevelopersPanel() {
             />
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('paymentsTitle')}</CardTitle>
+            <CardDescription>{t.rich('paymentsDescription', { code })}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CodeBlock
+              code={`// Server only (e.g. your Stripe webhook). Never in the browser.
+await fetch(\`\${SUPABASE_URL}/rest/v1/rpc/site_ingest_payment\`, {
+  method: 'POST',
+  headers: {
+    apikey: SUPABASE_PUBLISHABLE_KEY,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    p_key: process.env.LEVELUP_SITE_KEY,
+    p_event: {
+      provider: 'stripe',
+      provider_event_id: event.id,
+      provider_session_id: session.id,
+      provider_payment_intent: session.payment_intent ?? null,
+      status: 'paid',
+      amount: session.amount_total,
+      currency: session.currency,
+      offer_id: 'my-offer',
+      offer_name: 'My offer',
+      customer_email: session.customer_details?.email ?? null,
+      customer_name: session.customer_details?.name ?? null,
+      occurred_at: new Date(event.created * 1000).toISOString(),
+      metadata: {}
+    }
+  })
+});`}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       <div className='space-y-6'>
@@ -208,12 +246,7 @@ export function DevelopersPanel() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('serverKeysTitle')}</CardTitle>
-            <CardDescription>{t('serverKeysDescription')}</CardDescription>
-          </CardHeader>
-        </Card>
+        <ServerKeysCard />
       </div>
     </div>
   );

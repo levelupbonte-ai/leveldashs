@@ -37,6 +37,11 @@ the schema from application code or by hand in the dashboard.
 | `20261024100100` | admin_review_access_request (explicit connect / create / reject, fix + archive empty org, audit; old `review_access_request` delegates and never creates an organization) | **Applied** (`admin_review_access_request`) |
 | `20261024100200` | team_invitation_emails (invitation columns, `private.organization_invitation_tokens`, create / resend / record / revoke / preview / accept RPCs, `accept_invitations` skips revoked) | **Applied** (`team_invitation_tokens`, `team_invitation_send`, `team_invitation_accept`) |
 | `20261024100300` | site_owner_claims (`private.website_owner_claims`, `private.website_activation_codes`, owner e-mail auto-link trigger + `claim_site_ownership`, staff code functions, `redeem_activation_code`) | **Applied** (`site_owner_claims_tables`, `site_owner_claims_autolink`, `site_owner_claims_staff`, `site_activation_redeem`) |
+| `20261024120000` | site_api_keys (per-site server keys, sha256 only, admin create/revoke; `site_audit_log`; see [site-api.md](./site-api.md)) | **Not applied yet** (validated in a rolled-back transaction) |
+| `20261024120100` | site_payments (`site_payments`, `site_payment_events`, `site_ingest_payment`, masked list / detail, admin export, summary) | **Not applied yet** (validated) |
+| `20261024120200` | site_analytics (`track_pageview`, daily counters, salted bloom filter for unique visitors, `site_analytics_summary`) | **Not applied yet** (validated) |
+| `20261024120250` | levelup_own_sources (features `project_requests`, `studio_insights`; project requests + LevelStudio aggregates for the owning organization) | **Not applied yet** (validated) |
+| `20261024120300` | site_insights (`site_capabilities`, `site_overview_stats`, `site_recent_activity`, `site_submissions_list`; custom form types; `archived` inbox status) | **Not applied yet** (validated) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -90,7 +95,7 @@ insert into platform_admins (user_id) select id from auth.users where email = 'y
 | `website_settings` | key/value: contact, hours, social, booking slots, waitlist toggle, branding | read `is_public` rows of live sites | viewer read, editor write |
 | `content_blocks` | page sections (hero, about…) as JSON | read published | viewer read, editor write |
 | `team_members`, `services`, `gallery_items`, `reviews`, `faq_items`, `announcements` | site content | read published | viewer read, editor write |
-| `appointments`, `waitlist_entries`, `form_submissions` | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
+| `appointments`, `waitlist_entries`, `form_submissions` (any form type `^[a-z][a-z0-9_]{1,39}$`) | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
 | `studio_templates`, `studio_projects`, `studio_usage` | LevelStudio | published starter/style templates | owner reads own; writes via LevelStudio server |
 
 Public RPCs (callable with the publishable key): `get_public_website`,
@@ -100,6 +105,23 @@ enabled, take prices/names from the database (never from the browser),
 rate-limit (5/hour per contact, 300/hour per site) and return ticket codes
 instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 `PT409`, `PT429`).
+
+## Payments, analytics and the adaptive dashboard
+
+| Table | Holds | Members | Writes |
+|---|---|---|---|
+| `site_api_keys` | server keys of a website (hash, prefix, last 4, scopes, last use, revoked) | owners / admins read (no hash column) | `site_create_api_key`, `site_revoke_api_key` (audited) |
+| `site_audit_log` | key creation / revocation, payment exports, project request updates | owners / admins read | SECURITY DEFINER functions only (append-only) |
+| `site_payments`, `site_payment_events` | payments reported by the website server, every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
+| `site_traffic_daily`, `site_pageviews_daily` | daily views / unique visitors per path, referrer host, language | viewer read | `track_pageview` (LevelUp tag) |
+
+Contracts and rules: [site-api.md](./site-api.md). Tests:
+`supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
+`levelup_sources.sql`.
+
+To apply (in order): `supabase db push`, or the SQL editor / MCP
+`apply_migration` with each file of `20261024120000` → `20261024120300`, then run
+the four suites (they always roll back and must report `0 failed`).
 
 ## Showcase CMS (showcase_cms)
 
