@@ -33,6 +33,10 @@ the schema from application code or by hand in the dashboard.
 | `20261011130000` | contracts (templates, contracts, signatures, required tasks, gate helpers, restrictive content policies, private `contracts` bucket, staff + `sign_contract` RPCs; see [contracts.md](./contracts.md)) | **Applied** (through the MCP in parts: `contracts_tables`, `contracts_access_gate`, `contracts_order_form`, `contracts_staff_create_send`, `contracts_staff_manage`, `contracts_publish_template`, `contracts_sign`) |
 | `20261011130100` | contract_templates_seed (Master Services Agreement v1 EN + FR) | **Applied** (`contract_templates_seed_en`, `contract_templates_seed_fr`, `contract_templates_publish_v1`; bodies verified byte-for-byte by SHA-256) |
 | `20261012130000` | msa_v2 (Master Services Agreement v2 EN + FR: v1 without the §12.1 non-solicitation clause, §12 renumbered) | **Applied** (`msa_v2`, derived from v1 in SQL; bodies checked by MD5 against this file) |
+| `20261024100000` | access_review (`private.url_host`, `email_domain`, `website_hosts`; `access_requests.website_id`; `admin_list_access_requests`, `admin_access_review_context`) | **Applied** (`access_review_helpers`, `access_review_url_host_backslash`) |
+| `20261024100100` | admin_review_access_request (explicit connect / create / reject, fix + archive empty org, audit; old `review_access_request` delegates and never creates an organization) | **Applied** (`admin_review_access_request`) |
+| `20261024100200` | team_invitation_emails (invitation columns, `private.organization_invitation_tokens`, create / resend / record / revoke / preview / accept RPCs, `accept_invitations` skips revoked) | **Applied** (`team_invitation_tokens`, `team_invitation_send`, `team_invitation_accept`) |
+| `20261024100300` | site_owner_claims (`private.website_owner_claims`, `private.website_activation_codes`, owner e-mail auto-link trigger + `claim_site_ownership`, staff code functions, `redeem_activation_code`) | **Applied** (`site_owner_claims_tables`, `site_owner_claims_autolink`, `site_owner_claims_staff`, `site_activation_redeem`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -140,6 +144,23 @@ show in *Demandes de projet* on the same page.
   **existing** account to an organization by e-mail, or changes its role (admin+;
   owner to grant `owner` or change an owner). Returns `added`, `updated` or
   `not_found` (no account with that e-mail). Callable by `authenticated` only.
+- `public.admin_review_access_request(user_id, mode, website_id, role, confirm_website_id,
+  organization_name, website_name, website_domain)` — staff decision on an access request
+  (`connect` / `create` / `reject`). Raises short codes (`email_unconfirmed`,
+  `invalid_website_id`, `website_not_found`, `website_archived`, `already_member`,
+  `already_approved`, `confirmation_required`, `domain_taken`, …) mapped to `AppError` codes
+  by `src/lib/access/db-errors.ts`. Returns the organization / website it used.
+- Team invitations: `create_organization_invitation`, `resend_organization_invitation`,
+  `record_organization_invitation_email`, `revoke_organization_invitation`,
+  `get_organization_invitation(token)` (anon: preview), `accept_organization_invitation(token)`.
+  Tokens are stored as SHA-256 only (`private.sha256_hex`).
+- Client self-serve access: `admin_set_site_owner_email`, `admin_create_activation_code`
+  (returns the code once), `admin_revoke_activation_code`, `admin_get_site_access`,
+  `claim_site_ownership()`, `redeem_activation_code(code, client_hash)`.
+- Audit: these functions write `public.hq_audit_log` through `private.hq_log` (the
+  append-only log of LevelUp HQ, same database): `access_request.*`, `organization.*`,
+  `team.invitation_*`, `site.owner_*`, `site.activation_code_*`. Codes and tokens are never
+  logged.
 - `public.get_public_website(website_id)` — public config of an **active** website
   (name, domain, enabled features). Callable by `anon`.
 - Platform staff are listed in `platform_admins` (insert with the service role only).
