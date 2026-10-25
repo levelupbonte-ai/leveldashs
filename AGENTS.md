@@ -39,7 +39,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 
 ### State Management
 
-- Zustand 5.x for local UI state in the stateful demo features
+- Zustand 5.x for small local UI state (chat)
 - Nuqs for URL search params state management
 - TanStack Form + Zod for form handling (`createFormHook` + shadcn `Field`-anatomy components)
 
@@ -65,10 +65,10 @@ The project follows a feature-based folder structure. The UI is in English by de
 - TanStack Table for data tables
 - TanStack React Query for data fetching and mutations
 - Recharts for analytics/charts
-- Supabase (`src/lib/supabase/*`) for real data: `features/site` and `features/organizations`
+- Supabase (`src/lib/supabase/*`) for all data: `features/site`, `features/insights` (adaptive overview, analytics, capabilities, activity), `features/payments`, `features/submissions` (generic forms inbox), `features/api-keys`, `features/project-requests` (LevelUp), `features/organizations`
 - Service layer per feature (`api/types.ts` → `api/service.ts` → `api/queries.ts`)
 - Route handlers at `src/app/api/` (for Route Handler or BFF patterns)
-- Mock data in `src/constants/mock-api*.ts` for the remaining demo pages (products, users, overview)
+- No mock data: every number comes from the database; empty states when there is nothing (see [docs/site-api.md](./docs/site-api.md))
 - API client utility in `src/lib/api-client.ts` (for fetch-based patterns)
 
 ### Development Tools
@@ -87,13 +87,9 @@ The project follows a feature-based folder structure. The UI is in English by de
 ├── app/                    # Next.js App Router
 │   ├── auth/              # sign-in, sign-up, callback (Supabase Auth)
 │   ├── dashboard/         # Dashboard routes (layout loads the session)
-│   │   ├── site/          # Client website: overview, [collection], appointments, waitlist, requests, media, settings
-│   │   ├── overview/      # Parallel routes (@area_stats, @bar_stats, etc.)
-│   │   ├── product/       # Product management pages
-│   │   ├── kanban/        # Kanban board page
+│   │   ├── site/          # Client website: overview (adaptive), capabilities, analytics, payments, project-requests,
+│   │   │                  #   requests (forms inbox), [collection], appointments, waitlist, media, seo, developers, settings
 │   │   ├── chat/          # Messaging page
-│   │   ├── ai-chat/       # AI chat streaming demo
-│   │   ├── notifications/ # Notifications page
 │   │   ├── workspaces/    # Organizations (list/create) + team/ (members & roles)
 │   │   ├── billing/       # Static "billing handled by LevelUp" page
 │   │   ├── exclusive/     # LevelUp admin "Tous les clients" (platform admins only)
@@ -121,23 +117,12 @@ The project follows a feature-based folder structure. The UI is in English by de
 │   │   ├── components/    # SitePage server wrapper, collection manager, media library, …
 │   │   └── server.ts      # loadSitePage(): active website + feature check + server client
 │   ├── organizations/     # Organizations, team members, LevelUp admin (Supabase)
-│   ├── overview/          # Dashboard analytics
-│   ├── products/          # Product management (React Query + nuqs)
-│   │   ├── api/
-│   │   │   ├── types.ts   # Type contract (response shapes, filters, payloads)
-│   │   │   ├── service.ts # Data access layer (swap for your backend)
-│   │   │   └── queries.ts # React Query options + key factories
-│   │   ├── components/    # Listing, form, table components
-│   │   ├── schemas/       # Zod schemas
-│   │   └── constants/     # Filter options
-│   ├── users/             # User management (React Query + nuqs)
-│   │   ├── api/           # Same pattern: types.ts → service.ts → queries.ts
-│   │   └── components/    # Listing, table components
-│   ├── react-query-demo/  # React Query showcase (Pokemon API)
-│   ├── kanban/            # Kanban board with dnd-kit
+│   ├── insights/          # Adaptive overview, analytics, capabilities, activity bell, charts (src/styles/viz.css palette)
+│   ├── payments/          # Payments page (site_payments_* RPCs), money helpers, URL filters
+│   ├── submissions/       # Generic forms inbox: any form type, fields detected from data, CSV
+│   ├── api-keys/          # Per-site server keys (Developers page)
+│   ├── project-requests/  # LevelUp only: "Start a project" requests with the AI triage
 │   ├── chat/              # Messaging UI (conversations, bubbles, composer)
-│   ├── ai-chat/           # Scripted useChat streaming demo
-│   ├── notifications/     # Notification center & store
 │   └── profile/           # Profile management
 │
 ├── config/                # Configuration files
@@ -177,8 +162,8 @@ The project follows a feature-based folder structure. The UI is in English by de
 /supabase                  # migrations/ (versioned SQL) and tests/ (SQL test suites)
 
 /scripts                   # Dev tooling
-    ├── cleanup.js         # Feature removal, run via `bun run cleanup` (templates in cleanup-templates/, typechecked)
-    └── cleanup-templates/ # Replacement files cleanup.js copies into the repo
+    ├── migrate-media.mjs  # Media migration (trusted machine, secret key never in the app)
+    └── restore-backup.md  # Database backup restore guide
 
 Dockerfile                 # Node.js production Dockerfile
 Dockerfile.bun             # Bun production Dockerfile
@@ -327,15 +312,15 @@ import { NavGroup } from '@/types';
 
 export const navGroups: NavGroup[] = [
   {
-    label: 'Overview',
+    label: 'mySite',
     items: [
       {
-        title: 'Dashboard',
-        url: '/dashboard/overview',
-        icon: 'dashboard',
-        shortcut: ['d', 'd'],
+        title: 'payments',
+        url: '/dashboard/site/payments',
+        icon: 'creditCard',
         items: [],
-        access: { requireOrg: true } // RBAC check
+        // Feature enabled, or the website already has payments
+        access: { requireWebsite: true, feature: 'payments', data: 'payments' }
       }
     ]
   }
@@ -348,6 +333,7 @@ export const navGroups: NavGroup[] = [
 - `requireWebsite: boolean` - Requires an active website
 - `role: 'viewer' | 'editor' | 'admin' | 'owner'` - Minimum role in the active organization (platform admins always pass)
 - `feature: string | string[]` - At least one of these `website_features` keys enabled on the active website
+- `data: string` - With `feature`: also shown when the website has rows of that kind (`site_capabilities().counts`)
 - `platformAdmin: boolean` - LevelUp staff only (`platform_admins`)
 
 ### Client-Side Filtering
@@ -597,40 +583,6 @@ Both build with `BUILD_STANDALONE=true` (`output: 'standalone'` in `next.config.
 
 ---
 
-## Feature Cleanup System
-
-A single `scripts/cleanup.js` file handles removal of optional features:
-
-```bash
-# Interactive mode — prompts for each feature
-node scripts/cleanup.js --interactive
-
-# Remove specific features
-node scripts/cleanup.js kanban          # Remove kanban board
-node scripts/cleanup.js chat            # Remove messaging UI
-node scripts/cleanup.js ai-chat         # Remove AI chat demo
-node scripts/cleanup.js notifications   # Remove notification center
-node scripts/cleanup.js themes          # Keep one theme, remove rest
-node scripts/cleanup.js sentry          # Remove error tracking
-
-# Remove multiple at once
-node scripts/cleanup.js kanban chat notifications
-
-# Preview without changing files
-node scripts/cleanup.js --dry-run kanban
-
-# List all features
-node scripts/cleanup.js --list
-```
-
-**Safety**: Script requires git repository with at least one commit. Use `--force` to skip.
-
-Replacement files live in `scripts/cleanup-templates/` as real `.ts`/`.tsx` files typechecked by `tsc` and `next build`, so template rot fails loudly instead of shipping broken code.
-
-After cleanup, delete `scripts/cleanup.js` and `scripts/cleanup-templates/` — the dev server message auto-cleans on next start.
-
----
-
 ## Icon System
 
 **All icons come from a single source: `src/components/icons.tsx`.**
@@ -699,7 +651,7 @@ Browse all available icons at `/dashboard/elements/icons` — a searchable grid 
 ### Adding a New Feature (End-to-End)
 
 1. Create `src/features/<name>/api/types.ts` — response types, filter types, mutation payloads
-2. Create `src/features/<name>/api/service.ts` — data access functions (mock by default)
+2. Create `src/features/<name>/api/service.ts` — data access functions (Supabase, as the signed-in user)
 3. Create `src/features/<name>/api/queries.ts` — query key factory + `queryOptions`
 4. Create page route: `src/app/dashboard/<name>/page.tsx`
 5. Create feature components in `src/features/<name>/components/`
@@ -781,4 +733,4 @@ See "Theming System" section above or `docs/themes.md`.
 10. **Forms** - Use `useAppForm` from `@/lib/form` with `form.AppField` rendering the shared field components (`field.TextField`, `field.SelectField`, …) from `@/components/forms/fields`. Each component follows the official shadcn TanStack Form anatomy; drop down to raw `form.Field` render props for one-off custom fields. Never use `useState` inside a render prop — extract stateful controls into components.
 11. **Button loading** - Use `<Button isLoading={isPending}>` for loading states. Uses CSS Grid overlap trick for zero layout shift. When `isLoading` is not passed, button behaves as default shadcn. `SubmitButton` in forms handles this automatically via form `isSubmitting` state.
 12. **Supabase** - Use `@/lib/supabase/client` (browser) or `@/lib/supabase/server` (server) only; never the secret/service-role key. Schema changes go through `supabase/migrations` (see `docs/database.md`), never application code. User-facing text goes through next-intl messages (English default, French translation).
-13. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`. Never import from `@/constants/mock-api*` directly in components.
+13. **Data layer** - Always go through the service layer: `types.ts` → `service.ts` → `queries.ts`. Components import types from `types.ts`, functions from `service.ts`, query options from `queries.ts`.

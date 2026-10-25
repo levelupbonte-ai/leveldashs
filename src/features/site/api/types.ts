@@ -62,6 +62,7 @@ export type SubmissionStatus =
   | 'won'
   | 'lost'
   | 'closed'
+  | 'archived'
   | 'spam';
 
 export interface MediaItem {

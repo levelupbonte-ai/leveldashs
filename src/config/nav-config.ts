@@ -9,6 +9,8 @@ import { NavGroup } from '@/types';
  * - `requireOrg` / `requireWebsite`: an active organization / website is needed
  * - `role`: minimum organization role (viewer < editor < admin < owner)
  * - `feature`: website_features key(s) that must be enabled on the active website
+ * - `data`: also shown when the website already has rows of that kind
+ *   (`site_capabilities().counts`), so whatever a site stores is reachable
  * - `platformAdmin`: LevelUp staff only
  * - `whenLocked`: still shown while the organization must sign its contract or
  *   finish required tasks (everything else is hidden, and the proxy redirects)
@@ -25,19 +27,37 @@ export const navGroups: NavGroup[] = [
       {
         title: 'siteOverview',
         url: '/dashboard/site',
-        icon: 'world',
+        icon: 'dashboard',
         isActive: false,
         shortcut: ['s', 's'],
         items: [],
         access: { requireWebsite: true }
       },
       {
-        title: 'assistant',
-        url: '/dashboard/site/assistant',
-        icon: 'starMark',
+        title: 'capabilities',
+        url: '/dashboard/site/capabilities',
+        icon: 'apps',
         isActive: false,
         items: [],
         access: { requireWebsite: true }
+      },
+      {
+        title: 'analytics',
+        url: '/dashboard/site/analytics',
+        icon: 'chartLine',
+        isActive: false,
+        shortcut: ['a', 'a'],
+        items: [],
+        access: { requireWebsite: true }
+      },
+      {
+        title: 'payments',
+        url: '/dashboard/site/payments',
+        icon: 'creditCard',
+        isActive: false,
+        shortcut: ['p', 'p'],
+        items: [],
+        access: { requireWebsite: true, feature: 'payments', data: 'payments' }
       },
       {
         title: 'appointments',
@@ -45,7 +65,7 @@ export const navGroups: NavGroup[] = [
         icon: 'calendar',
         isActive: false,
         items: [],
-        access: { requireWebsite: true, feature: 'bookings' }
+        access: { requireWebsite: true, feature: 'bookings', data: 'appointments' }
       },
       {
         title: 'waitlist',
@@ -53,13 +73,22 @@ export const navGroups: NavGroup[] = [
         icon: 'hourglass',
         isActive: false,
         items: [],
-        access: { requireWebsite: true, feature: 'waitlist' }
+        access: { requireWebsite: true, feature: 'waitlist', data: 'waitlist' }
+      },
+      {
+        title: 'projectRequests',
+        url: '/dashboard/site/project-requests',
+        icon: 'briefcase',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true, feature: 'project_requests' }
       },
       {
         title: 'requests',
         url: '/dashboard/site/requests',
         icon: 'inbox',
         isActive: false,
+        shortcut: ['f', 'f'],
         items: [],
         access: { requireWebsite: true }
       },
@@ -74,52 +103,60 @@ export const navGroups: NavGroup[] = [
             title: 'services',
             url: '/dashboard/site/services',
             icon: 'scissors',
-            access: { feature: 'services' }
+            access: { feature: 'services', data: 'services' }
           },
           {
             title: 'team',
             url: '/dashboard/site/team',
             icon: 'teams',
-            access: { feature: 'team' }
+            access: { feature: 'team', data: 'team' }
           },
           {
             title: 'gallery',
             url: '/dashboard/site/gallery',
             icon: 'photo',
-            access: { feature: 'gallery' }
+            access: { feature: 'gallery', data: 'gallery' }
           },
           {
             title: 'reviews',
             url: '/dashboard/site/reviews',
             icon: 'star',
-            access: { feature: 'reviews' }
+            access: { feature: 'reviews', data: 'reviews' }
           },
           {
             title: 'announcements',
             url: '/dashboard/site/announcements',
             icon: 'speakerphone',
-            access: { feature: ['announcements', 'promotions', 'blog'] }
+            access: { feature: ['announcements', 'promotions', 'blog'], data: 'announcements' }
           },
           { title: 'faq', url: '/dashboard/site/faq', icon: 'help' },
           {
             title: 'showcaseTemplates',
             url: '/dashboard/site/templates',
             icon: 'template',
-            access: { feature: 'showcase_cms' }
+            access: { feature: 'showcase_cms', data: 'templates' }
           },
           {
             title: 'showcaseCaseStudies',
             url: '/dashboard/site/case-studies',
             icon: 'briefcase',
-            access: { feature: 'showcase_cms' }
+            access: { feature: 'showcase_cms', data: 'case-studies' }
           },
           {
             title: 'showcaseSections',
             url: '/dashboard/site/page-sections',
             icon: 'layoutRows',
-            access: { feature: 'showcase_cms' }
+            access: { feature: 'showcase_cms', data: 'page-sections' }
           }
         ]
+      },
+      {
+        title: 'assistant',
+        url: '/dashboard/site/assistant',
+        icon: 'starMark',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true }
       },
       {
         title: 'media',
@@ -159,14 +196,6 @@ export const navGroups: NavGroup[] = [
     label: 'overview',
     items: [
       {
-        title: 'dashboard',
-        url: '/dashboard/overview',
-        icon: 'dashboard',
-        isActive: false,
-        shortcut: ['d', 'd'],
-        items: []
-      },
-      {
         title: 'organizations',
         url: '/dashboard/workspaces',
         icon: 'workspace',
@@ -182,90 +211,10 @@ export const navGroups: NavGroup[] = [
         access: { requireOrg: true }
       },
       {
-        title: 'product',
-        url: '/dashboard/product',
-        icon: 'product',
-        shortcut: ['p', 'p'],
-        isActive: false,
-        items: []
-      },
-      {
-        title: 'users',
-        url: '/dashboard/users',
-        icon: 'teams',
-        shortcut: ['u', 'u'],
-        isActive: false,
-        items: []
-      },
-      {
-        title: 'kanban',
-        url: '/dashboard/kanban',
-        icon: 'kanban',
-        shortcut: ['k', 'k'],
-        isActive: false,
-        items: []
-      },
-      {
         title: 'chat',
         url: '/dashboard/chat',
         icon: 'chat',
         shortcut: ['c', 'c'],
-        isActive: false,
-        items: []
-      },
-      {
-        title: 'aiChat',
-        url: '/dashboard/ai-chat',
-        icon: 'starMark',
-        shortcut: ['a', 'i'],
-        isActive: false,
-        items: []
-      }
-    ]
-  },
-  {
-    label: 'elements',
-    items: [
-      {
-        title: 'forms',
-        url: '#',
-        icon: 'forms',
-        isActive: true,
-        items: [
-          {
-            title: 'basicForm',
-            url: '/dashboard/forms/basic',
-            icon: 'forms',
-            shortcut: ['f', 'f']
-          },
-          {
-            title: 'multiStepForm',
-            url: '/dashboard/forms/multi-step',
-            icon: 'forms'
-          },
-          {
-            title: 'sheetDialog',
-            url: '/dashboard/forms/sheet-form',
-            icon: 'forms'
-          },
-          {
-            title: 'advancedPatterns',
-            url: '/dashboard/forms/advanced',
-            icon: 'forms'
-          }
-        ]
-      },
-      {
-        title: 'reactQuery',
-        url: '/dashboard/react-query',
-        icon: 'code',
-        isActive: false,
-        items: []
-      },
-      {
-        title: 'icons',
-        url: '/dashboard/elements/icons',
-        icon: 'palette',
         isActive: false,
         items: []
       }
@@ -293,12 +242,6 @@ export const navGroups: NavGroup[] = [
             icon: 'profile',
             shortcut: ['m', 'm'],
             access: { whenLocked: true }
-          },
-          {
-            title: 'notifications',
-            url: '/dashboard/notifications',
-            icon: 'notification',
-            shortcut: ['n', 'n']
           },
           {
             title: 'billing',

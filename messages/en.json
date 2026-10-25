@@ -76,15 +76,14 @@
   "nav": {
     "groups": {
       "mySite": "My website",
-      "overview": "Overview",
-      "elements": "Elements"
+      "overview": "Overview"
     },
     "items": {
       "siteOverview": "Overview",
       "assistant": "AI assistant",
       "appointments": "Appointments",
       "waitlist": "Waitlist",
-      "requests": "Requests",
+      "requests": "Forms & requests",
       "content": "Content",
       "services": "Services",
       "team": "Team",
@@ -96,30 +95,21 @@
       "seo": "SEO",
       "developers": "Developers",
       "siteSettings": "Website settings",
-      "dashboard": "Dashboard",
       "organizations": "Organizations",
       "teamAccess": "Team & access",
-      "product": "Product",
-      "users": "Users",
-      "kanban": "Kanban",
       "chat": "Chat",
-      "aiChat": "AI Chat",
-      "forms": "Forms",
-      "basicForm": "Basic form",
-      "multiStepForm": "Multi-step form",
-      "sheetDialog": "Sheet & dialog",
-      "advancedPatterns": "Advanced patterns",
-      "reactQuery": "React Query",
-      "icons": "Icons",
       "account": "Account",
       "profile": "Profile",
-      "notifications": "Notifications",
       "billing": "Billing",
       "home": "Home",
       "contract": "Contract",
       "showcaseTemplates": "Templates",
       "showcaseCaseStudies": "Case studies",
-      "showcaseSections": "Page sections"
+      "showcaseSections": "Page sections",
+      "capabilities": "Everything on my site",
+      "analytics": "Analytics",
+      "payments": "Payments",
+      "projectRequests": "Project requests"
     }
   },
   "admin": {
@@ -532,9 +522,13 @@
     "organizationHasOwner": "This organization already has an owner.",
     "emailPendingElsewhere": "This email is already waiting to claim another site.",
     "tooManyCodes": "This site already has 5 active codes. Revoke one first.",
-    "rateLimited": "Too many attempts. Please wait a little and try again.",
+    "rateLimited": "Too many attempts. Please wait a moment and try again.",
     "reviewFailed": "We couldn’t record this decision. Please try again.",
-    "inviteFailed": "We couldn’t create the invitation. Please try again."
+    "inviteFailed": "We couldn’t create the invitation. Please try again.",
+    "notFound": "This item no longer exists.",
+    "tooManyKeys": "This website already has 10 active keys. Revoke one first.",
+    "contractRequired": "Sign your agreement first to do this.",
+    "notReady": "This feature is being set up. Please try again later."
   },
   "workspaces": {
     "title": "Organizations",
@@ -1174,8 +1168,8 @@
         "description": "Customers waiting in line"
       },
       "requests": {
-        "title": "Requests",
-        "description": "Contact, quote and sign-up forms"
+        "title": "Forms & requests",
+        "description": "Every form sent from your website"
       },
       "media": {
         "title": "Media library",
@@ -1196,6 +1190,22 @@
       "assistant": {
         "title": "AI assistant",
         "description": "Questions, copywriting and help with your website"
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Visitors, pages and referrers"
+      },
+      "payments": {
+        "title": "Payments",
+        "description": "Payments made on your website"
+      },
+      "capabilities": {
+        "title": "Everything on my website",
+        "description": "What your website has and where to manage it"
+      },
+      "projectRequests": {
+        "title": "Project requests",
+        "description": "“Start a project” requests with the AI triage"
       }
     },
     "unavailable": {
@@ -1554,6 +1564,7 @@
         "won": "Won",
         "lost": "Lost",
         "closed": "Closed",
+        "archived": "Archived",
         "spam": "Spam"
       },
       "types": {
@@ -1642,8 +1653,8 @@
       "originsSaved": "Domains saved",
       "save": "Save",
       "allOrigins": "All domains (unrestricted).",
-      "serverKeysTitle": "Server keys",
-      "serverKeysDescription": "To connect a back office or an app to LevelUp from a server, ask LevelUp for a secret key. It must never appear in a web page’s code."
+      "paymentsTitle": "Report payments from your server",
+      "paymentsDescription": "Call <code>site_ingest_payment</code> from your server (for example in your Stripe webhook) with your server key. The full contract is in the LevelUp site API documentation."
     },
     "fieldGroups": {
       "general": "General",
@@ -1731,6 +1742,420 @@
       "featured_on_home": "Home page"
     }
   },
+  "insights": {
+    "range": {
+      "label": "Period",
+      "days": "{count} days"
+    },
+    "table": {
+      "range": "{from}–{to} of {total}",
+      "previous": "Previous page",
+      "next": "Next page"
+    },
+    "overview": {
+      "rangeHint": "Real data from your website over the last {count} days.",
+      "attention": "Needs your attention",
+      "period": "Last {count} days",
+      "newRequests": "New requests",
+      "openRequests": "{count, plural, =0 {Nothing open} one {# open} other {# open}}",
+      "newProjectRequests": "New project requests",
+      "qualifiedInRange": "{count, plural, =0 {None qualified in the period} one {# qualified in the period} other {# qualified in the period}}",
+      "toConfirm": "Appointments to confirm",
+      "today": "{count, plural, =0 {None today} one {# today} other {# today}}",
+      "waitingNow": "Waiting now",
+      "servedToday": "{count, plural, =0 {Nobody served yet today} one {# served today} other {# served today}}",
+      "openQuotes": "Open quotes",
+      "inRange": "{count, plural, =0 {None in the period} one {# in the period} other {# in the period}}",
+      "visitors": "Visitors",
+      "views": "{count, plural, one {# page view} other {# page views}}",
+      "vsPrevious": "compared with the previous period",
+      "revenue": "Revenue",
+      "payments": "{count, plural, =0 {No payment} one {# payment} other {# payments}}",
+      "otherCurrencies": "{count, plural, one {+# currency} other {+# currencies}}",
+      "noPayments": "No payment in the period",
+      "bookings": "Bookings",
+      "noShows": "{count, plural, =0 {No no-show} one {# no-show} other {# no-shows}}",
+      "subscribers": "Newsletter subscribers",
+      "newInRange": "{count, plural, =0 {No new sign-up} one {# new} other {# new}}",
+      "rating": "Average rating",
+      "reviews": "{count, plural, =0 {No published review} one {# published review} other {# published reviews}}",
+      "projectRequests": "Project requests",
+      "averageScore": "Average AI score {score}/100",
+      "studioProjects": "LevelStudio projects",
+      "creators": "{count, plural, =0 {No creator} one {# creator} other {# creators}}",
+      "trafficTitle": "Visitors per day",
+      "trafficDescription": "Unique visitors counted by the LevelUp tag (no cookies).",
+      "noTrafficTitle": "No visitor data yet",
+      "noTrafficDescription": "Install or update the LevelUp tag on your website to see your visitors here.",
+      "installTag": "Install the LevelUp tag",
+      "revenueTitle": "Revenue per day",
+      "revenueDescription": "Paid amounts in {currency}.",
+      "noPaymentsTitle": "No payment yet",
+      "noPaymentsDescription": "Payments made on your website appear here as soon as its server reports them.",
+      "submissionsTitle": "Form submissions per day",
+      "submissionsDescription": "Every form of your website, by type (spam excluded).",
+      "noSubmissionsTitle": "No form submission in the period",
+      "noSubmissionsDescription": "Contact, quote, sign-up or any other form sent from your website will appear here.",
+      "other": "Other",
+      "bookingsTitle": "Appointments per day",
+      "bookingsDescription": "Past days and the next two weeks · {completed} completed, {noShows} no-shows in the period.",
+      "studioTitle": "LevelStudio projects per day",
+      "studioDescription": "{generations} generations in the period · {shared} shared projects · {claimed} hand-offs claimed.",
+      "healthTitle": "Your website",
+      "healthDescription": "Connection and freshness.",
+      "tag": "LevelUp tag",
+      "tagSeen": "Last seen {date} · version {version}",
+      "tagNever": "Never detected on your website yet.",
+      "tagActive": "Active",
+      "tagInactive": "Not detected",
+      "freshness": "Content",
+      "updated": "Last change {date}",
+      "neverUpdated": "No content change yet.",
+      "seeEverything": "See everything",
+      "details": "Details"
+    },
+    "analytics": {
+      "privacy": "Privacy-friendly: no cookies, no IP address or personal data stored.",
+      "visitors": "Visitors",
+      "views": "Page views",
+      "vsPrevious": "compared with the previous period",
+      "viewsPerVisitor": "Pages per visitor",
+      "direct": "Direct or internal",
+      "directHint": "Views without an external referrer",
+      "visitorsTitle": "Visitors per day",
+      "visitorsDescription": "Unique visitors per day.",
+      "viewsTitle": "Page views per day",
+      "viewsDescription": "Every page loaded on your website.",
+      "pagesTitle": "Top pages",
+      "referrersTitle": "Top referrers",
+      "referrersDescription": "Websites that sent you visitors.",
+      "languagesTitle": "Languages",
+      "visitorsShort": "{count, plural, one {# visitor} other {# visitors}}",
+      "viewsCount": "{count, plural, one {# view} other {# views}}",
+      "none": "Nothing in this period.",
+      "noReferrers": "No external referrer in this period.",
+      "unknownLanguage": "Unknown",
+      "emptyTitle": "No visitor data yet",
+      "emptyDescription": "Install or update the LevelUp tag to see visitors: views, unique visitors, top pages, referrers and languages, without cookies.",
+      "installTag": "Install the LevelUp tag"
+    },
+    "payments": {
+      "emptyTitle": "No payment yet",
+      "emptyDescription": "When your website’s server reports its payments with its LevelUp key (Developers page), every payment appears here: amounts, offers, customers and refunds.",
+      "testMode": "Show test payments",
+      "revenue": "Revenue",
+      "vsPrevious": "compared with the previous period",
+      "count": "Payments",
+      "pendingFailed": "{pending} pending · {failed} failed or expired",
+      "average": "Average basket",
+      "refunds": "Refunds",
+      "refundCount": "{count, plural, =0 {No refund} one {# refund} other {# refunds}}",
+      "chartTitle": "Revenue per day",
+      "chartDescription": "Paid amounts in {currency}.",
+      "offersTitle": "Top offers",
+      "noOffer": "No offer",
+      "noOffers": "No paid offer in this period.",
+      "countShort": "×{count}",
+      "tableTitle": "All payments",
+      "export": "Export CSV",
+      "exported": "{count, plural, one {# payment exported} other {# payments exported}}",
+      "search": "Search payments",
+      "searchPlaceholder": "Customer, offer, session…",
+      "searchPlaceholderMasked": "Offer, session…",
+      "statusFilter": "Filter by status",
+      "maskedNotice": "Customer details are hidden for your role (viewer).",
+      "noMatch": "No payment matches these filters.",
+      "date": "Date",
+      "customer": "Customer",
+      "email": "Email",
+      "offer": "Offer",
+      "statusLabel": "Status",
+      "amount": "Amount",
+      "detailTitle": "Payment",
+      "paidAt": "Paid on",
+      "refundedAt": "Refunded on",
+      "mode": "Mode",
+      "live": "Live",
+      "test": "Test",
+      "session": "Checkout session",
+      "intent": "Payment intent",
+      "metadata": "Details sent by your website",
+      "history": "History",
+      "ignored": "ignored (older event)",
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "failed": "Failed",
+        "refunded": "Refunded",
+        "expired": "Expired"
+      }
+    },
+    "inbox": {
+      "views": {
+        "open": "To handle",
+        "handled": "Handled",
+        "archived": "Archived",
+        "spam": "Spam",
+        "all": "All"
+      },
+      "formFilter": "Filter by form",
+      "allForms": "All forms",
+      "search": "Search submissions",
+      "searchPlaceholder": "Name, email, any field…",
+      "columnsButton": "Columns",
+      "columnsTitle": "Columns",
+      "detectedFields": "Fields of your forms",
+      "columns": {
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "company": "Company",
+        "message": "Message"
+      },
+      "export": "Export CSV",
+      "exported": "{count, plural, one {# submission exported} other {# submissions exported}}",
+      "noMatch": "No submission matches these filters",
+      "received": "Received",
+      "form": "Form",
+      "statusLabel": "Status",
+      "statusSaved": "Marked as {status}",
+      "markHandled": "Handled",
+      "archive": "Archive",
+      "spam": "Spam",
+      "editNotes": "Edit",
+      "noNotes": "No note yet.",
+      "allFields": "All fields",
+      "source": "Page"
+    },
+    "keys": {
+      "title": "Server keys",
+      "description": "Let your website’s server send payments and events to LevelUp.",
+      "adminOnly": "Only the owners and admins of the organization manage server keys.",
+      "serverOnly": "A server key goes in a server environment variable (LEVELUP_SITE_KEY), never in the browser or in your site’s code.",
+      "none": "No key yet.",
+      "live": "Live",
+      "test": "Test",
+      "revokedBadge": "Revoked",
+      "lastUsed": "Last used {date}",
+      "neverUsed": "Never used",
+      "revoke": "Revoke",
+      "revoked": "Key revoked",
+      "revokeTitle": "Revoke “{name}”?",
+      "revokeDescription": "Your website’s server can no longer use this key. Requests with it are refused immediately. This cannot be undone.",
+      "create": "Create a key",
+      "createTitle": "New server key",
+      "createDescription": "The key is shown once. Copy it into your hosting provider’s environment variables.",
+      "name": "Name",
+      "namePlaceholder": "Production server",
+      "mode": "Mode",
+      "modeLive": "Live (real payments)",
+      "modeTest": "Test (Stripe test mode)",
+      "scopesLabel": "Allowed",
+      "scopes": {
+        "payments:write": "Report payments",
+        "events:write": "Report events"
+      },
+      "cancel": "Cancel",
+      "createdTitle": "Copy your key now",
+      "createdDescription": "This is the only time it is shown. LevelUp only keeps a fingerprint of it.",
+      "envHint": "Add it to your website’s server environment (for example in Vercel → Settings → Environment Variables):",
+      "onceWarning": "Lost it? Revoke it and create a new one.",
+      "done": "I copied it"
+    },
+    "capabilities": {
+      "areasTitle": "What your website has",
+      "areasDescription": "Everything stored for your website, and where to manage it. A new form or content type appears here as soon as your website uses it.",
+      "areas": {
+        "project_requests": {
+          "title": "Project requests",
+          "description": "“Start a project” requests with the AI triage."
+        },
+        "submissions": {
+          "title": "Forms",
+          "description": "Every form sent from your website."
+        },
+        "payments": {
+          "title": "Payments",
+          "description": "Payments reported by your website’s server."
+        },
+        "appointments": {
+          "title": "Appointments",
+          "description": "Online bookings."
+        },
+        "waitlist": {
+          "title": "Waitlist",
+          "description": "Walk-in queue with tickets."
+        },
+        "services": {
+          "title": "Services",
+          "description": "Services and prices shown on your website."
+        },
+        "team": {
+          "title": "Team",
+          "description": "Team member profiles."
+        },
+        "gallery": {
+          "title": "Gallery",
+          "description": "Photos and videos."
+        },
+        "reviews": {
+          "title": "Reviews",
+          "description": "Customer reviews and testimonials."
+        },
+        "announcements": {
+          "title": "Announcements",
+          "description": "News, promotions and articles."
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Frequently asked questions."
+        },
+        "templates": {
+          "title": "Templates",
+          "description": "Showcase templates."
+        },
+        "case-studies": {
+          "title": "Case studies",
+          "description": "Showcase projects."
+        },
+        "page-sections": {
+          "title": "Page sections",
+          "description": "Texts of the showcase pages."
+        },
+        "content_blocks": {
+          "title": "Page content",
+          "description": "Sections of your pages (hero, about…)."
+        },
+        "settings": {
+          "title": "Settings",
+          "description": "Contact details, hours, social links, branding."
+        },
+        "media": {
+          "title": "Media library",
+          "description": "Images and files."
+        },
+        "traffic_days": {
+          "title": "Visitor analytics",
+          "description": "Days with visitor data from the LevelUp tag."
+        },
+        "studio_projects": {
+          "title": "LevelStudio",
+          "description": "Projects created in LevelStudio (totals only)."
+        },
+        "api_keys": {
+          "title": "Server keys",
+          "description": "Active keys of your website’s server."
+        }
+      },
+      "formsTitle": "Forms detected",
+      "formsDescription": "Each type of form your website has sent, with its own fields.",
+      "noForms": "No form sent yet.",
+      "newCount": "{count} new",
+      "formTotal": "{count, plural, one {# submission} other {# submissions}}",
+      "integrationsTitle": "Integrations",
+      "integrationsDescription": "How your website is connected to LevelUp.",
+      "tag": "LevelUp tag",
+      "tagSeen": "Last seen {date} · version {version}",
+      "tagNever": "Not detected on your website yet",
+      "analytics": "Visitor analytics",
+      "analyticsDays": "{count, plural, one {# day of data} other {# days of data}}",
+      "analyticsNone": "No visitor data yet",
+      "payments": "Payments",
+      "lastPayment": "Last payment {date}",
+      "noPayments": "No payment reported yet",
+      "keys": "Server keys",
+      "activeKeys": "{count, plural, =0 {No active key} one {# active key} other {# active keys}}",
+      "connected": "Connected",
+      "notConnected": "Not yet",
+      "featuresTitle": "Enabled features",
+      "featuresDescription": "Switched on by LevelUp for your website. Ask us to add one.",
+      "noFeatures": "No feature enabled.",
+      "contentTitle": "Pages and settings",
+      "contentDescription": "Pages with editable sections and the settings your website reads.",
+      "pages": "Pages",
+      "settingsKeys": "Settings",
+      "none": "None"
+    },
+    "features": {
+      "announcements": "Announcements",
+      "blog": "Blog",
+      "bookings": "Bookings",
+      "business_hours": "Business hours",
+      "contact_form": "Contact form",
+      "customer_accounts": "Customer accounts",
+      "events": "Events",
+      "gallery": "Gallery",
+      "newsletter": "Newsletter",
+      "payments": "Payments",
+      "products": "Products",
+      "promotions": "Promotions",
+      "quotes": "Quote requests",
+      "reviews": "Reviews",
+      "services": "Services",
+      "showcase_cms": "Showcase CMS",
+      "team": "Team",
+      "waitlist": "Walk-in waitlist",
+      "project_requests": "Project requests",
+      "studio_insights": "LevelStudio insights"
+    },
+    "activity": {
+      "label": "{count, plural, =0 {Activity} one {Activity, # new} other {Activity, # new}}",
+      "title": "Latest activity",
+      "empty": "Nothing yet. New forms, bookings and payments appear here.",
+      "new": "New",
+      "submission": "{form}: {name}",
+      "appointment": "Booking: {name} · {service}",
+      "waitlist": "Joined the waitlist: {name}",
+      "payment": "Payment {amount} · {offer} ({status})",
+      "review": "Review from {name} · {rating}/5",
+      "projectRequest": "Project request: {name} · AI score {score}"
+    },
+    "projectRequests": {
+      "search": "Search requests",
+      "searchPlaceholder": "Business, project, sector…",
+      "statusFilter": "Status",
+      "allStatuses": "All statuses",
+      "verdictFilter": "AI verdict",
+      "allVerdicts": "All verdicts",
+      "masked": "Contact details are hidden for your role (viewer).",
+      "emptyTitle": "No project request",
+      "emptyDescription": "Requests sent from “Start a project” on your website appear here with their AI triage.",
+      "claimed": "Claimed in LevelStudio",
+      "untitled": "Project request",
+      "triage": "AI triage",
+      "redFlags": "Red flags",
+      "contact": "Contact",
+      "email": "Email",
+      "phone": "Phone",
+      "website": "Website",
+      "sector": "Sector",
+      "stage": "Business",
+      "budget": "Budget",
+      "timeline": "Timeline",
+      "language": "Language",
+      "handoff": "LevelStudio hand-off",
+      "handoffClaimed": "Claimed {date}",
+      "handoffOpen": "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
+      "brief": "Brief",
+      "editNotes": "Notes",
+      "noNotes": "No note yet.",
+      "saved": "Saved",
+      "hqLater": "Full handling of these requests (proposals, contracts) is done in LevelUp HQ.",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "demo": "Demo",
+        "won": "Won",
+        "lost": "Lost",
+        "rejected": "Rejected"
+      },
+      "verdict": {
+        "qualified": "Qualified",
+        "review": "To review",
+        "rejected": "Not a fit"
+      }
+    }
+  },
   "assistant": {
     "noAnswer": "I don’t have an answer right now.",
     "title": "{name} assistant",
@@ -1793,18 +2218,12 @@
     "site": "LevelUp Ecosystem",
     "contact": "Contact support"
   },
-  "statsError": {
-    "title": "Couldn’t load this section",
-    "loadFailed": "This data isn’t available right now. Please try again.",
-    "retry": "Try again",
-    "retrying": "Retrying…"
-  },
   "breadcrumbs": {
     "dashboard": "Dashboard",
     "site": "My website",
     "appointments": "Appointments",
     "waitlist": "Waitlist",
-    "requests": "Requests",
+    "requests": "Forms & requests",
     "media": "Media library",
     "seo": "SEO",
     "settings": "Settings",
@@ -1819,7 +2238,11 @@
     "workspaces": "Organizations",
     "profile": "Profile",
     "billing": "Billing",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "analytics": "Analytics",
+    "payments": "Payments",
+    "capabilities": "Everything on my site",
+    "project-requests": "Project requests"
   },
   "errorPage": {
     "eyebrow": "Unexpected error",

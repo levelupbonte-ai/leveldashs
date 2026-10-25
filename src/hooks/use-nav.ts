@@ -9,14 +9,32 @@
  * Row Level Security in the database.
  */
 
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useCallback, useMemo } from 'react';
+import { capabilitiesQueryOptions } from '@/features/insights/api/queries';
 import { useDashboardSession } from '@/lib/auth/session-context';
+import { createClient } from '@/lib/supabase/client';
 import { hasRole, type OrgRole } from '@/lib/auth/types';
 import type { NavItem, NavGroup } from '@/types';
 
+/**
+ * Row counts of the active website (site_capabilities), so items with `data`
+ * appear for whatever the site actually stores. Client-only and best effort:
+ * until it loads (or if it fails) only the feature flags count.
+ */
+function useSiteCounts(websiteId: string | null): Record<string, number> | null {
+  const { data } = useQuery({
+    ...capabilitiesQueryOptions(createClient(), websiteId ?? ''),
+    enabled: !!websiteId,
+    retry: false
+  });
+  return (data?.counts as unknown as Record<string, number> | undefined) ?? null;
+}
+
 export function useFilteredNavItems(items: NavItem[]) {
   const { activeOrg, activeWebsite, isPlatformAdmin, access: orgAccess } = useDashboardSession();
+  const counts = useSiteCounts(activeWebsite?.id ?? null);
 
   return useMemo(() => {
     const features = new Set(activeWebsite?.features ?? []);
@@ -38,7 +56,8 @@ export function useFilteredNavItems(items: NavItem[]) {
       if (access.role && !(isPlatformAdmin || hasRole(role, access.role as OrgRole))) return false;
       if (access.feature) {
         const keys = Array.isArray(access.feature) ? access.feature : [access.feature];
-        if (!keys.some((k) => features.has(k))) return false;
+        const hasData = !!access.data && (counts?.[access.data] ?? 0) > 0;
+        if (!keys.some((k) => features.has(k)) && !hasData) return false;
       }
       return true;
     };
@@ -48,7 +67,7 @@ export function useFilteredNavItems(items: NavItem[]) {
       .map((item) =>
         item.items && item.items.length > 0 ? { ...item, items: item.items.filter(allowed) } : item
       );
-  }, [items, activeOrg, activeWebsite, isPlatformAdmin, orgAccess]);
+  }, [items, activeOrg, activeWebsite, isPlatformAdmin, orgAccess, counts]);
 }
 
 export function useFilteredNavGroups(groups: NavGroup[]) {

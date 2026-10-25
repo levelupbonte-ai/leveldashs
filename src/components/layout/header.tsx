@@ -5,7 +5,7 @@ import { Breadcrumbs } from '../breadcrumbs';
 import SearchInput from '../search-input';
 import { ThemeSelector } from '../themes/theme-selector';
 import { ThemeModeToggle } from '../themes/theme-mode-toggle';
-import { NotificationCenter } from '@/features/notifications/components/notification-center';
+import { ActivityBell } from '@/features/insights/components/activity-bell';
 
 export default function Header() {
   return (
@@ -24,7 +24,7 @@ export default function Header() {
         <div className='hidden sm:block'>
           <ThemeSelector />
         </div>
-        <NotificationCenter />
+        <ActivityBell />
       </div>
     </header>
   );

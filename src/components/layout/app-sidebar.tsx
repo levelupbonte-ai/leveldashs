@@ -161,10 +161,6 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
                       {t('billing')}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => router.push('/dashboard/notifications')}>
-                    <Icons.notification className='mr-2 h-4 w-4' />
-                    {t('notifications')}
-                  </DropdownMenuItem>
                   <LocaleMenuSub />
                   <LegalMenuSub />
                 </DropdownMenuGroup>
