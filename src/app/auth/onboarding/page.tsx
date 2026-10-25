@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import AuthShell from '@/features/auth/components/auth-shell';
 import OnboardingFlow from '@/features/auth/components/onboarding-flow';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
+import { claimSiteOwnership } from '@/lib/access/server';
 import { getAccessRequest, hasDashboardAccess, PENDING_PATH } from '@/lib/auth/access';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { isExternalNext, safeNext } from '@/lib/auth/redirect';
@@ -33,7 +34,9 @@ export default async function Page(props: {
     redirect(mfaChallengeUrl(`/auth/onboarding?next=${encodeURIComponent(destination)}`));
   }
 
-  const hasAccess = hasDashboardAccess(session);
+  // A pre-registered owner e-mail matches this (confirmed) account: linked now.
+  const claimed = !hasDashboardAccess(session) && (await claimSiteOwnership(db));
+  const hasAccess = claimed || hasDashboardAccess(session);
   const request = await getAccessRequest(session.user.id);
   const forOtherApp = isExternalNext(destination);
   const editing = edit === '1' && request?.status === 'pending';

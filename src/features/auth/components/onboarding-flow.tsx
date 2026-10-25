@@ -5,8 +5,11 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import * as z from 'zod';
 import { BrandImageInput } from '@/components/brand-image-input';
+import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
+import Link from 'next/link';
+import { isAccessFlowPath } from '@/lib/access/codes';
 import { isExternalNext } from '@/lib/auth/redirect';
 import type { DashboardUser } from '@/lib/auth/types';
 import { useAppForm } from '@/lib/form';
@@ -109,7 +112,8 @@ export default function OnboardingFlow({
       // The language in use is kept on the account for LevelUp's e-mails.
       await db.auth.updateUser({ data: { full_name: fullName, locale } });
       if (hasAccess) goTo(forOtherApp ? destination : destination || '/dashboard/site');
-      else if (forOtherApp) goTo(destination);
+      // Invitation link or activation code: that page finishes the access.
+      else if (forOtherApp || isAccessFlowPath(destination)) goTo(destination);
       else setStep('access');
     }
   });
@@ -166,6 +170,14 @@ export default function OnboardingFlow({
           </p>
         )}
         <p className='text-muted-foreground text-sm'>{t('accessIntro')}</p>
+        <Link
+          href='/auth/activate'
+          className='bg-muted/40 hover:bg-muted flex items-center gap-2 rounded-lg border p-3 text-sm'
+        >
+          <Icons.lock className='size-4 shrink-0' aria-hidden />
+          <span className='flex-1'>{t('haveCode')}</span>
+          <Icons.chevronRight className='size-4' aria-hidden />
+        </Link>
         <FieldGroup>
           <accessForm.AppField
             name='businessName'

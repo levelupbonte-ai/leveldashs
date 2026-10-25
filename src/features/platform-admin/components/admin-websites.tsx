@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { allWebsitesQueryOptions } from '../api/queries';
+import { SiteAccessDialog } from './site-access-dialog';
 
 /** LevelUp staff: every client website, one click to manage it. */
 export function AdminWebsites() {
@@ -26,6 +27,7 @@ export function AdminWebsites() {
   const t = useTranslations('admin.websites');
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState('');
+  const [accessFor, setAccessFor] = useState<string | null>(null);
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
     return s
@@ -78,7 +80,10 @@ export function AdminWebsites() {
                     ))}
                   </div>
                 </TableCell>
-                <TableCell>
+                <TableCell className='space-x-2 whitespace-nowrap'>
+                  <Button size='sm' variant='outline' onClick={() => setAccessFor(w.id)}>
+                    {t('access')}
+                  </Button>
                   <Button
                     size='sm'
                     variant='outline'
@@ -99,6 +104,7 @@ export function AdminWebsites() {
           </TableBody>
         </Table>
       </div>
+      <SiteAccessDialog websiteId={accessFor} onOpenChange={(v) => !v && setAccessFor(null)} />
     </div>
   );
 }

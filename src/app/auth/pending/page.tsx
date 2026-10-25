@@ -6,7 +6,9 @@ import {
   PendingAccountView,
   RejectedAccountView
 } from '@/features/auth/components/pending-account-view';
+import { PendingAutoRefresh } from '@/features/auth/components/pending-auto-refresh';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
+import { claimSiteOwnership } from '@/lib/access/server';
 import {
   getAccessRequest,
   hasDashboardAccess,
@@ -35,6 +37,8 @@ export default async function Page() {
   if (await needsMfaChallenge(db, user)) redirect(mfaChallengeUrl(PENDING_PATH));
 
   if (hasDashboardAccess(session)) redirect('/dashboard/site');
+  // A pre-registered owner e-mail matches this (confirmed) account: linked now.
+  if (await claimSiteOwnership(db)) redirect('/dashboard/site');
   const request = await getAccessRequest(session.user.id);
   if (!request || request.status === 'approved') redirect(ONBOARDING_PATH);
 
@@ -52,6 +56,7 @@ export default async function Page() {
   return (
     <AuthShell title={t('title')} description={t('description')}>
       <RecordLastMethod />
+      <PendingAutoRefresh />
       <PendingAccountView
         email={session.user.email}
         businessName={request.businessName}
