@@ -148,7 +148,7 @@ export function MessageComposer({
                     aria-describedby={`chat-composer-hint-${conversationId}`}
                     rows={1}
                     maxLength={MESSAGE_MAX + 200}
-                    className='text-foreground placeholder:text-muted-foreground/70 max-h-40 min-h-[2.75rem] w-full resize-none border-none bg-transparent px-1.5 text-sm shadow-none focus-visible:ring-0 sm:min-h-[3rem]'
+                    className='text-foreground placeholder:text-muted-foreground/70 max-h-40 min-h-[2.75rem] w-full resize-none border-none bg-transparent px-1.5 dark:bg-transparent text-sm shadow-none focus-visible:ring-0 sm:min-h-[3rem]'
                   />
                   {errorText ? (
                     <p role='alert' className='text-destructive px-1.5 text-xs'>
