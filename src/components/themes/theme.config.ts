@@ -6,19 +6,19 @@ export const DEFAULT_THEME = 'vercel';
 
 export const THEMES = [
   {
-    name: 'Claude',
+    name: 'Terracotta',
     value: 'claude'
   },
   {
-    name: 'Discord',
+    name: 'Indigo',
     value: 'discord'
   },
   {
-    name: 'Supabase',
+    name: 'Emerald',
     value: 'supabase'
   },
   {
-    name: 'Vercel',
+    name: 'Classic',
     value: 'vercel'
   },
   {
@@ -42,7 +42,7 @@ export const THEMES = [
     value: 'astro-vista'
   },
   {
-    name: 'WhatsApp',
+    name: 'Mint',
     value: 'whatsapp'
   }
 ];
