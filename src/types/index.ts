@@ -35,6 +35,8 @@ export interface NavItem {
   isActive?: boolean;
   items?: NavItem[];
   access?: PermissionCheck;
+  /** Live counter shown next to the item (sidebar). */
+  badge?: 'chatUnread';
 }
 
 export interface NavGroup {

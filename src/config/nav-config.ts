@@ -216,7 +216,9 @@ export const navGroups: NavGroup[] = [
         icon: 'chat',
         shortcut: ['c', 'c'],
         isActive: false,
-        items: []
+        items: [],
+        access: { requireOrg: true },
+        badge: 'chatUnread'
       }
     ]
   },

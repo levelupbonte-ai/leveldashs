@@ -39,7 +39,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 
 ### State Management
 
-- Zustand 5.x for small local UI state (chat)
+- Zustand 5.x for small local UI state
 - Nuqs for URL search params state management
 - TanStack Form + Zod for form handling (`createFormHook` + shadcn `Field`-anatomy components)
 
@@ -89,7 +89,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 │   ├── dashboard/         # Dashboard routes (layout loads the session)
 │   │   ├── site/          # Client website: overview (adaptive), capabilities, analytics, payments, project-requests,
 │   │   │                  #   requests (forms inbox), [collection], appointments, waitlist, media, seo, developers, settings
-│   │   ├── chat/          # Messaging page
+│   │   ├── chat/          # Messages: team, direct and website visitors (docs/chat.md)
 │   │   ├── workspaces/    # Organizations (list/create) + team/ (members & roles)
 │   │   ├── billing/       # Static "billing handled by LevelUp" page
 │   │   ├── exclusive/     # LevelUp admin "Tous les clients" (platform admins only)
@@ -122,7 +122,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 │   ├── submissions/       # Generic forms inbox: any form type, fields detected from data, CSV
 │   ├── api-keys/          # Per-site server keys (Developers page)
 │   ├── project-requests/  # LevelUp only: "Start a project" requests with the AI triage
-│   ├── chat/              # Messaging UI (conversations, bubbles, composer)
+│   ├── chat/              # Secure messaging (api/, lib/, hooks/ realtime, components/)
 │   └── profile/           # Profile management
 │
 ├── config/                # Configuration files

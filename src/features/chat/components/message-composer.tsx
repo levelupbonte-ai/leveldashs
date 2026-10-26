@@ -1,120 +1,197 @@
 'use client';
 
-import { FormEvent, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FilePreview } from '@/components/ui/file-preview';
-import type { Attachment } from '../utils/types';
+import { useAppForm } from '@/lib/form';
+import { useFieldMessages } from '@/lib/validation/use-fields';
+import { cn } from '@/lib/utils';
+import type { ChatMessage } from '../api/types';
+import { MESSAGE_MAX, messageSchema } from '../lib/message-text';
 
 interface MessageComposerProps {
-  draft: string;
-  onDraftChange: (text: string) => void;
-  onSubmit: (e: FormEvent<HTMLFormElement>) => void;
-  contactName: string;
-  quickReplies: string[];
-  attachments: Attachment[];
-  onAddAttachments: (files: FileList) => void;
-  onRemoveAttachment: (id: string) => void;
+  conversationId: string;
+  placeholder: string;
+  /** Set when the caller may not write here (viewer on a visitor conversation, former member). */
+  readOnlyReason: string | null;
+  securityNote: string;
+  replyTo: ChatMessage | null;
+  editing: ChatMessage | null;
+  onCancel: () => void;
+  onSend: (body: string) => void;
+  onSaveEdit: (message: ChatMessage, body: string) => void;
+  /** ArrowUp in an empty composer: edit your last message. */
+  onEditLast: () => void;
 }
 
 export function MessageComposer({
-  draft,
-  onDraftChange,
-  onSubmit,
-  contactName,
-  quickReplies,
-  attachments,
-  onAddAttachments,
-  onRemoveAttachment
+  conversationId,
+  placeholder,
+  readOnlyReason,
+  securityNote,
+  replyTo,
+  editing,
+  onCancel,
+  onSend,
+  onSaveEdit,
+  onEditLast
 }: MessageComposerProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = useTranslations('chat.composer');
+  const fieldMessages = useFieldMessages();
+  const schema = useMemo(() => messageSchema(fieldMessages), [fieldMessages]);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const form = useAppForm({
+    defaultValues: { body: '' },
+    validators: { onSubmit: schema },
+    onSubmit: ({ value, formApi }) => {
+      const { body } = schema.parse(value);
+      if (editing) onSaveEdit(editing, body);
+      else onSend(body);
+      formApi.reset({ body: '' });
+      textareaRef.current?.focus();
+    }
+  });
+
+  // Editing fills the composer with the message (a new conversation remounts it).
+  useEffect(() => {
+    form.reset({ body: editing?.body ?? '' });
+    if (editing) textareaRef.current?.focus();
+  }, [editing, form]);
+  useEffect(() => {
+    if (replyTo) textareaRef.current?.focus();
+  }, [replyTo]);
+
+  if (readOnlyReason) {
+    return (
+      <div className='border-border/40 bg-muted/40 text-muted-foreground flex items-center gap-2 rounded-2xl border p-3 text-xs sm:rounded-3xl sm:p-4 sm:text-sm'>
+        <Icons.lock className='size-4 shrink-0' aria-hidden='true' />
+        {readOnlyReason}
+      </div>
+    );
+  }
+
+  const quoted = editing ?? replyTo;
 
   return (
-    <form onSubmit={onSubmit} className='space-y-2 sm:space-y-3' aria-label='Reply composer'>
-      <label htmlFor='messenger-editor' className='sr-only'>
-        Write a message
-      </label>
-      <div className='border-border/40 bg-background/80 flex items-end gap-2 rounded-2xl border p-3 backdrop-blur sm:gap-3 sm:rounded-3xl sm:p-4'>
-        <div className='min-w-0 flex-1'>
-          {attachments.length > 0 && (
-            <FilePreview
-              files={attachments.map((a) => ({
-                id: a.id,
-                name: a.name,
-                type: a.type
-              }))}
-              onRemove={onRemoveAttachment}
-              className='mb-1 p-0'
-            />
-          )}
-          <Textarea
-            id='messenger-editor'
-            value={draft}
-            onChange={(e) => onDraftChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                if (draft.trim() || attachments.length > 0) {
-                  const form = e.currentTarget.closest('form');
-                  form?.requestSubmit();
-                }
-              }
-            }}
-            placeholder={'Message ' + contactName + ' (Enter to send, Shift+Enter for newline)'}
-            rows={2}
-            required={attachments.length === 0}
-            className='text-foreground placeholder:text-muted-foreground/70 min-h-[3rem] w-full resize-none border-none bg-transparent text-xs focus-visible:ring-0 focus-visible:outline-none sm:min-h-[4rem] sm:text-sm'
-            aria-label={'Message ' + contactName}
-          />
-          <div className='mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2'>
-            {quickReplies.map((reply) => (
-              <button
-                key={reply}
-                type='button'
-                onClick={() => onDraftChange(reply)}
-                className='border-border/50 bg-background/70 text-muted-foreground hover:border-primary/40 hover:text-foreground focus-visible:ring-primary/40 focus-visible:ring-offset-background rounded-full border px-2.5 py-0.5 text-[0.65rem] transition focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:px-3 sm:py-1 sm:text-xs'
-              >
-                {reply}
-              </button>
-            ))}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        void form.handleSubmit();
+      }}
+      className='space-y-1.5'
+      aria-label={t('label')}
+    >
+      <div className='border-border/40 bg-background/80 rounded-2xl border p-2.5 backdrop-blur sm:rounded-3xl sm:p-3'>
+        {quoted ? (
+          <div className='bg-muted/60 mb-2 flex items-start gap-2 rounded-xl px-3 py-2 text-xs'>
+            {editing ? (
+              <Icons.edit className='text-primary mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
+            ) : (
+              <Icons.reply className='text-primary mt-0.5 size-3.5 shrink-0' aria-hidden='true' />
+            )}
+            <div className='min-w-0 flex-1'>
+              <p className='text-foreground font-medium'>
+                {editing ? t('editing') : t('replyingTo', { name: replyTo?.sender_name ?? '' })}
+              </p>
+              {!editing ? (
+                <p className='text-muted-foreground line-clamp-1'>{replyTo?.body}</p>
+              ) : null}
+            </div>
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon-xs'
+              onClick={onCancel}
+              aria-label={t('cancel')}
+            >
+              <Icons.close />
+            </Button>
           </div>
-        </div>
-        <div className='flex shrink-0 flex-col items-end gap-1.5 sm:w-24 sm:gap-2'>
-          <input
-            ref={fileInputRef}
-            aria-label='Add attachments'
-            type='file'
-            multiple
-            className='hidden'
-            onChange={(e) => {
-              if (e.target.files?.length) {
-                onAddAttachments(e.target.files);
-              }
-              // Reset so same file can be re-selected
-              e.target.value = '';
-            }}
-          />
-          <Button
-            type='button'
-            variant='ghost'
-            size='icon'
-            className='border-border/40 bg-background/70 text-muted-foreground hover:bg-muted/50 focus-visible:ring-primary/40 focus-visible:ring-offset-background size-8 rounded-full border transition focus-visible:ring-2 focus-visible:ring-offset-2 sm:size-10'
-            aria-label='Attach a file'
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Icons.paperclip className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
-          </Button>
-          <Button
-            type='submit'
-            size='icon'
-            className='bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-primary/40 focus-visible:ring-offset-background size-8 rounded-full shadow-lg transition focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 sm:size-10'
-            disabled={!draft.trim() && attachments.length === 0}
-            aria-label='Send message'
-          >
-            <Icons.send className='h-3.5 w-3.5 sm:h-4 sm:w-4' aria-hidden='true' />
-          </Button>
-        </div>
+        ) : null}
+        <form.Field
+          name='body'
+          children={(field) => {
+            const length = field.state.value.length;
+            const error = field.state.meta.errors[0];
+            const errorText =
+              typeof error === 'string'
+                ? error
+                : (error as { message?: string } | undefined)?.message;
+            return (
+              <div className='flex items-end gap-2'>
+                <div className='min-w-0 flex-1'>
+                  <Textarea
+                    ref={textareaRef}
+                    id={`chat-composer-${conversationId}`}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                        e.preventDefault();
+                        if (field.state.value.trim()) void form.handleSubmit();
+                      } else if (e.key === 'Escape' && quoted) {
+                        e.preventDefault();
+                        onCancel();
+                      } else if (e.key === 'ArrowUp' && !field.state.value && !quoted) {
+                        e.preventDefault();
+                        onEditLast();
+                      }
+                    }}
+                    placeholder={placeholder}
+                    aria-label={placeholder}
+                    aria-invalid={!!errorText}
+                    aria-describedby={`chat-composer-hint-${conversationId}`}
+                    rows={1}
+                    maxLength={MESSAGE_MAX + 200}
+                    className='text-foreground placeholder:text-muted-foreground/70 max-h-40 min-h-[2.75rem] w-full resize-none border-none bg-transparent px-1.5 dark:bg-transparent text-sm shadow-none focus-visible:ring-0 sm:min-h-[3rem]'
+                  />
+                  {errorText ? (
+                    <p role='alert' className='text-destructive px-1.5 text-xs'>
+                      {errorText}
+                    </p>
+                  ) : length > MESSAGE_MAX - 400 ? (
+                    <p
+                      className={cn(
+                        'px-1.5 text-xs',
+                        length > MESSAGE_MAX ? 'text-destructive' : 'text-muted-foreground'
+                      )}
+                    >
+                      {t('remaining', { count: Math.max(MESSAGE_MAX - length, 0) })}
+                    </p>
+                  ) : null}
+                </div>
+                <Button
+                  type='submit'
+                  size='icon'
+                  className='size-9 shrink-0 rounded-full shadow-lg sm:size-10'
+                  disabled={!field.state.value.trim()}
+                  aria-label={editing ? t('save') : t('send')}
+                >
+                  {editing ? (
+                    <Icons.check className='size-4' aria-hidden='true' />
+                  ) : (
+                    <Icons.send className='size-4' aria-hidden='true' />
+                  )}
+                </Button>
+              </div>
+            );
+          }}
+        />
+      </div>
+      <div
+        id={`chat-composer-hint-${conversationId}`}
+        className='text-muted-foreground flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 px-2 text-[0.7rem]'
+      >
+        <span className='hidden sm:inline'>{t('hint')}</span>
+        <span className='flex items-center gap-1'>
+          <Icons.lock className='size-3' aria-hidden='true' />
+          {securityNote}
+        </span>
       </div>
     </form>
   );

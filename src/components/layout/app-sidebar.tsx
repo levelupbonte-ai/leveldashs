@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/sidebar';
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navGroups } from '@/config/nav-config';
+import { ChatUnreadBadge } from '@/features/chat/components/chat-unread-badge';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { signOut } from '@/lib/auth/actions';
 import { useDashboardSession } from '@/lib/auth/session-context';
@@ -111,6 +112,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
                       <Icon />
                       <span>{navTitle(item)}</span>
                     </SidebarMenuButton>
+                    {item.badge === 'chatUnread' && <ChatUnreadBadge />}
                   </SidebarMenuItem>
                 );
               })}

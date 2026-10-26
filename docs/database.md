@@ -42,6 +42,9 @@ the schema from application code or by hand in the dashboard.
 | `20261024120200` | site_analytics (`track_pageview`, daily counters, salted bloom filter for unique visitors, `site_analytics_summary`) | **Applied** (`site_analytics_tables`, `site_analytics_track_summary`) |
 | `20261024120250` | levelup_own_sources (features `project_requests`, `studio_insights`; project requests + LevelStudio aggregates for the owning organization) | **Applied** (`levelup_own_sources`) |
 | `20261024120300` | site_insights (`site_capabilities`, `site_overview_stats`, `site_recent_activity`, `site_submissions_list`; custom form types; `archived` inbox status) | **Applied** (`custom_form_types`, `site_insights_reads`) |
+| `20261025100000` | chat_schema (`chat_conversations`, `chat_participants`, `chat_messages`, `chat_visitors`, RLS reads via `private.chat_can_read`, Realtime publication, Vault key + pgcrypto body encryption, feature `site_chat`; see [chat.md](./chat.md)) | **Applied** (`chat_tables`, `chat_access_rls`, `chat_encryption`, `chat_key_integer`; the live database also keeps an unused `private.chat_key(smallint)` from the first apply, safe to drop) |
+| `20261025100100` | chat_member_rpcs (`chat_list_conversations`, `chat_list_messages`, `chat_get_message`, `chat_list_members`, `chat_unread_total`, `chat_send_message`, `chat_edit_message`, `chat_delete_message`, `chat_mark_read`, `chat_set_muted`, `chat_open_direct`) | **Applied** (`chat_rpc_helpers`, `chat_rpc_reads`, `chat_rpc_writes`) |
+| `20261025100200` | chat_visitors (contact form trigger, public `send_site_message`, `chat_set_visitor_status`, `chat_visitor_contact`) | **Applied** (`chat_visitor_ingest`, `chat_visitor_rpcs`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
