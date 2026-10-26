@@ -234,7 +234,7 @@ BEGIN
   EXECUTE 'RESET ROLE';
 
   -- ---------- contract gate on the new layout ----------
-  PERFORM set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated')::text, true);
+  PERFORM set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated', 'aal', 'aal2')::text, true);
   EXECUTE 'SET LOCAL ROLE authenticated';
   c1 := public.admin_create_contract(org_a, 'msa', ws_a, 'en', '{"projectName":"Site A"}'::jsonb, true);
   PERFORM public.admin_send_contract(c1);

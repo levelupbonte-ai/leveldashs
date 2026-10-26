@@ -51,6 +51,7 @@ DECLARE
   results text[] := '{}';
   notes text[] := '{}';
   failed int;
+  b_msgs bigint;
 BEGIN
   -- ================================================================ helpers
   EXECUTE $f$
@@ -385,6 +386,8 @@ BEGIN
   END;
 
   results := results || (CASE WHEN array_length(orgs, 1) = 2 AND array_length(sites, 1) = 2 THEN 'PASS' ELSE 'FAIL' END || ' fixtures created');
+  -- B's untouched messages before the attacks (the contact form trigger adds a visitor message)
+  SELECT count(*) INTO b_msgs FROM public.chat_messages WHERE organization_id = orgs[2] AND deleted_at IS NULL AND edited_at IS NULL;
 
   -- ===================================== table probes (computed as postgres)
   -- A's owner -> B
@@ -574,7 +577,7 @@ BEGIN
   SELECT count(*) INTO n FROM public.organization_members WHERE organization_id = orgs[2];
   results := results || (CASE WHEN n = 2 THEN 'PASS' ELSE 'FAIL' END || ' B members unchanged (' || n || ')');
   SELECT count(*) INTO n FROM public.chat_messages WHERE organization_id = orgs[2] AND deleted_at IS NULL AND edited_at IS NULL;
-  results := results || (CASE WHEN n = 2 THEN 'PASS' ELSE 'FAIL' END || ' B chat messages unchanged (' || n || ')');
+  results := results || (CASE WHEN n = b_msgs AND n > 0 THEN 'PASS' ELSE 'FAIL' END || ' B chat messages unchanged (' || n || ' of ' || b_msgs || ')');
   SELECT count(*) INTO n FROM public.organization_invitations WHERE organization_id = orgs[2] AND revoked_at IS NULL;
   results := results || (CASE WHEN n = 1 THEN 'PASS' ELSE 'FAIL' END || ' B invitations unchanged (' || n || ')');
 
