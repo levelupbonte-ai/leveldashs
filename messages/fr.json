@@ -523,14 +523,25 @@
         "voidConfirm": "Annuler ce montant de {amount} ? Le client ne le doit plus. C’est définitif.",
         "voided": "Montant annulé",
         "paidTitle": "Marquer comme payé",
-        "paidDescription": "Enregistrez un paiement reçu en dehors de l’application (virement, chèque, espèces).",
+        "paidDescription": "Enregistrez un paiement reçu en dehors de l’application. Il produit le reçu que le client peut télécharger.",
         "paidOn": "Payé le",
         "paymentNote": "Référence (facultatif)",
         "paymentNotePlaceholder": "ex. Virement réf. 2026-104",
         "confirmPaid": "Marquer payé",
         "paid": "Montant marqué payé",
         "base": "Avant remise : {amount}",
-        "cancel": "Annuler"
+        "cancel": "Annuler",
+        "paymentMethod": "Mode de paiement",
+        "methods": {
+          "bank_transfer": "Virement bancaire",
+          "cash": "Espèces",
+          "mobile_money": "Paiement mobile",
+          "card": "Carte",
+          "other": "Autre"
+        },
+        "invoice": "Facture",
+        "receipt": "Reçu",
+        "paidWith": "{method}, {date}"
       },
       "discount": {
         "title": "Nouvelle remise",
@@ -613,6 +624,42 @@
           "approved": "Approuvée",
           "declined": "Refusée"
         }
+      },
+      "issuer": {
+        "title": "Coordonnées sur les factures",
+        "description": "Affichées sur chaque facture et chaque reçu. Les informations légales de LevelUp, telles qu’enregistrées.",
+        "warning": "Complétez vos coordonnées avant d’envoyer des factures",
+        "warningHint": "Les clients ne peuvent pas télécharger de facture ni de reçu tant que la raison sociale, l’adresse et l’e-mail ne sont pas renseignés.",
+        "ready": "Les factures et les reçus sont prêts pour les clients.",
+        "legalName": "Raison sociale",
+        "address": "Adresse",
+        "addressHint": "Rue, ville, région, code postal et pays, comme sur les documents officiels.",
+        "email": "E-mail de facturation",
+        "taxId": "Numéro de taxe ou d’enregistrement (facultatif)",
+        "numbering": "Les numéros de facture sont attribués automatiquement : {prefix}-{year}-0001, puis 0002…",
+        "save": "Enregistrer",
+        "saved": "Coordonnées enregistrées"
+      },
+      "online": {
+        "title": "Paiements en ligne",
+        "description": "Paiement par carte des factures LevelUp avec Stripe Checkout.",
+        "on": "Activés",
+        "off": "Désactivés",
+        "offHint": "Désactivés : le bouton « Payer en ligne » est masqué et les routes de paiement répondent 404. Ils s’activent quand le serveur a LEVELUP_ONLINE_PAYMENTS=on et ses clés (voir docs/billing.md).",
+        "onHint": "Activés : les propriétaires et les administrateurs peuvent payer un montant dû par carte. Les paiements sont enregistrés par le webhook Stripe.",
+        "keyTitle": "Clé du webhook de facturation",
+        "keyHint": "Permet au webhook de paiement d’enregistrer les paiements dans la base. Conservée sous forme de hachage ; affichée une seule fois.",
+        "keyNone": "Aucune clé pour l’instant.",
+        "keyActive": "Clé active se terminant par {hint}, créée le {date}.",
+        "keyUsed": "Dernière utilisation : {date}.",
+        "generate": "Générer une clé",
+        "regenerate": "Remplacer la clé",
+        "generateConfirm": "La nouvelle clé remplace l’actuelle immédiatement. Les paiements ne sont plus enregistrés tant que LEVELUP_BILLING_KEY n’est pas mise à jour sur le serveur. Continuer ?",
+        "keyShownOnce": "Copiez cette clé maintenant : elle n’est affichée qu’une fois. Mettez-la dans la variable d’environnement serveur LEVELUP_BILLING_KEY (jamais NEXT_PUBLIC_).",
+        "keyTitleNew": "Nouvelle clé du webhook de facturation",
+        "copy": "Copier",
+        "copied": "Clé copiée",
+        "done": "Terminé"
       }
     }
   },
@@ -721,7 +768,9 @@
     "requestClosed": "Cette demande a déjà été traitée.",
     "defaultPlanRequired": "Choisissez d’abord un autre forfait par défaut.",
     "planInUse": "Des organisations utilisent ce forfait : déplacez-les d’abord.",
-    "mediaImageTooLarge": "Cette image est trop grande (30 Mo et 50 mégapixels au maximum)."
+    "mediaImageTooLarge": "Cette image est trop grande (30 Mo et 50 mégapixels au maximum).",
+    "paymentUnavailable": "Le paiement en ligne n’est pas disponible pour le moment. Réessayez plus tard ou contactez LevelUp.",
+    "paymentInProgress": "Un paiement de ce montant est déjà en cours. Actualisez la page dans une minute."
   },
   "workspaces": {
     "title": "Organisations",
@@ -896,7 +945,17 @@
         "paid": "Payé",
         "void": "Annulé",
         "overdue": "En retard"
-      }
+      },
+      "invoice": "Facture",
+      "receipt": "Reçu",
+      "invoiceLabel": "Télécharger la facture {number}",
+      "receiptLabel": "Télécharger le reçu de {number}",
+      "payOnline": "Payer en ligne",
+      "payOnlineLabel": "Payer {amount} en ligne",
+      "number": "N° {number}",
+      "paymentSuccess": "Merci. Votre paiement est en cours de confirmation et apparaîtra ici dans un instant.",
+      "paymentCancelled": "Paiement annulé. Rien n’a été débité.",
+      "howToPayOnline": "Payez un montant par carte avec « Payer en ligne », ou utilisez les informations de paiement envoyées par LevelUp. Une question ? Écrivez à <email></email>."
     },
     "promo": {
       "title": "Code promo",
@@ -1099,6 +1158,59 @@
       "account": "Demandé par : {value}",
       "message": "Message : {value}",
       "cta": "Voir la demande"
+    },
+    "billingDocument": {
+      "invoice": "Facture",
+      "receipt": "Reçu",
+      "number": "Numéro de facture",
+      "invoiceRef": "Facture",
+      "issueDate": "Date d’émission",
+      "dueDate": "Échéance",
+      "noDueDate": "À réception",
+      "billTo": "Facturé à",
+      "from": "De",
+      "taxId": "N° de taxe / d’enregistrement",
+      "taxIdLine": "N° de taxe / d’enregistrement : {value}",
+      "description": "Description",
+      "amount": "Montant",
+      "subtotal": "Sous-total",
+      "discount": "Remise",
+      "total": "Total",
+      "balanceDue": "Solde dû",
+      "amountPaid": "Montant payé",
+      "paymentDate": "Date du paiement",
+      "paymentMethod": "Mode de paiement",
+      "reference": "Référence",
+      "currencyNote": "Montants en {currency}",
+      "voidNotice": "Cette facture a été annulée. Aucun montant n’est dû.",
+      "paidNotice": "Payée le {date}. Merci.",
+      "dueNotice": "Merci de régler avant le {date}.",
+      "dueNoticeNoDate": "Paiement à réception.",
+      "receiptNotice": "Paiement reçu pour la facture {number}. Merci.",
+      "draftNotice": "Brouillon : les coordonnées de LevelUp sont incomplètes. Ne pas envoyer.",
+      "questions": "Une question sur ce document ? {email}",
+      "page": "Page {current} sur {total}",
+      "fileInvoice": "facture",
+      "fileReceipt": "recu",
+      "status": {
+        "due": "À payer",
+        "overdue": "En retard",
+        "paid": "Payée",
+        "void": "Annulée"
+      },
+      "receiptStatus": "Payé",
+      "method": {
+        "bank_transfer": "Virement bancaire",
+        "cash": "Espèces",
+        "mobile_money": "Paiement mobile",
+        "card": "Carte",
+        "other": "Autre"
+      },
+      "kind": {
+        "setup": "Mise en place",
+        "subscription": "Abonnement",
+        "one_off": "Ponctuel"
+      }
     }
   },
   "brandImage": {

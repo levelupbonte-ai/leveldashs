@@ -13,7 +13,14 @@ import { LimitMeters, UsagePanel } from './usage-cards';
  * and this month's usage; owners and admins (`money` is only returned to them
  * by the database) also see prices, discounts, what they owe and the promo code.
  */
-export function BillingView({ organizationId }: { organizationId: string }) {
+export function BillingView({
+  organizationId,
+  onlinePayments = false
+}: {
+  organizationId: string;
+  /** Online payment switched on by the server (never the keys, only this flag). */
+  onlinePayments?: boolean;
+}) {
   const db = createClient();
   const { data: summary } = useSuspenseQuery(billingSummaryQueryOptions(db, organizationId));
   const { data: usage } = useSuspenseQuery(billingUsageQueryOptions(db, organizationId));
@@ -25,7 +32,7 @@ export function BillingView({ organizationId }: { organizationId: string }) {
         <LimitMeters usage={summary.usage} />
       </div>
       <UsagePanel usage={usage} />
-      {summary.money && <ChargesCard money={summary.money} />}
+      {summary.money && <ChargesCard money={summary.money} onlinePayments={onlinePayments} />}
       <PlanComparison summary={summary} organizationId={organizationId} />
       {summary.can_manage && (
         <div className='max-w-xl'>

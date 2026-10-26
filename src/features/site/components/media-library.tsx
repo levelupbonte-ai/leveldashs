@@ -1,6 +1,11 @@
 'use client';
 
-import { useSuspenseInfiniteQuery, useSuspenseQuery } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  useSuspenseInfiniteQuery,
+  useSuspenseQuery
+} from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useQueryStates } from 'nuqs';
 import { useEffect, useState, useTransition } from 'react';
@@ -38,11 +43,19 @@ import {
 } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { PlanLimitNotice } from '@/features/billing/components/plan-limit-notice';
+import { PlanLimitError, type PlanLimitInfo } from '@/lib/plan-limit';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { useSiteMutations } from '../api/mutations';
-import { mediaQueryOptions, mediaStatsQueryOptions } from '../api/queries';
-import { MEDIA_IMAGE_INPUT_MAX_BYTES, MEDIA_MAX_BYTES, MEDIA_TYPES } from '../api/service';
+import { mediaQueryOptions, mediaStatsQueryOptions, siteKeys } from '../api/queries';
+import {
+  MEDIA_IMAGE_INPUT_MAX_BYTES,
+  MEDIA_MAX_BYTES,
+  MEDIA_TYPES,
+  uploadMedia as uploadMediaFile
+} from '../api/service';
 import type { MediaItem } from '../api/types';
 import { MEDIA_KINDS, mediaParams, toMediaFilters } from '../lib/media-filters';
 import { useSiteScope } from './use-site-scope';
@@ -91,10 +104,21 @@ export function MediaLibrary() {
   );
   const { data: stats } = useSuspenseQuery(mediaStatsQueryOptions(db, scope.websiteId));
   const media = data.pages.flatMap((p) => p.rows);
-  const { uploadMedia } = useSiteMutations(scope);
+  const queryClient = useQueryClient();
+  const errorMessage = useErrorMessage();
+  // Same as useSiteMutations().uploadMedia, but a plan limit shows the upgrade
+  // notice instead of a toast (like the team and assistant limits).
+  const uploadMedia = useMutation({
+    mutationFn: ({ file }: { file: File }) => uploadMediaFile(db, scope, file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: siteKeys.website(scope.websiteId) }),
+    onError: (e) => {
+      if (!(e instanceof PlanLimitError)) toast.error(errorMessage(e));
+    }
+  });
   const [uploading, setUploading] = useState(0);
   const [search, setSearch] = useState(params.q);
   const [selected, setSelected] = useState<MediaItem | null>(null);
+  const [planLimit, setPlanLimit] = useState<PlanLimitInfo | null>(null);
   const t = useTranslations('site.media');
   const tc = useTranslations('site.content');
   const fileSize = useFileSize();
@@ -115,17 +139,25 @@ export function MediaLibrary() {
     onDropRejected: () => toast.error(t('rejected')),
     onDropAccepted: async (files) => {
       setUploading((n) => n + files.length);
+      setPlanLimit(null);
       let done = 0;
+      let blocked = false;
       for (const file of files) {
         try {
+          // Plan storage full: the remaining files would be refused too.
+          if (blocked) continue;
           if (!file.type.startsWith('image/') && file.size > MEDIA_MAX_BYTES) {
             toast.error(t('rejected'));
             continue;
           }
           await uploadMedia.mutateAsync({ file });
           done++;
-        } catch {
-          // the mutation already shows a toast
+        } catch (e) {
+          // the mutation shows a toast; a plan limit gets the notice instead
+          if (e instanceof PlanLimitError) {
+            setPlanLimit(e.info);
+            blocked = true;
+          }
         } finally {
           setUploading((n) => n - 1);
         }
@@ -184,6 +216,8 @@ export function MediaLibrary() {
           </p>
         )}
       </div>
+
+      {planLimit && <PlanLimitNotice info={planLimit} />}
 
       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
         <Tabs

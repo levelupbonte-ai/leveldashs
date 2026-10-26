@@ -20,6 +20,9 @@ Ensure these are set in your deployment platform:
 - `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (optional: defaults to the LevelUp web client, see [auth.md](./auth.md#google-button-google-identity-services))
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
+- Online payment of LevelUp invoices, **off by default**, server-only (never `NEXT_PUBLIC_`):
+  `LEVELUP_ONLINE_PAYMENTS=on`, `LEVELUP_STRIPE_SECRET_KEY`, `LEVELUP_STRIPE_WEBHOOK_SECRET`,
+  `LEVELUP_BILLING_KEY` — all four or nothing; steps in [billing.md](./billing.md#turning-on-online-payments)
 
 Sentry source maps are uploaded automatically in CI.
 

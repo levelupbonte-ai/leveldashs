@@ -15,7 +15,12 @@ import {
 } from '@/components/ui/dialog';
 import { FieldGroup } from '@/components/ui/field';
 import { billingKeys } from '@/features/billing/api/queries';
-import type { ChargeKind, ChargeRow } from '@/features/billing/api/types';
+import {
+  PAYMENT_METHODS,
+  type ChargeKind,
+  type ChargeRow,
+  type PaymentMethod
+} from '@/features/billing/api/types';
 import {
   CURRENCY_RE,
   formatMoney,
@@ -25,7 +30,7 @@ import {
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
-import { createCharge, markChargePaid, updateCharge } from '../../api/billing';
+import { createCharge, recordChargePayment, updateCharge } from '../../api/billing';
 import { adminInsightKeys } from '../../api/queries';
 
 const KINDS: ChargeKind[] = ['subscription', 'setup', 'one_off'];
@@ -297,17 +302,26 @@ function MarkPaidForm({ charge, onDone }: { charge: ChargeRow; onDone: () => voi
   const schema = useMemo(
     () =>
       z.object({
+        method: z.enum(PAYMENT_METHODS, { error: tv('choice') }),
         paidOn: z.string().min(1, { message: tv('date') }),
-        note: z.string().trim().max(300)
+        reference: z
+          .string()
+          .trim()
+          .max(120, { message: tv('maxLength', { max: 120 }) })
       }),
     [tv]
   );
+  const defaults: { method: PaymentMethod; paidOn: string; reference: string } = {
+    method: 'bank_transfer',
+    paidOn: today(),
+    reference: ''
+  };
   const form = useAppForm({
-    defaultValues: { paidOn: today(), note: '' },
+    defaultValues: defaults,
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       try {
-        await markChargePaid(createClient(), charge.id, value.paidOn, value.note);
+        await recordChargePayment(createClient(), charge.id, value);
         toast.success(t('paid'));
         await refresh();
         onDone();
@@ -334,16 +348,25 @@ function MarkPaidForm({ charge, onDone }: { charge: ChargeRow; onDone: () => voi
       >
         <FieldGroup>
           <form.AppField
+            name='method'
+            children={(field) => (
+              <field.SelectField
+                label={t('paymentMethod')}
+                options={PAYMENT_METHODS.map((m) => ({ value: m, label: t(`methods.${m}`) }))}
+              />
+            )}
+          />
+          <form.AppField
             name='paidOn'
             children={(field) => <field.TextField label={t('paidOn')} type='date' max={today()} />}
           />
           <form.AppField
-            name='note'
+            name='reference'
             children={(field) => (
               <field.TextField
                 label={t('paymentNote')}
                 placeholder={t('paymentNotePlaceholder')}
-                maxLength={300}
+                maxLength={120}
               />
             )}
           />

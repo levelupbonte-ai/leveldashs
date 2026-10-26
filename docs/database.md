@@ -51,6 +51,9 @@ the schema from application code or by hand in the dashboard.
 | `20261026110200` | billing_limits (seat limit in `create_organization_invitation` / `add_organization_member`, monthly plan allowance in `assistant_consume`) | **Applied with `execute_sql`** (the `apply_migration` call waited for a confirmation that never came; not in the migration history: `supabase migration repair --status applied 20261026110200`) |
 | `20261026110300` | billing_usage (`private.org_storage`, `public.billing_usage`: storage, media files, chat messages, assistant requests, team, websites this month) | **Applied with `execute_sql`** (same: repair `20261026110300`) |
 | `20261026120000` | media_storage (object layout `org/<org>/site/<site>/<yyyy>/<mm>/<uuid>.<ext>`, immutable objects, trusted `media` index with thumbnails, `media_list`, `media_library_stats`, `org_storage_usage`; see *Media storage* below) | **Pending**: written and dry-run tested (suite `media_storage.sql`, 47/47, rolled back). Apply with `apply_migration` (`media_storage`); it drops and replaces the legacy `media_check` constraint |
+| `20261026130000` | billing_invoices (`billing_issuers` (empty, staff-edited), `private.invoice_counters`, invoice number / issue date / payment method / reference / provider columns on `billing_charges`, numbering triggers, `admin_record_charge_payment`, `billing_charge_document`, `admin_get_billing_issuer`, `admin_save_billing_issuer`; `billing_summary` adds `documents_ready`; see [billing.md](./billing.md)) | **Pending**: the `apply_migration` call of 2026-10-26 waited for a confirmation that never came. Apply it in the SQL editor (or `apply_migration`, name `billing_invoices`). Dry-run on a local replica: suite `invoices.sql` 77/77 |
+| `20261026130100` | media_storage_limit (`private.org_storage` reads `org_storage_usage`; `media_check_upload`, `private.assert_media_quota`, `private.media_quota_open` in the `media_objects_insert` policy, `media_before_insert` checks `media_mb`) | **Pending** (same). Apply after `billing_invoices`, name `media_storage_limit` |
+| `20261026130200` | billing_online_payments (`private.billing_webhook_keys`, `private.billing_checkouts`, `billing_payment_events`, `admin_create_billing_webhook_key` / `admin_revoke_…` / `admin_billing_webhook_key_status`, `billing_checkout_prepare`, `billing_checkout_record`, `billing_ingest_stripe_event` (anon, billing webhook key)) | **Pending** (same). Apply last, name `billing_online_payments` |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -144,8 +147,9 @@ authenticate by origin / server key) and the `site_payments_*`,
 
 ## Billing, plans and limits (billing_*)
 
-LevelUp sets every price; clients see what they owe and pay outside the app (no
-online payment yet). Money is an integer in minor units (cents) with a lower-case
+LevelUp sets every price; clients see what they owe, download their invoices and receipts,
+and pay outside the app (online payment by card is built and switched off, see
+[billing.md](./billing.md)). Money is an integer in minor units (cents) with a lower-case
 ISO currency. Amounts are always computed by the database.
 
 | Table | Holds | Read | Write |
@@ -153,7 +157,9 @@ ISO currency. Amounts are always computed by the database.
 | `plans` | key, name, description, `price_monthly` (null = *price to be set by LevelUp*, never shown as a number; 0 = free), currency, `limits` jsonb (`team_members`, `assistant_requests_month`, `media_mb`, `websites`; null = unlimited), `features` (keys translated by `billing.features.*`), order, `active`, one `is_default` | staff (RLS); clients through `billing_summary` | `admin_save_plan` |
 | `organization_billing` | one row per organization: `plan_key`, `custom_price` (overrides the plan price), currency, `billing_note` (shown to the client's owners and admins), `next_due_date`, `status` (`active` / `trial` / `past_due` / `suspended`). No row = default plan | staff; clients through `billing_summary` | `admin_set_org_billing`, `admin_decide_upgrade_request` |
 | `discounts`, `discount_redemptions` | organization discounts (no code, apply at once, e.g. label *Partner*) and promo codes (apply once redeemed; single use per organization; `max_uses` counts organizations for codes and charges for organization discounts) | staff | `admin_save_discount`, `admin_set_discount_active`, `redeem_discount_code` |
-| `billing_charges` | what the client owes: label, kind (`setup` / `subscription` / `one_off`), `base_amount`, the discount applied (`discount_label`, `discount_amount`), `amount` (generated), due date, `due` / `paid` / `void` (`overdue` is reported for a due charge past its date) | staff; owners and admins through `billing_summary` | `admin_create_charge`, `admin_update_charge` (due only), `admin_void_charge`, `admin_mark_charge_paid` |
+| `billing_charges` | what the client owes: label, kind (`setup` / `subscription` / `one_off`), `base_amount`, the discount applied (`discount_label`, `discount_amount`), `amount` (generated), due date, `due` / `paid` / `void` (`overdue` is reported for a due charge past its date); `invoice_number` (`LU-2026-0001`, assigned by the database, never changes), `issued_on`; when paid: `payment_method`, `payment_reference`, `paid_amount` (and the Stripe session for online payments) | staff; owners and admins through `billing_summary` and `billing_charge_document` | `admin_create_charge`, `admin_update_charge` (due only), `admin_void_charge`, `admin_record_charge_payment` (`admin_mark_charge_paid` = method `other`), `billing_ingest_stripe_event` |
+| `billing_issuers` | LevelUp's legal name, address, e-mail, tax number for invoices (one row, empty until staff fill it) | staff | `admin_save_billing_issuer` |
+| `billing_payment_events` | every Stripe event received (idempotency, outcome) | staff | `billing_ingest_stripe_event` |
 | `plan_upgrade_requests` | plan changes asked from Billing (one pending per organization) | staff (`admin_list_upgrade_requests`) | `request_plan_upgrade`, `admin_decide_upgrade_request` |
 
 Rules:
@@ -177,11 +183,10 @@ Rules:
   `create_organization_invitation` and `add_organization_member` (members + live
   invitations; re-inviting a pending address keeps its seat; accepting never checks) and
   in `assistant_consume` (monthly requests, UTC month, on top of the 60 per day cap).
-  `media_mb` and `websites` are measured and shown but not enforced yet: websites are
-  created by LevelUp, and the media upload path belongs to the media library work (hook:
-  call `assert_within_limit(org, 'media_mb', used_mb, file_mb)` with
-  `private.org_storage(org)` before the upload, and switch `private.org_storage` to
-  `public.org_storage_usage` once it exists).
+  `media_mb` is enforced on media uploads (`media_check_upload`, the Storage insert policy
+  and the media index trigger; `private.org_storage` reads `private.org_storage_usage`, see
+  [billing.md](./billing.md#storage-limit-plan-limitsmedia_mb)). `websites` is measured and
+  shown but not enforced: websites are created by LevelUp.
 - **Audit.** Every staff change and every client redemption or request writes
   `hq_audit_log` (`billing.*`); discounts are logged on their organization (or with no
   target type for a promo code), plans with the plan key as target id.
@@ -330,9 +335,9 @@ to `thumb_size_bytes`). Clients may only update `alt_text` and `filename`.
 not the index, so a file uploaded without its row still counts: `bytes` = media library
 (both layouts, thumbnails included) + organization logos (`brand/orgs/<org>/`); `files` =
 objects that are not thumbnails. Contract PDFs are not counted. It uses range scans on the
-`(bucket_id, name COLLATE "C")` index, so it stays fast at any size. Billing hook:
-`private.org_storage(org)` (plan limit `media_mb`) can return
-`select bytes, media_files from private.org_storage_usage(org)`.
+`(bucket_id, name COLLATE "C")` index, so it stays fast at any size. Billing:
+`private.org_storage(org)` (plan limit `media_mb`) returns
+`select bytes, media_files from private.org_storage_usage(org)` (`media_storage_limit`).
 
 ## Backups
 

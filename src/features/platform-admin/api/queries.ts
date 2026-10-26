@@ -8,7 +8,9 @@ import {
   listFeatures
 } from './clients';
 import {
+  getBillingIssuer,
   getOrgBilling,
+  getWebhookKeyStatus,
   listBillingOrgs,
   listDiscounts,
   listPlans,
@@ -39,7 +41,9 @@ export const adminInsightKeys = {
     [...adminInsightKeys.billing(), 'org', organizationId] as const,
   plans: () => [...adminInsightKeys.billing(), 'plans'] as const,
   discounts: () => [...adminInsightKeys.billing(), 'discounts'] as const,
-  upgradeRequests: () => [...adminInsightKeys.billing(), 'upgrade-requests'] as const
+  upgradeRequests: () => [...adminInsightKeys.billing(), 'upgrade-requests'] as const,
+  issuer: () => [...adminInsightKeys.billing(), 'issuer'] as const,
+  webhookKey: () => [...adminInsightKeys.billing(), 'webhook-key'] as const
 };
 
 export const billingOrgsQueryOptions = (db: SupabaseClient) =>
@@ -51,6 +55,12 @@ export const orgBillingQueryOptions = (db: SupabaseClient, organizationId: strin
     queryFn: () => getOrgBilling(db, organizationId),
     staleTime: 0
   });
+
+export const billingIssuerQueryOptions = (db: SupabaseClient) =>
+  queryOptions({ queryKey: adminInsightKeys.issuer(), queryFn: () => getBillingIssuer(db) });
+
+export const webhookKeyQueryOptions = (db: SupabaseClient) =>
+  queryOptions({ queryKey: adminInsightKeys.webhookKey(), queryFn: () => getWebhookKeyStatus(db) });
 
 export const plansQueryOptions = (db: SupabaseClient) =>
   queryOptions({ queryKey: adminInsightKeys.plans(), queryFn: () => listPlans(db) });

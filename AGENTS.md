@@ -58,7 +58,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 - Row Level Security enforces every read/write; the app only uses the publishable key and queries as the signed-in user
 - LevelUp platform admins (`platform_admins`) act with up to `admin` rights in every organization
 - Client-side RBAC for navigation visibility (UX only)
-- Billing: plans with limits, discounts and charges set by LevelUp; clients see their plan, usage and what they owe on `/dashboard/billing` and pay outside the app for now (see `docs/database.md` → Billing)
+- Billing: plans with limits, discounts and charges set by LevelUp; clients see their plan, usage and what they owe on `/dashboard/billing`, download invoice / receipt PDFs, and pay outside the app (Stripe online payment built, off by default: `docs/billing.md`)
 
 ### Data & APIs
 

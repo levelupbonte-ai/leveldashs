@@ -523,14 +523,25 @@
         "voidConfirm": "Cancel this charge of {amount}? The client no longer owes it. This can’t be undone.",
         "voided": "Charge cancelled",
         "paidTitle": "Mark as paid",
-        "paidDescription": "Record a payment received outside the app (bank transfer, cheque, cash).",
+        "paidDescription": "Record a payment received outside the app. It produces the receipt the client can download.",
         "paidOn": "Paid on",
         "paymentNote": "Reference (optional)",
         "paymentNotePlaceholder": "e.g. Transfer ref. 2026-104",
         "confirmPaid": "Mark paid",
         "paid": "Charge marked paid",
         "base": "Before discount: {amount}",
-        "cancel": "Cancel"
+        "cancel": "Cancel",
+        "paymentMethod": "Payment method",
+        "methods": {
+          "bank_transfer": "Bank transfer",
+          "cash": "Cash",
+          "mobile_money": "Mobile money",
+          "card": "Card",
+          "other": "Other"
+        },
+        "invoice": "Invoice",
+        "receipt": "Receipt",
+        "paidWith": "{method}, {date}"
       },
       "discount": {
         "title": "New discount",
@@ -613,6 +624,42 @@
           "approved": "Approved",
           "declined": "Declined"
         }
+      },
+      "issuer": {
+        "title": "Business details on invoices",
+        "description": "Shown on every invoice and receipt. LevelUp’s own legal details, as registered.",
+        "warning": "Complete your business details before sending invoices",
+        "warningHint": "Clients can’t download invoices or receipts until the legal name, address and email are filled in.",
+        "ready": "Invoices and receipts are ready for clients.",
+        "legalName": "Legal name",
+        "address": "Address",
+        "addressHint": "Street, city, region, postal code and country, as on official documents.",
+        "email": "Billing email",
+        "taxId": "Tax or registration number (optional)",
+        "numbering": "Invoice numbers are assigned automatically: {prefix}-{year}-0001, then 0002…",
+        "save": "Save details",
+        "saved": "Business details saved"
+      },
+      "online": {
+        "title": "Online payments",
+        "description": "Card payments of LevelUp invoices through Stripe Checkout.",
+        "on": "On",
+        "off": "Off",
+        "offHint": "Off: the “Pay online” button is hidden and the payment routes answer 404. It turns on when the server has LEVELUP_ONLINE_PAYMENTS=on and its keys (see docs/billing.md).",
+        "onHint": "On: owners and admins can pay a charge due by card. Payments are recorded by the Stripe webhook.",
+        "keyTitle": "Billing webhook key",
+        "keyHint": "Lets the payment webhook record payments in the database. Stored as a hash; shown once.",
+        "keyNone": "No key yet.",
+        "keyActive": "Active key ending in {hint}, created {date}.",
+        "keyUsed": "Last used {date}.",
+        "generate": "Generate a key",
+        "regenerate": "Replace the key",
+        "generateConfirm": "The new key replaces the current one at once. Payments are not recorded until LEVELUP_BILLING_KEY is updated on the server. Continue?",
+        "keyShownOnce": "Copy this key now: it is shown only once. Put it in the server environment variable LEVELUP_BILLING_KEY (never NEXT_PUBLIC_).",
+        "keyTitleNew": "New billing webhook key",
+        "copy": "Copy",
+        "copied": "Key copied",
+        "done": "Done"
       }
     }
   },
@@ -721,7 +768,9 @@
     "requestClosed": "This request was already decided.",
     "defaultPlanRequired": "Choose another default plan first.",
     "planInUse": "Organizations are on this plan: move them first.",
-    "mediaImageTooLarge": "This image is too large (30 MB and 50 megapixels max)."
+    "mediaImageTooLarge": "This image is too large (30 MB and 50 megapixels max).",
+    "paymentUnavailable": "Online payment isn’t available right now. Try again later or contact LevelUp.",
+    "paymentInProgress": "A payment for this charge is already being processed. Refresh the page in a minute."
   },
   "workspaces": {
     "title": "Organizations",
@@ -894,9 +943,19 @@
       "chargeStatus": {
         "due": "Due",
         "paid": "Paid",
-        "void": "Cancelled",
+        "void": "Void",
         "overdue": "Overdue"
-      }
+      },
+      "invoice": "Invoice",
+      "receipt": "Receipt",
+      "invoiceLabel": "Download invoice {number}",
+      "receiptLabel": "Download receipt for {number}",
+      "payOnline": "Pay online",
+      "payOnlineLabel": "Pay {amount} online",
+      "number": "No. {number}",
+      "paymentSuccess": "Thank you. Your payment is being confirmed and will show here in a moment.",
+      "paymentCancelled": "Payment cancelled. Nothing was charged.",
+      "howToPayOnline": "Pay a charge by card with “Pay online”, or use the payment details LevelUp sends you. Questions? Email <email></email>."
     },
     "promo": {
       "title": "Promo code",
@@ -1099,6 +1158,59 @@
       "account": "Asked by: {value}",
       "message": "Message: {value}",
       "cta": "Review the request"
+    },
+    "billingDocument": {
+      "invoice": "Invoice",
+      "receipt": "Receipt",
+      "number": "Invoice number",
+      "invoiceRef": "Invoice",
+      "issueDate": "Issue date",
+      "dueDate": "Due date",
+      "noDueDate": "Upon receipt",
+      "billTo": "Bill to",
+      "from": "From",
+      "taxId": "Tax / registration no.",
+      "taxIdLine": "Tax / registration no.: {value}",
+      "description": "Description",
+      "amount": "Amount",
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "total": "Total",
+      "balanceDue": "Balance due",
+      "amountPaid": "Amount paid",
+      "paymentDate": "Payment date",
+      "paymentMethod": "Payment method",
+      "reference": "Reference",
+      "currencyNote": "Amounts in {currency}",
+      "voidNotice": "This invoice was cancelled. Nothing is owed.",
+      "paidNotice": "Paid on {date}. Thank you.",
+      "dueNotice": "Please pay by {date}.",
+      "dueNoticeNoDate": "Payment is due upon receipt.",
+      "receiptNotice": "Payment received for invoice {number}. Thank you.",
+      "draftNotice": "Draft: LevelUp’s business details are incomplete. Do not send.",
+      "questions": "Questions about this document? {email}",
+      "page": "Page {current} of {total}",
+      "fileInvoice": "invoice",
+      "fileReceipt": "receipt",
+      "status": {
+        "due": "Due",
+        "overdue": "Overdue",
+        "paid": "Paid",
+        "void": "Void"
+      },
+      "receiptStatus": "Paid",
+      "method": {
+        "bank_transfer": "Bank transfer",
+        "cash": "Cash",
+        "mobile_money": "Mobile money",
+        "card": "Card",
+        "other": "Other"
+      },
+      "kind": {
+        "setup": "Setup",
+        "subscription": "Subscription",
+        "one_off": "One-off"
+      }
     }
   },
   "brandImage": {
