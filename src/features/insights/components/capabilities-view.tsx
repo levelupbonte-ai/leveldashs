@@ -158,6 +158,7 @@ export function CapabilitiesView() {
 
 function FormsCard({ caps }: { caps: SiteCapabilities }) {
   const t = useTranslations('insights.capabilities');
+  const now = useNow();
   const format = useFormatter();
   const typeLabel = useFormTypeLabel();
   return (
@@ -185,7 +186,7 @@ function FormsCard({ caps }: { caps: SiteCapabilities }) {
                 <span className='text-muted-foreground flex shrink-0 items-center gap-2 text-xs'>
                   {f.new > 0 && <Badge>{t('newCount', { count: f.new })}</Badge>}
                   {t('formTotal', { count: f.total })}
-                  {f.last_at && ` · ${format.relativeTime(new Date(f.last_at))}`}
+                  {f.last_at && ` · ${format.relativeTime(new Date(f.last_at), now)}`}
                 </span>
               </li>
             ))}
@@ -207,7 +208,7 @@ function IntegrationsCard({ caps }: { caps: SiteCapabilities }) {
       key: 'tag',
       label: t('tag'),
       status: seen
-        ? t('tagSeen', { date: format.relativeTime(seen), version: caps.tag.version ?? '–' })
+        ? t('tagSeen', { date: format.relativeTime(seen, now), version: caps.tag.version ?? '–' })
         : t('tagNever'),
       ok: tagActive,
       href: '/dashboard/site/developers'
@@ -225,7 +226,7 @@ function IntegrationsCard({ caps }: { caps: SiteCapabilities }) {
       key: 'payments',
       label: t('payments'),
       status: caps.last_payment_at
-        ? t('lastPayment', { date: format.relativeTime(new Date(caps.last_payment_at)) })
+        ? t('lastPayment', { date: format.relativeTime(new Date(caps.last_payment_at), now) })
         : t('noPayments'),
       ok: !!caps.last_payment_at,
       href: '/dashboard/site/payments'

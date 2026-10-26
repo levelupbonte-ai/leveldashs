@@ -473,7 +473,7 @@ function SiteHealthCard({ caps }: { caps: SiteCapabilities | null }) {
             <p className='text-muted-foreground text-xs'>
               {seen
                 ? t('tagSeen', {
-                    date: format.relativeTime(seen),
+                    date: format.relativeTime(seen, now),
                     version: caps?.tag.version ?? '–'
                   })
                 : t('tagNever')}
@@ -487,7 +487,9 @@ function SiteHealthCard({ caps }: { caps: SiteCapabilities | null }) {
           <div>
             <p className='font-medium'>{t('freshness')}</p>
             <p className='text-muted-foreground text-xs'>
-              {updated ? t('updated', { date: format.relativeTime(updated) }) : t('neverUpdated')}
+              {updated
+                ? t('updated', { date: format.relativeTime(updated, now) })
+                : t('neverUpdated')}
             </p>
           </div>
           <Link

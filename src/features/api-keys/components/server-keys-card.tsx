@@ -42,6 +42,7 @@ import {
   type KeyScope,
   type SiteApiKey
 } from '../api/types';
+import { useNow } from '@/features/insights/lib/use-now';
 
 /**
  * Server keys of the website (owners and admins). A key authenticates the
@@ -57,6 +58,7 @@ export function ServerKeysCard() {
   const queryClient = useQueryClient();
   const errorMessage = useErrorMessage();
   const t = useTranslations('insights.keys');
+  const now = useNow();
   const format = useFormatter();
 
   const revoke = useMutation({
@@ -101,7 +103,9 @@ export function ServerKeysCard() {
                       </p>
                       <p className='text-muted-foreground text-xs'>
                         {k.last_used_at
-                          ? t('lastUsed', { date: format.relativeTime(new Date(k.last_used_at)) })
+                          ? t('lastUsed', {
+                              date: format.relativeTime(new Date(k.last_used_at), now)
+                            })
                           : t('neverUsed')}
                       </p>
                     </div>

@@ -578,7 +578,7 @@ Both build with `BUILD_STANDALONE=true` (`output: 'standalone'` in `next.config.
 ### Build Considerations
 
 - Output: `standalone` when `BUILD_STANDALONE=true` (optimized for Docker/self-hosting)
-- Images: Configured for `api.slingacademy.com`, `rncuhmvykrmtxfzqpitc.supabase.co` (`/storage/v1/object/public/**`), `lh3.googleusercontent.com` (Google avatars)
+- Images: Configured for `rncuhmvykrmtxfzqpitc.supabase.co` (`/storage/v1/object/public/**`), `lh3.googleusercontent.com` (Google avatars)
 - Sentry source maps uploaded automatically in CI
 
 ---

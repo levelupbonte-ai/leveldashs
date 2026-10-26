@@ -42,6 +42,7 @@ import {
   type ProjectRequestStatus
 } from '../api/types';
 import { projectRequestParams, toProjectRequestFilters } from '../lib/filters';
+import { useNow } from '@/features/insights/lib/use-now';
 
 const VERDICT_VARIANT = { qualified: 'default', review: 'secondary', rejected: 'outline' } as const;
 
@@ -63,6 +64,7 @@ export function ProjectRequestsView() {
   );
   const [openId, setOpenId] = useState<string | null>(null);
   const t = useTranslations('insights.projectRequests');
+  const now = useNow();
   const format = useFormatter();
   const selected = data.rows.find((r) => r.id === openId) ?? null;
 
@@ -161,7 +163,7 @@ export function ProjectRequestsView() {
                       <Badge variant='outline'>{t(`status.${r.status}`)}</Badge>
                       {r.handoff?.claimed_at && <Badge variant='secondary'>{t('claimed')}</Badge>}
                       <span className='text-muted-foreground text-xs'>
-                        {format.relativeTime(new Date(r.created_at))}
+                        {format.relativeTime(new Date(r.created_at), now)}
                       </span>
                     </span>
                   </button>
@@ -191,6 +193,7 @@ function RequestDetail({ request: r, canEdit }: { request: ProjectRequest; canEd
   const scope = useSiteScope();
   const t = useTranslations('insights.projectRequests');
   const tc = useTranslations('site.content');
+  const now = useNow();
   const format = useFormatter();
   const queryClient = useQueryClient();
   const errorMessage = useErrorMessage();
@@ -251,7 +254,7 @@ function RequestDetail({ request: r, canEdit }: { request: ProjectRequest; canEd
       t('handoff'),
       r.handoff
         ? r.handoff.claimed_at
-          ? t('handoffClaimed', { date: format.relativeTime(new Date(r.handoff.claimed_at)) })
+          ? t('handoffClaimed', { date: format.relativeTime(new Date(r.handoff.claimed_at), now) })
           : t('handoffOpen', { count: r.handoff.open_count })
         : '–'
     ]

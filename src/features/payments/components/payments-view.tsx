@@ -239,13 +239,15 @@ export function PaymentsView() {
             </CardHeader>
             <CardContent>
               <RankedList
-                items={summary.offers.map((o) => ({
-                  key: `${o.offer}-${o.currency}`,
-                  label: o.offer || t('noOffer'),
-                  value: o.amount,
-                  detail: t('countShort', { count: o.count })
-                }))}
-                valueLabel={(v) => money(v, summary.offers[0]?.currency ?? main.currency)}
+                items={summary.offers
+                  .filter((o) => o.currency === main.currency)
+                  .map((o) => ({
+                    key: `${o.offer}-${o.currency}`,
+                    label: o.offer || t('noOffer'),
+                    value: o.amount,
+                    detail: t('countShort', { count: o.count })
+                  }))}
+                valueLabel={(v) => money(v, main.currency)}
                 empty={t('noOffers')}
               />
             </CardContent>

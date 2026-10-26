@@ -13,6 +13,7 @@ import { minorToMajor, moneyFormat } from '@/features/payments/lib/money';
 import { activityQueryOptions } from '../api/queries';
 import type { ActivityItem, ActivityKind } from '../api/types';
 import { useFormTypeLabel } from './use-labels';
+import { useNow } from '../lib/use-now';
 
 const SEEN_KEY = 'lu.activity.seen';
 
@@ -110,6 +111,7 @@ export function ActivityBell() {
 
 function ActivityRow({ item, unread }: { item: ActivityItem; unread: boolean }) {
   const t = useTranslations('insights.activity');
+  const now = useNow();
   const format = useFormatter();
   const typeLabel = useFormTypeLabel();
   const meta = KIND[item.kind] ?? KIND.submission;
@@ -146,7 +148,7 @@ function ActivityRow({ item, unread }: { item: ActivityItem; unread: boolean }) 
         <span className='min-w-0 flex-1'>
           <span className='line-clamp-2'>{text}</span>
           <span className='text-muted-foreground text-xs'>
-            {format.relativeTime(new Date(item.at))}
+            {format.relativeTime(new Date(item.at), now)}
           </span>
         </span>
         {unread && (
