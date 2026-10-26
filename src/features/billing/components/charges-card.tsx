@@ -1,7 +1,12 @@
 'use client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
+import { parseAsStringLiteral, useQueryState } from 'nuqs';
+import { useEffect } from 'react';
+import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Empty,
@@ -19,7 +24,10 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { useErrorMessage } from '@/hooks/use-error-message';
 import { cn } from '@/lib/utils';
+import { billingKeys } from '../api/queries';
+import { chargeDocumentUrl, startOnlinePayment } from '../api/service';
 import type { BillingMoney, ChargeRow, ChargeStatus } from '../api/types';
 import { formatMoney } from '../lib/format';
 
@@ -38,10 +46,21 @@ export const CHARGE_VARIANT: Record<
 /** Local calendar date of a `YYYY-MM-DD` (noon avoids a time-zone day shift). */
 export const dayDate = (day: string) => new Date(`${day}T12:00:00`);
 
-/** "What you owe": charges with status, due date, discount and final amount, plus the total due. */
-export function ChargesCard({ money }: { money: BillingMoney }) {
+interface ChargesCardProps {
+  money: BillingMoney;
+  /** Online payment switched on by the server (LEVELUP_ONLINE_PAYMENTS + keys). */
+  onlinePayments?: boolean;
+}
+
+/**
+ * "What you owe": charges with their invoice number, status, due date, discount
+ * and final amount, the total due, and per charge the invoice / receipt PDFs
+ * (once LevelUp's business details are complete) and "Pay online" when it is on.
+ */
+export function ChargesCard({ money, onlinePayments = false }: ChargesCardProps) {
   const t = useTranslations('billing.owe');
   const format = useFormatter();
+  usePaymentReturn();
   const fmt = (amount: number, currency: string) => formatMoney(format.number, amount, currency);
   const day = (d: string) => format.dateTime(dayDate(d), { dateStyle: 'medium' });
 
@@ -115,6 +134,12 @@ export function ChargesCard({ money }: { money: BillingMoney }) {
                       </span>
                     )}
                   </div>
+                  <ChargeActions
+                    charge={c}
+                    documents={money.documents_ready}
+                    onlinePayments={onlinePayments}
+                    className='pt-2'
+                  />
                 </li>
               ))}
             </ul>
@@ -128,6 +153,9 @@ export function ChargesCard({ money }: { money: BillingMoney }) {
                     <TableHead className='text-right'>{t('amount')}</TableHead>
                     <TableHead className='text-right'>{t('discount')}</TableHead>
                     <TableHead className='text-right'>{t('final')}</TableHead>
+                    <TableHead>
+                      <span className='sr-only'>{t('invoice')}</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -173,6 +201,14 @@ export function ChargesCard({ money }: { money: BillingMoney }) {
                       >
                         {fmt(c.amount, c.currency)}
                       </TableCell>
+                      <TableCell className='w-0'>
+                        <ChargeActions
+                          charge={c}
+                          documents={money.documents_ready}
+                          onlinePayments={onlinePayments}
+                          className='flex-nowrap justify-end'
+                        />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -186,6 +222,7 @@ export function ChargesCard({ money }: { money: BillingMoney }) {
                         <TableCell className='text-right font-semibold tabular-nums'>
                           {fmt(d.amount, d.currency)}
                         </TableCell>
+                        <TableCell />
                       </TableRow>
                     ))}
                   </TableFooter>
@@ -194,7 +231,7 @@ export function ChargesCard({ money }: { money: BillingMoney }) {
             </div>
           </>
         )}
-        <HowToPay />
+        <HowToPay online={onlinePayments} />
       </CardContent>
     </Card>
   );
@@ -206,6 +243,8 @@ function ChargeLabel({ charge }: { charge: ChargeRow }) {
     <div className='min-w-0'>
       <p className='font-medium break-words'>{charge.label}</p>
       <p className='text-muted-foreground text-xs'>
+        <span className='tabular-nums'>{t('number', { number: charge.invoice_number })}</span>
+        {' · '}
         {t(`kind.${charge.kind}`)}
         {charge.description ? ` · ${charge.description}` : ''}
       </p>
@@ -219,16 +258,112 @@ const emailLink = () => (
   </a>
 );
 
-/** Neutral note: online payment is coming; how to pay for now. No provider named. */
-export function HowToPay() {
+/** How to pay: online by card when it is on, otherwise the details LevelUp sends. No provider named. */
+export function HowToPay({ online = false }: { online?: boolean }) {
   const t = useTranslations('billing.owe');
   return (
     <div className='bg-muted/40 flex gap-3 rounded-lg border p-3 text-sm'>
       <Icons.info className='text-muted-foreground mt-0.5 size-4 shrink-0' aria-hidden />
       <div>
         <p className='font-medium'>{t('howToPayTitle')}</p>
-        <p className='text-muted-foreground'>{t.rich('howToPay', { email: emailLink })}</p>
+        <p className='text-muted-foreground'>
+          {t.rich(online ? 'howToPayOnline' : 'howToPay', { email: emailLink })}
+        </p>
       </div>
     </div>
   );
+}
+
+/** Invoice and receipt downloads, and "Pay online" for a charge still due. */
+export function ChargeActions({
+  charge,
+  documents,
+  onlinePayments = false,
+  className
+}: {
+  charge: ChargeRow;
+  /** LevelUp's business details are complete (documents can be downloaded). */
+  documents: boolean;
+  onlinePayments?: boolean;
+  className?: string;
+}) {
+  const t = useTranslations('billing.owe');
+  const format = useFormatter();
+  const errorMessage = useErrorMessage();
+  const pay = useMutation({
+    mutationFn: () => startOnlinePayment(charge.id),
+    onSuccess: (url) => window.location.assign(url),
+    onError: (e) => toast.error(errorMessage(e, 'paymentUnavailable'))
+  });
+  const payable = onlinePayments && (charge.status === 'due' || charge.status === 'overdue');
+  if (!documents && !payable) return null;
+  const link = buttonVariants({ size: 'sm', variant: 'outline', className: 'h-8 gap-1.5' });
+
+  return (
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {documents && (
+        <a
+          href={chargeDocumentUrl(charge.id, 'invoice')}
+          download
+          className={link}
+          aria-label={t('invoiceLabel', { number: charge.invoice_number })}
+        >
+          <Icons.fileInvoice className='size-4' aria-hidden />
+          {t('invoice')}
+        </a>
+      )}
+      {documents && charge.status === 'paid' && (
+        <a
+          href={chargeDocumentUrl(charge.id, 'receipt')}
+          download
+          className={link}
+          aria-label={t('receiptLabel', { number: charge.invoice_number })}
+        >
+          <Icons.receipt className='size-4' aria-hidden />
+          {t('receipt')}
+        </a>
+      )}
+      {payable && (
+        <Button
+          size='sm'
+          className='h-8 gap-1.5'
+          disabled={pay.isPending}
+          onClick={() => pay.mutate()}
+          aria-label={t('payOnlineLabel', {
+            amount: formatMoney(format.number, charge.amount, charge.currency)
+          })}
+        >
+          {pay.isPending ? (
+            <Icons.spinner className='size-4 animate-spin' aria-hidden />
+          ) : (
+            <Icons.creditCard className='size-4' aria-hidden />
+          )}
+          {t('payOnline')}
+        </Button>
+      )}
+    </div>
+  );
+}
+
+/** Back from the payment page (?payment=success|cancelled): a toast, then a fresh summary. */
+function usePaymentReturn() {
+  const t = useTranslations('billing.owe');
+  const queryClient = useQueryClient();
+  const [payment, setPayment] = useQueryState(
+    'payment',
+    parseAsStringLiteral(['success', 'cancelled'] as const)
+  );
+  useEffect(() => {
+    if (!payment) return;
+    if (payment === 'success') {
+      toast.success(t('paymentSuccess'));
+      // The webhook usually lands within seconds (clearing the param re-renders,
+      // so the timer is not tied to this effect).
+      setTimeout(() => void queryClient.invalidateQueries({ queryKey: billingKeys.all }), 4000);
+      void setPayment(null);
+      return;
+    }
+    toast.info(t('paymentCancelled'));
+    void setPayment(null);
+  }, [payment, setPayment, t, queryClient]);
 }

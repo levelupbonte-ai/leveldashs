@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { BillingStatus, ChargeRow } from '@/features/billing/api/types';
-import { CHARGE_VARIANT, dayDate } from '@/features/billing/components/charges-card';
+import { CHARGE_VARIANT, ChargeActions, dayDate } from '@/features/billing/components/charges-card';
 import { useDiscountText } from '@/features/billing/components/discount-badge';
 import { LimitMeters } from '@/features/billing/components/usage-cards';
 import {
@@ -36,6 +36,7 @@ import type { OrgBillingDetail, OrgDiscountRow } from '../../api/types';
 import { ChargeDialog, MarkPaidDialog, useRefreshBilling } from './charge-dialogs';
 import { ConfirmDialog } from './confirm-dialog';
 import { DiscountDialog, emptyDiscount, type DiscountDraft } from './discount-dialog';
+import { IssuerWarning } from './issuer-card';
 
 const STATUSES: BillingStatus[] = ['active', 'trial', 'past_due', 'suspended'];
 
@@ -295,6 +296,7 @@ function ChargesSection({ detail }: { detail: OrgBillingDetail }) {
           {t('addCharge')}
         </Button>
       </div>
+      {detail.money && !detail.money.documents_ready && <IssuerWarning />}
       {charges.length === 0 ? (
         <p className='text-muted-foreground rounded-lg border border-dashed p-4'>
           {t('noCharges')}
@@ -319,6 +321,8 @@ function ChargesSection({ detail }: { detail: OrgBillingDetail }) {
                     </Badge>
                   </p>
                   <p className='text-muted-foreground text-xs'>
+                    <span className='tabular-nums'>{c.invoice_number}</span>
+                    {' · '}
                     {tOwe(`kind.${c.kind}`)}
                     {c.due_date
                       ? ` · ${tOwe('dueDate')} ${format.dateTime(dayDate(c.due_date), { dateStyle: 'medium' })}`
@@ -326,8 +330,16 @@ function ChargesSection({ detail }: { detail: OrgBillingDetail }) {
                     {c.discount_amount > 0
                       ? ` · ${c.discount_label} −${formatMoney(format.number, c.discount_amount, c.currency)}`
                       : ''}
-                    {c.payment_note ? ` · ${c.payment_note}` : ''}
+                    {c.status === 'paid' && c.payment_method && c.paid_at
+                      ? ` · ${tc('paidWith', {
+                          method: tc(`methods.${c.payment_method}`),
+                          date: format.dateTime(new Date(c.paid_at), { dateStyle: 'medium' })
+                        })}`
+                      : ''}
+                    {c.payment_reference ? ` · ${c.payment_reference}` : ''}
                   </p>
+                  {/* Staff can preview documents before the business details are complete (marked draft). */}
+                  <ChargeActions charge={c} documents className='pt-2' />
                 </div>
                 <div className='flex items-center gap-1'>
                   <span className='mr-2 font-semibold tabular-nums'>{fmt(c)}</span>

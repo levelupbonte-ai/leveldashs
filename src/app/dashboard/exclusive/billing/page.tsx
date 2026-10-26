@@ -7,15 +7,20 @@ import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
+  billingIssuerQueryOptions,
   billingOrgsQueryOptions,
-  upgradeRequestsQueryOptions
+  upgradeRequestsQueryOptions,
+  webhookKeyQueryOptions
 } from '@/features/platform-admin/api/queries';
 import {
   BillingOrgs,
   UpgradeRequests
 } from '@/features/platform-admin/components/billing/billing-admin';
+import { IssuerDetailsCard } from '@/features/platform-admin/components/billing/issuer-card';
+import { OnlinePaymentsCard } from '@/features/platform-admin/components/billing/online-payments-card';
 import { staffMessages } from '@/i18n/client-messages';
 import { requireDashboardSession } from '@/lib/auth/session';
+import { onlinePaymentsEnabled } from '@/lib/payments';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
 
@@ -37,6 +42,8 @@ export default async function AdminBillingPage() {
   const db = await createClient();
   void queryClient.prefetchQuery(upgradeRequestsQueryOptions(db));
   void queryClient.prefetchQuery(billingOrgsQueryOptions(db));
+  void queryClient.prefetchQuery(billingIssuerQueryOptions(db));
+  void queryClient.prefetchQuery(webhookKeyQueryOptions(db));
 
   return (
     <PageContainer pageTitle={t('pageTitle')} pageDescription={t('pageDescription')}>
@@ -49,6 +56,14 @@ export default async function AdminBillingPage() {
             <Suspense fallback={<Skeleton className='h-96 w-full' />}>
               <BillingOrgs />
             </Suspense>
+            <div className='grid gap-6 xl:grid-cols-2'>
+              <Suspense fallback={<Skeleton className='h-80 w-full' />}>
+                <IssuerDetailsCard />
+              </Suspense>
+              <Suspense fallback={<Skeleton className='h-56 w-full' />}>
+                <OnlinePaymentsCard enabled={onlinePaymentsEnabled()} />
+              </Suspense>
+            </div>
           </div>
         </HydrationBoundary>
       </NextIntlClientProvider>

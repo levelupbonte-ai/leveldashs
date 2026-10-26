@@ -2,14 +2,18 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { billingError } from '@/features/billing/api/service';
 import type { ChargeRow } from '@/features/billing/api/types';
 import type {
+  BillingIssuer,
+  BillingIssuerInput,
   BillingOrgRow,
   ChargeInput,
   DiscountInput,
   DiscountRow,
   OrgBillingDetail,
   OrgBillingInput,
+  PaymentInput,
   PlanRow,
-  UpgradeRequestRow
+  UpgradeRequestRow,
+  WebhookKeyStatus
 } from './types';
 
 // LevelUp staff only. Every write is a SECURITY DEFINER function that checks
@@ -81,19 +85,49 @@ export async function voidCharge(db: SupabaseClient, id: string) {
   if (error) throw billingError(error, 'saveFailed');
 }
 
-export async function markChargePaid(
-  db: SupabaseClient,
-  id: string,
-  paidOn: string | null,
-  note: string
-) {
-  const { error } = await db.rpc('admin_mark_charge_paid', {
+/** Payment received outside the app (or by card): method, date, reference. Produces the receipt. */
+export async function recordChargePayment(db: SupabaseClient, id: string, input: PaymentInput) {
+  const { error } = await db.rpc('admin_record_charge_payment', {
     p_id: id,
-    // Noon local time of the chosen day, so the date never shifts with the time zone.
-    p_paid_at: paidOn ? new Date(`${paidOn}T12:00:00`).toISOString() : null,
-    p_note: note.trim() || null
+    p_method: input.method,
+    p_paid_on: input.paidOn || null,
+    p_reference: input.reference.trim() || null,
+    p_note: null
   });
   if (error) throw billingError(error, 'saveFailed');
+}
+
+export async function getBillingIssuer(db: SupabaseClient): Promise<BillingIssuer> {
+  const { data, error } = await db.rpc('admin_get_billing_issuer');
+  if (error) throw billingError(error, 'loadFailed');
+  return data as BillingIssuer;
+}
+
+export async function saveBillingIssuer(
+  db: SupabaseClient,
+  input: BillingIssuerInput
+): Promise<BillingIssuer> {
+  const { data, error } = await db.rpc('admin_save_billing_issuer', {
+    p_legal_name: input.legalName.trim() || null,
+    p_address: input.address.trim() || null,
+    p_email: input.email.trim() || null,
+    p_tax_id: input.taxId.trim() || null
+  });
+  if (error) throw billingError(error, 'saveFailed');
+  return data as BillingIssuer;
+}
+
+export async function getWebhookKeyStatus(db: SupabaseClient): Promise<WebhookKeyStatus> {
+  const { data, error } = await db.rpc('admin_billing_webhook_key_status');
+  if (error) throw billingError(error, 'loadFailed');
+  return data as WebhookKeyStatus;
+}
+
+/** Returns the new billing webhook key ONCE (only its hash is stored). */
+export async function createWebhookKey(db: SupabaseClient): Promise<string> {
+  const { data, error } = await db.rpc('admin_create_billing_webhook_key');
+  if (error) throw billingError(error, 'saveFailed');
+  return (data as { key: string }).key;
 }
 
 export async function listPlans(db: SupabaseClient): Promise<PlanRow[]> {

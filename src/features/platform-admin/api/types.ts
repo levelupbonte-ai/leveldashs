@@ -4,6 +4,7 @@ import type {
   DiscountKind,
   DiscountScope,
   MoneyAmount,
+  PaymentMethod,
   PlanLimits,
   PriceState
 } from '@/features/billing/api/types';
@@ -377,6 +378,41 @@ export interface OrgBillingDetail extends BillingSummary {
     updated_at: string | null;
   };
   org_discounts: OrgDiscountRow[];
+}
+
+/** LevelUp's business details printed on invoices and receipts (admin_get_billing_issuer). */
+export interface BillingIssuer {
+  key: string;
+  invoice_prefix: string;
+  legal_name: string | null;
+  address: string | null;
+  email: string | null;
+  tax_id: string | null;
+  /** Legal name, address and e-mail are filled in: clients can download documents. */
+  ready: boolean;
+  updated_at: string | null;
+}
+
+export interface BillingIssuerInput {
+  legalName: string;
+  address: string;
+  email: string;
+  taxId: string;
+}
+
+/** The billing webhook key (never the key itself, only its hint). */
+export interface WebhookKeyStatus {
+  active: boolean;
+  key_hint: string | null;
+  created_at: string | null;
+  last_used_at: string | null;
+}
+
+export interface PaymentInput {
+  method: PaymentMethod;
+  /** YYYY-MM-DD */
+  paidOn: string;
+  reference: string;
 }
 
 export interface OrgBillingInput {

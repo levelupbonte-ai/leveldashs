@@ -9,6 +9,7 @@ import {
 } from '@/lib/media/paths';
 import { rpc } from '@/lib/supabase/rpc-error';
 import { AppError, isMfaError } from '@/lib/errors';
+import { PlanLimitError, planLimitFromDb } from '@/lib/plan-limit';
 import { fields } from '@/lib/validation/fields';
 import type { CollectionDef } from '../config/collections';
 import { sanitizeRow } from '../components/item-form-schema';
@@ -51,8 +52,11 @@ export interface SiteScope {
 
 // Database errors become message keys (`errors.*`): the raw message never
 // reaches the screen.
-function fail(error: { message: string; code?: string } | null): never {
+function fail(error: { message: string; code?: string; details?: string | null } | null): never {
   const code = error?.code;
+  // Plan storage limit (media_mb): "Your plan allows N MB … Upgrade".
+  const limit = planLimitFromDb(error);
+  if (limit) throw new PlanLimitError(limit, { cause: error });
   if (isMfaError(error)) throw new AppError('mfaRequired', { cause: error });
   if (code === '42501' || code === 'PGRST301') throw new AppError('forbidden', { cause: error });
   if (code === '23505') throw new AppError('alreadyExists', { cause: error });
@@ -349,6 +353,14 @@ export async function uploadMedia(
     data: { user }
   } = await db.auth.getUser();
   if (!user) throw new AppError('sessionExpired');
+
+  // Plan storage limit, before sending anything (the database checks again on
+  // registration with the sizes Storage really stored).
+  const check = await db.rpc('media_check_upload', {
+    p_website_id: scope.websiteId,
+    p_bytes: body.size + (thumb?.size ?? 0)
+  });
+  if (check.error) fail(check.error);
 
   const bucket = db.storage.from(MEDIA_BUCKET);
   const path = mediaObjectPath(scope.organizationId, scope.websiteId, crypto.randomUUID(), ext);

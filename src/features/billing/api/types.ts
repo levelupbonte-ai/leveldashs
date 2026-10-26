@@ -31,6 +31,10 @@ export type BillingStatus = 'active' | 'trial' | 'past_due' | 'suspended';
 export type ChargeKind = 'setup' | 'subscription' | 'one_off';
 export type ChargeStatus = 'due' | 'paid' | 'void' | 'overdue';
 export type DiscountKind = 'percent' | 'fixed';
+/** How a charge was paid (recorded by staff, or `card` for an online payment). */
+export const PAYMENT_METHODS = ['bank_transfer', 'cash', 'mobile_money', 'card', 'other'] as const;
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export type ChargeDocumentKind = 'invoice' | 'receipt';
 export type DiscountScope = 'subscription' | 'setup' | 'all';
 
 export interface PlanSummary {
@@ -66,6 +70,13 @@ export interface ChargeRow {
   paid_at: string | null;
   payment_note: string | null;
   created_at: string;
+  /** LU-2026-0001: sequential per issuer and year, assigned by the database. */
+  invoice_number: string;
+  /** YYYY-MM-DD (America/Toronto). */
+  issued_on: string;
+  payment_method: PaymentMethod | null;
+  payment_reference: string | null;
+  paid_amount: number | null;
 }
 
 export interface ActiveDiscount {
@@ -97,6 +108,8 @@ export interface BillingMoney {
   charges: ChargeRow[];
   total_due: MoneyAmount[];
   overdue_count: number;
+  /** LevelUp's business details are complete: invoices and receipts can be downloaded. */
+  documents_ready: boolean;
 }
 
 export interface BillingSummary {
@@ -129,4 +142,19 @@ export type RedeemResult =
 
 export interface UpgradeRequestResult {
   status: 'requested' | 'already';
+}
+
+/** public.billing_charge_document: what an invoice / receipt PDF shows. */
+export interface ChargeDocument {
+  charge: ChargeRow;
+  organization: { id: string; name: string };
+  issuer: {
+    legal_name: string | null;
+    address: string | null;
+    email: string | null;
+    tax_id: string | null;
+  };
+  issuer_ready: boolean;
+  /** The reader is LevelUp staff (aal2). */
+  staff: boolean;
 }
