@@ -9,6 +9,9 @@ export interface SiteApiKey {
   prefix: 'lu_live_' | 'lu_test_';
   key_hint: string;
   scopes: KeyScope[];
+  created_by: string | null;
+  /** Display name of the creator (null when unknown or no longer a member). */
+  created_by_name: string | null;
   created_at: string;
   last_used_at: string | null;
   revoked_at: string | null;
@@ -27,3 +30,33 @@ export interface CreateKeyInput {
   mode: KeyMode;
   scopes: KeyScope[];
 }
+
+/** Actions written to site_audit_log by the database. */
+export const AUDIT_ACTIONS = [
+  'api_key.created',
+  'api_key.revoked',
+  'payments.exported',
+  'project_request.updated'
+] as const;
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+/** One line of the Developers → Activity feed (owners and admins). */
+export type DeveloperActivity =
+  | {
+      kind: 'audit';
+      id: string;
+      at: string;
+      action: AuditAction | string;
+      actor: string | null;
+      /** Key name and masked key (`lu_live_…7c2e`) when the action is about a key. */
+      keyName: string | null;
+      keyHint: string | null;
+    }
+  | {
+      kind: 'payment_event';
+      id: string;
+      at: string;
+      status: string;
+      applied: boolean;
+      eventId: string;
+    };

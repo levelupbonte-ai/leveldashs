@@ -28,7 +28,7 @@ import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navGroups } from '@/config/nav-config';
 import { ChatUnreadBadge } from '@/features/chat/components/chat-unread-badge';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { signOut } from '@/lib/auth/actions';
+import { SignOutDialog } from '@/features/auth/components/sign-out-dialog';
 import { useDashboardSession } from '@/lib/auth/session-context';
 import { hasRole } from '@/lib/auth/types';
 import { useFilteredNavGroups, useNavGroupLabel, useNavGroups, useNavTitle } from '@/hooks/use-nav';
@@ -54,6 +54,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
   const navTitle = useNavTitle();
   const groupLabel = useNavGroupLabel();
   const t = useTranslations('common.userMenu');
+  const [signOutOpen, setSignOutOpen] = React.useState(false);
 
   React.useEffect(() => {
     // Side effects based on sidebar state changes
@@ -172,7 +173,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => void signOut()}>
+                  <DropdownMenuItem onClick={() => setSignOutOpen(true)}>
                     <Icons.logout aria-hidden className='mr-2 h-4 w-4' />
                     {t('signOut')}
                   </DropdownMenuItem>
@@ -183,6 +184,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
         </SidebarMenu>
       </SidebarFooter>
       <SidebarRail />
+      <SignOutDialog open={signOutOpen} onOpenChange={setSignOutOpen} />
     </Sidebar>
   );
 }
