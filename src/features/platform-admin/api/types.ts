@@ -1,3 +1,13 @@
+import type {
+  BillingStatus,
+  BillingSummary,
+  DiscountKind,
+  DiscountScope,
+  MoneyAmount,
+  PlanLimits,
+  PriceState
+} from '@/features/billing/api/types';
+
 // LevelUp staff insights: AI catalog/usage and project requests from the
 // showcase site. Every table and view here is readable by platform admins only (RLS).
 
@@ -305,4 +315,151 @@ export interface NewActivationCode {
   expires_at: string;
   website_id: string;
   website_name: string;
+}
+
+// ---------------------------------------------------------------- billing (staff)
+
+export type {
+  BillingStatus,
+  ChargeKind,
+  ChargeRow,
+  DiscountKind,
+  DiscountScope,
+  PlanLimits,
+  PriceState
+} from '@/features/billing/api/types';
+
+/** One organization in the staff billing list (admin_list_billing_orgs). */
+export interface BillingOrgRow {
+  organization_id: string;
+  organization_name: string;
+  plan_key: string;
+  plan_name: string;
+  status: BillingStatus;
+  price: number | null;
+  currency: string;
+  price_state: PriceState;
+  next_due_date: string | null;
+  total_due: MoneyAmount[];
+  overdue_count: number;
+  discount_count: number;
+  pending_plan_key: string | null;
+  pending_plan_name: string | null;
+}
+
+export interface OrgDiscountRow {
+  id: string;
+  label: string;
+  kind: DiscountKind;
+  value: number;
+  currency: string | null;
+  applies_to: DiscountScope;
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  code: string | null;
+  max_uses: number | null;
+  uses: number;
+  redeemed: boolean;
+  in_effect: boolean;
+}
+
+/** admin_get_org_billing: the client summary plus the staff fields. */
+export interface OrgBillingDetail extends BillingSummary {
+  organization: { id: string; name: string };
+  billing: {
+    plan_key: string;
+    status: BillingStatus;
+    custom_price: number | null;
+    currency: string;
+    billing_note: string | null;
+    next_due_date: string | null;
+    updated_at: string | null;
+  };
+  org_discounts: OrgDiscountRow[];
+}
+
+export interface OrgBillingInput {
+  organizationId: string;
+  planKey: string;
+  status: BillingStatus;
+  customPrice: number | null;
+  currency: string;
+  note: string;
+  nextDueDate: string | null;
+}
+
+export interface ChargeInput {
+  organizationId: string;
+  kind: 'setup' | 'subscription' | 'one_off';
+  label: string;
+  description: string;
+  /** Minor units; null for a subscription at the monthly price. */
+  amount: number | null;
+  currency: string;
+  dueDate: string | null;
+  applyDiscount: boolean;
+}
+
+export interface PlanRow {
+  key: string;
+  name: string;
+  description: string | null;
+  price_monthly: number | null;
+  currency: string;
+  limits: PlanLimits;
+  features: string[];
+  sort_order: number;
+  active: boolean;
+  is_default: boolean;
+}
+
+export interface DiscountRow {
+  id: string;
+  organization_id: string | null;
+  organization_name: string | null;
+  code: string | null;
+  label: string;
+  kind: DiscountKind;
+  value: number;
+  currency: string | null;
+  applies_to: DiscountScope;
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  max_uses: number | null;
+  uses: number;
+  created_at: string;
+}
+
+export interface DiscountInput {
+  id: string | null;
+  organizationId: string | null;
+  code: string;
+  label: string;
+  kind: DiscountKind;
+  /** Percent 1..100, or minor units for a fixed amount. */
+  value: number;
+  currency: string | null;
+  appliesTo: DiscountScope;
+  startsAt: string | null;
+  endsAt: string | null;
+  maxUses: number | null;
+  active: boolean;
+}
+
+export interface UpgradeRequestRow {
+  id: string;
+  organization_id: string;
+  organization_name: string;
+  plan_key: string;
+  plan_name: string;
+  from_plan_key: string | null;
+  from_plan_name: string | null;
+  message: string | null;
+  status: 'pending' | 'approved' | 'declined';
+  requested_by_email: string | null;
+  created_at: string;
+  decided_at: string | null;
+  decision_note: string | null;
 }

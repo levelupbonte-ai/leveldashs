@@ -27,7 +27,8 @@ const BY_MESSAGE: Record<string, ErrorCode> = {
   organization_has_owner: 'organizationHasOwner',
   email_pending_elsewhere: 'emailPendingElsewhere',
   too_many_codes: 'tooManyCodes',
-  code_not_found: 'requestNotFound'
+  code_not_found: 'requestNotFound',
+  plan_limit_reached: 'planLimitReached'
 };
 
 /** Every code a route handler of these flows may return as `{ error }`. */
@@ -71,6 +72,7 @@ export const ERROR_STATUS: Partial<Record<ErrorCode, number>> = {
   forbidden: 403,
   emailUnconfirmed: 403,
   rateLimited: 429,
+  planLimitReached: 402,
   websiteNotFound: 404,
   requestNotFound: 404,
   invitationNotFound: 404

@@ -30,6 +30,7 @@ import { ChatUnreadBadge } from '@/features/chat/components/chat-unread-badge';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { signOut } from '@/lib/auth/actions';
 import { useDashboardSession } from '@/lib/auth/session-context';
+import { hasRole } from '@/lib/auth/types';
 import { useFilteredNavGroups, useNavGroupLabel, useNavGroups, useNavTitle } from '@/hooks/use-nav';
 import { LocaleMenuSub } from '@/components/i18n/locale-switcher';
 import { LegalMenuSub } from '@/components/legal-menu-sub';
@@ -44,7 +45,9 @@ import { OrgSwitcher } from '../org-switcher';
 export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null }) {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
-  const { user, activeOrg: organization } = useDashboardSession();
+  const { user, activeOrg: organization, isPlatformAdmin } = useDashboardSession();
+  // Billing: owners and admins (members see their plan from the page, not the menu).
+  const showBilling = !!organization && (isPlatformAdmin || hasRole(organization.role, 'admin'));
   const router = useRouter();
   const groups = useNavGroups(navGroups, adminNav);
   const filteredGroups = useFilteredNavGroups(groups);
@@ -62,8 +65,9 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
         <OrgSwitcher />
       </SidebarHeader>
       <SidebarContent className='overflow-x-hidden'>
-        {filteredGroups.map((group) => (
-          <SidebarGroup key={group.label || 'ungrouped'} className='py-0'>
+        {filteredGroups.map((group, index) => (
+          // Several groups have no label (staff menu, account): the index keeps keys unique.
+          <SidebarGroup key={group.label || `ungrouped-${index}`} className='py-0'>
             {group.label && <SidebarGroupLabel>{groupLabel(group.label)}</SidebarGroupLabel>}
             <SidebarMenu>
               {group.items.map((item) => {
@@ -157,7 +161,7 @@ export default function AppSidebar({ adminNav }: { adminNav?: NavGroup | null })
                     <Icons.account className='mr-2 h-4 w-4' />
                     {t('profile')}
                   </DropdownMenuItem>
-                  {organization && (
+                  {showBilling && (
                     <DropdownMenuItem onClick={() => router.push('/dashboard/billing')}>
                       <Icons.creditCard className='mr-2 h-4 w-4' />
                       {t('billing')}

@@ -18,6 +18,8 @@ import {
   updateCollectionItem
 } from '@/features/site/api/service';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
+import { PlanLimitNotice } from '@/features/billing/components/plan-limit-notice';
+import { PlanLimitError, parsePlanLimit, type PlanLimitInfo } from '@/lib/plan-limit';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { AssistantMessage, AssistantProposal, AssistantReply } from '../types';
@@ -117,6 +119,7 @@ export function AssistantChat() {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [draft, setDraft] = useState('');
   const [remaining, setRemaining] = useState<number | null>(null);
+  const [planLimit, setPlanLimit] = useState<PlanLimitInfo | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const t = useTranslations('assistant');
 
@@ -129,7 +132,10 @@ export function AssistantChat() {
       });
       const body = (await res.json().catch(() => ({}))) as Partial<AssistantReply> & {
         error?: string;
+        limit?: unknown;
       };
+      const limit = body.error === 'plan_limit' ? parsePlanLimit(body.limit) : null;
+      if (limit) throw new PlanLimitError(limit);
       if (!res.ok) throw new Error(body.error ?? 'unavailable');
       return body as AssistantReply;
     },
@@ -138,7 +144,10 @@ export function AssistantChat() {
       if (typeof data.remaining === 'number') setRemaining(data.remaining);
       requestAnimationFrame(() => endRef.current?.scrollIntoView({ behavior: 'smooth' }));
     },
-    onError: (e) => toast.error(e.message === 'limit' ? t('limit') : t('unavailable'))
+    onError: (e) => {
+      if (e instanceof PlanLimitError) setPlanLimit(e.info);
+      else toast.error(e.message === 'limit' ? t('limit') : t('unavailable'));
+    }
   });
 
   function send(text: string) {
@@ -207,6 +216,7 @@ export function AssistantChat() {
         )}
         <div ref={endRef} />
       </div>
+      {planLimit && <PlanLimitNotice info={planLimit} />}
 
       <form
         className='bg-background sticky bottom-4 flex items-end gap-2 rounded-2xl border p-2 shadow-sm'

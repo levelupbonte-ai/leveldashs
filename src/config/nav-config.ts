@@ -250,7 +250,8 @@ export const navGroups: NavGroup[] = [
             url: '/dashboard/billing',
             icon: 'billing',
             shortcut: ['b', 'b'],
-            access: { requireOrg: true }
+            // Owners and admins see the money; members reach their plan from limit notices.
+            access: { requireOrg: true, role: 'admin' }
           },
           {
             title: 'home',

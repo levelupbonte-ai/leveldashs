@@ -1,0 +1,134 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { AppError, isMfaError, type ErrorCode } from '@/lib/errors';
+import { PlanLimitError, parsePlanLimit, planLimitFromDb } from '@/lib/plan-limit';
+import type { BillingSummary, BillingUsage, RedeemResult, UpgradeRequestResult } from './types';
+
+/**
+ * Short codes raised by the billing functions (see the billing migrations) as
+ * `errors.*` keys. Raw database messages never reach the screen.
+ */
+const BY_MESSAGE: Record<string, ErrorCode> = {
+  plan_limit_reached: 'planLimitReached',
+  price_not_set: 'priceNotSet',
+  charge_closed: 'chargeClosed',
+  charge_paid: 'chargePaid',
+  charge_not_found: 'notFound',
+  code_taken: 'codeTaken',
+  invalid_code: 'invalidCode',
+  plan_not_found: 'planNotFound',
+  already_on_plan: 'alreadyOnPlan',
+  request_closed: 'requestClosed',
+  request_not_found: 'requestNotFound',
+  default_plan_required: 'defaultPlanRequired',
+  plan_in_use: 'planInUse',
+  invalid_limits: 'invalidValues',
+  invalid_amount: 'invalidValues',
+  invalid_currency: 'invalidValues',
+  invalid_value: 'invalidValues',
+  invalid_values: 'invalidValues',
+  invalid_dates: 'invalidValues',
+  invalid_label: 'invalidValues',
+  invalid_kind: 'invalidValues',
+  invalid_key: 'invalidValues',
+  invalid_name: 'invalidValues',
+  invalid_status: 'invalidValues',
+  invalid_features: 'invalidValues',
+  invalid_date: 'invalidValues',
+  organization_not_found: 'notFound',
+  discount_not_found: 'notFound'
+};
+
+type DbError = { message?: string; code?: string; details?: string | null } | null | undefined;
+
+export function billingError(error: DbError, fallback: ErrorCode = 'generic'): AppError {
+  const limit = planLimitFromDb(error);
+  if (limit) return new PlanLimitError(limit, { cause: error });
+  if (isMfaError(error)) return new AppError('mfaRequired', { cause: error });
+  const byMessage = error?.message ? BY_MESSAGE[error.message] : undefined;
+  if (byMessage) return new AppError(byMessage, { cause: error });
+  if (error?.code === 'PT429') return new AppError('rateLimited', { cause: error });
+  if (error?.code === 'PT403' || error?.code === '42501') {
+    return new AppError('forbidden', { cause: error });
+  }
+  if (error?.code === '22023' || error?.code === '23514') {
+    return new AppError('invalidValues', { cause: error });
+  }
+  return new AppError(fallback, { cause: error });
+}
+
+/** Plan, limits, usage and plan catalog; prices and charges for owners and admins. */
+export async function getBillingSummary(
+  db: SupabaseClient,
+  organizationId: string
+): Promise<BillingSummary> {
+  const { data, error } = await db.rpc('billing_summary', {
+    p_org: organizationId
+  });
+  if (error) throw billingError(error, 'loadFailed');
+  return data as BillingSummary;
+}
+
+/** This period's consumption: storage, messages, assistant, team, websites. */
+export async function getBillingUsage(
+  db: SupabaseClient,
+  organizationId: string
+): Promise<BillingUsage> {
+  const { data, error } = await db.rpc('billing_usage', {
+    p_org: organizationId
+  });
+  if (error) throw billingError(error, 'loadFailed');
+  return data as BillingUsage;
+}
+
+/** Owners and admins: a promo code from LevelUp (single use per organization, rate limited). */
+export async function redeemDiscountCode(
+  db: SupabaseClient,
+  organizationId: string,
+  code: string
+): Promise<RedeemResult> {
+  const { data, error } = await db.rpc('redeem_discount_code', {
+    p_org: organizationId,
+    p_code: code
+  });
+  if (error) throw billingError(error, 'saveFailed');
+  return data as RedeemResult;
+}
+
+/**
+ * Owners and admins ask LevelUp for another plan. The route handler stores it
+ * and e-mails the LevelUp team; nothing is paid here.
+ */
+export async function requestPlanUpgrade(
+  organizationId: string,
+  planKey: string,
+  message?: string
+): Promise<UpgradeRequestResult> {
+  const res = await fetch('/api/billing/upgrade', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      organizationId,
+      planKey,
+      message: message || undefined
+    })
+  }).catch((cause) => {
+    throw new AppError('network', { cause });
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    status?: UpgradeRequestResult['status'];
+    error?: string;
+    limit?: unknown;
+  };
+  if (!res.ok || !json.status) {
+    const limit = parsePlanLimit(json.limit);
+    if (limit) throw new PlanLimitError(limit);
+    throw new AppError(
+      json.error && Object.values(BY_MESSAGE).includes(json.error as ErrorCode)
+        ? (json.error as ErrorCode)
+        : json.error === 'rateLimited' || json.error === 'forbidden'
+          ? json.error
+          : 'saveFailed'
+    );
+  }
+  return { status: json.status };
+}
