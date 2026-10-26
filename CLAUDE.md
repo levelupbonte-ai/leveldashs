@@ -12,6 +12,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/deployment.md](./docs/deployment.md)** — Deployment: Vercel, production environment variables, Docker
 - **[docs/ecosystem-api.md](./docs/ecosystem-api.md)** — LevelUp tag (`levelup.js`), public API, client onboarding, security model
 - **[docs/i18n.md](./docs/i18n.md)** — i18n with next-intl: English default, French translation, `messages/*.json`, how to add strings
+- **[docs/chat.md](./docs/chat.md)** — Messages: team / direct / visitor conversations, RPC-only writes, encryption status, Realtime
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
 ## Critical Conventions
