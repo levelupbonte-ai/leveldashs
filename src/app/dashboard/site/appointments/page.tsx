@@ -16,6 +16,7 @@ export default async function Page() {
       title={t('title')}
       description={t('description')}
       feature='bookings'
+      dataKey='appointments'
       prefetch={(qc, db, websiteId) =>
         void qc.prefetchInfiniteQuery(appointmentsQueryOptions(db, websiteId))
       }

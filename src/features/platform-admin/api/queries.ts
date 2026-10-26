@@ -1,6 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
-import { listAccessRequests, listAllWebsites, listFeatures } from './clients';
+import {
+  getReviewContext,
+  getSiteAccess,
+  listAccessRequests,
+  listAllWebsites,
+  listFeatures
+} from './clients';
 import { listContractTemplates, listOrgContracts, listRequiredTasks } from './contracts';
 import { getAiInsights, listProjectRequests } from './service';
 
@@ -11,6 +17,9 @@ export const adminInsightKeys = {
   allWebsites: () => [...adminInsightKeys.all, 'all-websites'] as const,
   features: () => [...adminInsightKeys.all, 'features'] as const,
   accessRequests: () => [...adminInsightKeys.all, 'access-requests'] as const,
+  reviewContext: (userId: string) =>
+    [...adminInsightKeys.accessRequests(), 'review', userId] as const,
+  siteAccess: (websiteId: string) => [...adminInsightKeys.all, 'site-access', websiteId] as const,
   contracts: () => [...adminInsightKeys.all, 'contracts'] as const,
   orgContracts: (organizationId: string) =>
     [...adminInsightKeys.contracts(), 'org', organizationId] as const,
@@ -67,4 +76,17 @@ export const projectRequestsQueryOptions = (db: SupabaseClient) =>
   queryOptions({
     queryKey: adminInsightKeys.projectRequests(),
     queryFn: () => listProjectRequests(db)
+  });
+
+export const reviewContextQueryOptions = (db: SupabaseClient, userId: string) =>
+  queryOptions({
+    queryKey: adminInsightKeys.reviewContext(userId),
+    queryFn: () => getReviewContext(db, userId),
+    staleTime: 0
+  });
+
+export const siteAccessQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: adminInsightKeys.siteAccess(websiteId),
+    queryFn: () => getSiteAccess(db, websiteId)
   });

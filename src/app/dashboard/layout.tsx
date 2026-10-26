@@ -8,7 +8,9 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { IdleTimeout } from '@/features/auth/components/idle-timeout';
 import { RecordLastMethod } from '@/features/auth/components/record-last-method';
 import { AccessGate } from '@/features/contracts/components/access-gate';
+import { claimSiteOwnership } from '@/lib/access/server';
 import { getAccessState, noAccessPath } from '@/lib/auth/access';
+import { createClient } from '@/lib/supabase/server';
 import { requireDashboardSession } from '@/lib/auth/session';
 import { SessionProvider } from '@/lib/auth/session-context';
 import type { Metadata } from 'next';
@@ -37,7 +39,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // profile and asks for access first; a submitted (or rejected) request goes
   // straight to its status page, whatever the sign-in method.
   const access = await getAccessState(session);
-  if (access !== 'member') redirect(noAccessPath(access));
+  if (access !== 'member') {
+    // A pre-registered owner e-mail may match this account: linked, then reload.
+    if (await claimSiteOwnership(await createClient())) redirect('/dashboard/site');
+    redirect(noAccessPath(access));
+  }
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';

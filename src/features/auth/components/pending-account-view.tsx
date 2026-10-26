@@ -86,6 +86,13 @@ export async function PendingAccountView({
       </dl>
       <div className='grid gap-2'>
         <Link
+          href='/auth/activate'
+          className={buttonVariants({ variant: 'default', className: 'w-full' })}
+        >
+          <Icons.lock className='size-4' aria-hidden />
+          {t('haveCode')}
+        </Link>
+        <Link
           href='/auth/onboarding?edit=1'
           className={buttonVariants({ variant: 'outline', className: 'w-full' })}
         >

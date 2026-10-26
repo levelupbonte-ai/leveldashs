@@ -16,6 +16,7 @@ export default async function Page() {
       title={t('title')}
       description={t('description')}
       feature='waitlist'
+      dataKey='waitlist'
       prefetch={(qc, db, websiteId) => void qc.prefetchQuery(waitlistQueryOptions(db, websiteId))}
     >
       <WaitlistBoard />

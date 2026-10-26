@@ -30,6 +30,7 @@ synchronous: no client fetch, no loading state, no flashing.
 | `requireWebsite` | `boolean` | A website of the active organization is selected |
 | `role` | `'viewer' \| 'editor' \| 'admin' \| 'owner'` | The user's role in the active organization is at least this one (`owner > admin > editor > viewer`). Platform admins always pass |
 | `feature` | `string \| string[]` | At least one of these `website_features` keys is enabled on the active website |
+| `data` | `string` | With `feature`: also visible when the website already has rows of this kind (a key of `site_capabilities().counts`, loaded client-side by `useFilteredNavItems`). A site that stores something always reaches it; the matching page passes the same `dataKey` to `SitePage` |
 | `platformAdmin` | `boolean` | The user is in `platform_admins` (LevelUp staff) |
 | `whenLocked` | `boolean` | Still shown while the active organization must sign its contract or finish blocking tasks. Every item without it is hidden then (see [contracts.md](./contracts.md)) |
 | `hasContracts` | `boolean` | LevelUp sent the active organization a contract (or it is locked) |

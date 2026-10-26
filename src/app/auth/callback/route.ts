@@ -1,6 +1,7 @@
 import type { EmailOtpType } from '@supabase/supabase-js';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { claimSiteOwnership } from '@/lib/access/server';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { NEXT_COOKIE, nextCookieDeleteOptions, readNextCookie } from '@/lib/auth/next-cookie';
 import { safeNext } from '@/lib/auth/redirect';
@@ -62,6 +63,8 @@ export async function GET(request: NextRequest) {
   const {
     data: { user }
   } = await supabase.auth.getUser();
+  // Pre-registered owner e-mail (confirmed account, exact match): linked once.
+  if (user) await claimSiteOwnership(supabase);
   if (await needsMfaChallenge(supabase, user)) {
     return finish(new URL(mfaChallengeUrl(next), origin));
   }

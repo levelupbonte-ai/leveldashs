@@ -187,12 +187,49 @@ The exact rules live in RLS policies; see the Authorization section of
 
 - `/dashboard/workspaces` — list of the user's organizations, switch the active one,
   create one with the `create_organization` RPC (caller becomes owner)
-- `/dashboard/workspaces/team` — members and roles; add someone by e-mail with the
-  `add_organization_member` RPC. The person must **already have an account** (the RPC
-  returns `not_found` otherwise); there are no e-mail invitations.
+- `/dashboard/workspaces/team` — members and roles, and **e-mail invitations**
+  (owners/admins; owner for the owner role). See *Team invitations* below.
 
 Billing is not handled in the app: `/dashboard/billing` is a static page saying billing
 is managed by LevelUp (contact@levelup-ecosystem.com).
+
+## Team invitations
+
+Inviting someone always sends a real e-mail; the invitee must have, or create, a LevelUp
+account with the invited address.
+
+1. **Invite** — `POST /api/team/invitations` (`{ organizationId, email, role }`, same
+   origin, strict Zod) calls `create_organization_invitation`: admin+ (owner for the owner
+   role), aal2 when the inviter has an authenticator app, valid e-mail, not already a
+   member, **20 invitations (sends and re-sends) per organization per day**. The database
+   creates a 32-byte random token, stores only its **SHA-256** in
+   `private.organization_invitation_tokens` (7-day expiry) and returns the raw token once to
+   the route handler, which e-mails `https://dashboard.levelup-ecosystem.com/auth/accept-invite?token=…`
+   through Resend (`src/lib/email/access-emails.ts`, same sender and template as the other
+   notices: who invited, organization/site, role, the invited address). The raw token never
+   reaches the browser.
+2. **Status** — the route records what Resend answered (`record_organization_invitation_email`:
+   `email_status` `sent` / `failed`, `last_sent_at`, `send_count`). The team page shows
+   *Email sent*, *Email not sent* (with **Retry**), *Accepted*, *Expired*; it never says
+   “sent” when Resend refused. **Resend email** (`POST /api/team/invitations/resend`) issues a
+   new token (the previous link dies): one re-send per 2 minutes and 5 per day per invitation.
+   **Revoke** (`revoke_organization_invitation`) keeps the row (`revoked_at`) and kills the link.
+3. **Accept** — `/auth/accept-invite?token=…`: signed out, the page shows the invitation
+   (organization, inviter, role, address, expiry) with *Sign in to accept* / *Create my
+   LevelUp account*; both forms get the invited address **prefilled and read-only** (the
+   sign-in and sign-up pages read it from the token in `next`). Signed in with that address,
+   the page calls `POST /api/team/invitations/accept` right away
+   (`accept_organization_invitation`: token hash, expiry, single use, revoked, **confirmed
+   e-mail equal to the invited address**, 20 attempts per hour), then switches to the
+   organization and opens the dashboard with a toast. Another account: “You’re signed in
+   with another account” + sign out. Invalid / expired / used / revoked links each get a
+   clear message.
+4. New accounts: the confirmation link goes through onboarding back to the accept page; the
+   e-mail confirmation itself already joins live invitations (`private.accept_invitations`,
+   which now skips revoked and expired ones), so the page then reports “accepted”.
+
+Every step is written to the audit log (`team.invitation_*` in `public.hq_audit_log`).
+`add_organization_member` still exists for older callers but the dashboard no longer uses it.
 
 ## LevelUp auth e-mails (Send Email Hook)
 
@@ -306,7 +343,10 @@ the site key is set in production; the dashboard already sends a token with ever
 | Sign-in, sign-up, reset, resend, passkey | Turnstile token (enforced once Supabase CAPTCHA is on) + Supabase Auth rate limits (*Authentication → Rate Limits*) |
 | `POST /api/access/request` (access request) | Same-origin check, Zod, honeypot field `companyUrl` (filled → fake success, nothing stored or sent), **10 submissions/edits per account per hour** (`private.hit_rate_limit`, migration `20261011100000_rate_limits.sql`, `PT429` → 429 “Too many attempts”), one team e-mail per new request |
 | `POST /api/assistant`, `/api/assistant/weekly` | Same-origin + JSON only, signed-in member, daily AI allowance per organization (`assistant_consume`, `PT429`) |
-| `POST /api/access/decision` | Same-origin, platform admin with an aal2 session (database) |
+| `POST /api/access/decision` | Same-origin, strict Zod, platform admin with an aal2 session (database), audited |
+| `POST /api/team/invitations`, `/resend` | Same-origin, strict Zod, admin+ and aal2 (database), 20 invitations per organization per day, re-send 1 per 2 min / 5 per day |
+| `POST /api/team/invitations/accept` | Same-origin, signed in, 20 attempts per hour per account, token hash + expiry + single use + e-mail match |
+| `POST /api/access/activate` | Same-origin, signed in with a confirmed e-mail, 5/hour and 20/day per account and per client (IP hash), uniform answers |
 | `POST /api/auth/email-hook` | Standard Webhooks signature (HMAC-SHA256, 5-minute window, constant-time compare) |
 | Public RPCs used by client websites | Database rate limits (5/hour per contact, 300/hour per site) |
 
@@ -329,9 +369,45 @@ opens to members of an organization or LevelUp staff (`src/app/dashboard/layout.
   Google, passkey, e-mail links, a direct visit, an already signed-in visit to
   `/auth/sign-in`) ends there, never on the profile form again.
   `/auth/onboarding?edit=1` edits a pending request (button "Modifier ma demande"). The team
-  gets an e-mail; requests show on `/dashboard/exclusive` where staff approve
-  (`review_access_request`: creates the client's organization, owner role) or
-  reject. The applicant is e-mailed either way (`/api/access/decision`).
+  gets an e-mail; requests show on `/dashboard/exclusive` → *Access requests*. The pending
+  page refreshes itself every 30 s (and when the tab becomes visible), so an approved
+  applicant lands on the dashboard without reloading.
+- **Staff review (never a blind click)** — *Review* opens a dialog with the request
+  (account e-mail and whether it is confirmed, business, website given, phone, message,
+  date) and **suggested matches**: websites whose primary domain / allowed origins equal
+  the host of the website given (scheme, `www.`, case, port, path ignored) and
+  organizations with a similar name (`src/lib/access/host-match.ts`; same normalisation as
+  `private.url_host`). Green / amber badges show *website matches* and *e-mail domain
+  matches*: they are hints only. Staff choose explicitly: **Connect to an existing site**
+  (searchable list by name, domain, Site ID, organization, member count, or paste the
+  `ws_…` id; the site details are shown; role defaults to owner when the organization has
+  no owner, admin otherwise; when an owner exists the Site ID must be **typed again**), or
+  **Create a new client** (organization, optional draft website). `POST /api/access/decision`
+  calls `admin_review_access_request` (see database.md), which enforces the same rules
+  (platform admin on aal2, confirmed e-mail, unknown / archived site, already a member,
+  second confirmation, idempotent) and audits the decision. The applicant gets “Your access
+  to <site> is ready” with a sign-in link. `review_access_request(user, true)` without an
+  organization now **refuses** instead of creating an empty organization.
+- **Fix** — approved requests attached to an organization with no website (the “moni”
+  case) get a *Fix* button: same dialog, connect only; the empty organization is archived
+  (`status = 'archived'`, never deleted) when nobody else uses it.
+- **Pre-registered owner e-mail** — staff set the client owner’s e-mail on a website
+  (*All websites* → *Access*). When an account with exactly that e-mail, **confirmed**,
+  signs up or signs in and the organization has **no owner**, it becomes the owner, once
+  (database trigger on e-mail confirmation + `claim_site_ownership()` after every sign-in,
+  in `/auth/callback`, onboarding, the pending page and the dashboard layout). Otherwise
+  nothing happens.
+- **Activation codes** — *Generate activation code* shows a one-time code
+  `LVL-XXXX-XXXX-XXXX` (12 Crockford base32 characters, 60 random bits) **once**; only its
+  SHA-256 is stored. Single use, 7 days, bound to the website and a role (owner by default),
+  optionally to one e-mail. Staff send it themselves; the client chooses *I have an
+  activation code* (pending page, onboarding, sign-up page) → `/auth/activate` →
+  `POST /api/access/activate` → `redeem_activation_code`: confirmed e-mail, hash, expiry,
+  unused, e-mail binding; **5 attempts per hour and 20 per day per account and per client**
+  (hash of the IP); the same answer for unknown, used, revoked or wrongly bound codes.
+  Staff list (active / used / expired / revoked) and revoke codes per site.
+- **The website id alone never grants anything**: it is public (it is in every client
+  site’s front-end code). There is no “enter your Site ID” path.
 - `create_organization` is limited to staff and existing members, so approval
   cannot be skipped.
 

@@ -76,15 +76,14 @@
   "nav": {
     "groups": {
       "mySite": "Mon site",
-      "overview": "Aperçu",
-      "elements": "Éléments"
+      "overview": "Aperçu"
     },
     "items": {
       "siteOverview": "Vue d’ensemble",
       "assistant": "Assistant IA",
       "appointments": "Rendez-vous",
       "waitlist": "File d’attente",
-      "requests": "Demandes",
+      "requests": "Formulaires et demandes",
       "content": "Contenu",
       "services": "Services",
       "team": "Équipe",
@@ -96,30 +95,21 @@
       "seo": "SEO",
       "developers": "Développeurs",
       "siteSettings": "Paramètres du site",
-      "dashboard": "Tableau de bord",
       "organizations": "Organisations",
       "teamAccess": "Équipe & accès",
-      "product": "Produits",
-      "users": "Utilisateurs",
-      "kanban": "Kanban",
       "chat": "Messagerie",
-      "aiChat": "Chat IA",
-      "forms": "Formulaires",
-      "basicForm": "Formulaire simple",
-      "multiStepForm": "Formulaire en étapes",
-      "sheetDialog": "Panneau & boîte de dialogue",
-      "advancedPatterns": "Modèles avancés",
-      "reactQuery": "React Query",
-      "icons": "Icônes",
       "account": "Compte",
       "profile": "Profil",
-      "notifications": "Notifications",
       "billing": "Facturation",
       "home": "Accueil",
       "contract": "Contrat",
       "showcaseTemplates": "Modèles",
       "showcaseCaseStudies": "Études de cas",
-      "showcaseSections": "Sections des pages"
+      "showcaseSections": "Sections des pages",
+      "capabilities": "Tout sur mon site",
+      "analytics": "Statistiques",
+      "payments": "Paiements",
+      "projectRequests": "Demandes de projet"
     }
   },
   "admin": {
@@ -134,17 +124,18 @@
     },
     "accessRequests": {
       "title": "Demandes d’accès",
-      "description": "Valider une demande crée l’organisation du client (à son nom) et l’en rend propriétaire. Vous pourrez ensuite lui ajouter un site ci-dessous.",
+      "description": "Rien n’est validé en un clic : examinez chaque demande, puis reliez-la au site existant du client (par son identifiant) ou créez volontairement un nouveau client. Le demandeur est prévenu par e-mail dans tous les cas.",
       "empty": "Aucune demande pour le moment.",
-      "approved": "Accès validé, le client a été prévenu par e-mail.",
-      "rejected": "Demande refusée.",
-      "approve": "Valider",
-      "reject": "Refuser",
       "status": {
         "pending": "En attente",
         "approved": "Validée",
         "rejected": "Refusée"
-      }
+      },
+      "review": "Examiner",
+      "fix": "Corriger",
+      "fixHint": "Validée dans « {name} », une organisation sans site.",
+      "emailUnconfirmed": "E-mail non confirmé",
+      "connectedTo": "Relié à {place}"
     },
     "websites": {
       "search": "Rechercher un client, un domaine…",
@@ -152,7 +143,8 @@
       "organization": "Organisation",
       "status": "Statut",
       "features": "Fonctions",
-      "manage": "Gérer"
+      "manage": "Gérer",
+      "access": "Accès"
     },
     "newClient": {
       "title": "Nouveau client",
@@ -327,6 +319,123 @@
         "publishSubmit": "Publier",
         "published": "Version {version} publiée."
       }
+    },
+    "accessReview": {
+      "title": "Examiner la demande d’accès",
+      "fixTitle": "Relier ce compte au bon site",
+      "description": "Vérifiez la demande, puis choisissez explicitement où va ce compte.",
+      "fixDescription": "Ce compte a été validé dans une organisation sans site. Reliez-le au bon site ; l’organisation vide sera archivée (jamais supprimée).",
+      "loadFailed": "Impossible de charger cette demande. Fermez et réessayez.",
+      "account": "Compte",
+      "emailConfirmed": "E-mail confirmé",
+      "emailNotConfirmed": "E-mail non confirmé",
+      "emailNotConfirmedHelp": "Le demandeur doit confirmer son adresse e-mail avant de pouvoir être validé.",
+      "business": "Entreprise",
+      "website": "Site indiqué",
+      "phone": "Téléphone",
+      "submitted": "Envoyée le",
+      "name": "Nom",
+      "message": "Message",
+      "currentOrganization": "Actuellement rattaché à",
+      "currentOrganizationFacts": "({websites, plural, =0 {aucun site} one {# site} other {# sites}}, {members, plural, one {# membre} other {# membres}})",
+      "suggestions": "Correspondances suggérées",
+      "noSuggestions": "Aucun site existant ne correspond à cette demande.",
+      "hintHost": "Site identique",
+      "hintHostNo": "Site différent",
+      "hintEmail": "Domaine e-mail identique",
+      "hintEmailNo": "Domaine e-mail différent",
+      "hintName": "Nom proche",
+      "membersOwners": "{members, plural, one {# membre} other {# membres}} · {owners, plural, =0 {aucun propriétaire} one {# propriétaire} other {# propriétaires}}",
+      "selected": "Sélectionné",
+      "useSite": "Choisir ce site",
+      "similarOrganization": "Organisation au nom proche : {name} ({websites, plural, =0 {aucun site} one {# site} other {# sites}}, {owners, plural, =0 {aucun propriétaire} one {# propriétaire} other {# propriétaires}})",
+      "hintsNote": "Les correspondances ne sont que des indices : rien n’est accordé tant que vous n’avez pas choisi un site et confirmé.",
+      "choice": "Que faut-il faire ?",
+      "connect": "Relier à un site existant",
+      "connectHint": "Choisissez le site du client par son identifiant.",
+      "create": "Créer un nouveau client",
+      "createHint": "Une nouvelle organisation (et éventuellement un site brouillon) pour un tout nouveau client.",
+      "siteSearch": "Rechercher par nom, domaine, identifiant ou organisation",
+      "noSite": "Aucun site trouvé.",
+      "membersShort": "{count, plural, one {# membre} other {# membres}}",
+      "siteId": "Identifiant du site",
+      "siteIdHint": "Choisissez un site ci-dessus ou collez son identifiant (ws_…).",
+      "selectedSite": "Site à relier",
+      "siteName": "Nom du site",
+      "organization": "Organisation",
+      "domain": "Domaine",
+      "status": "Statut",
+      "team": "Équipe",
+      "ownerExists": "Cette organisation a déjà un propriétaire",
+      "ownerExistsHelp": "Accorder administrateur, éditeur ou lecture seule est généralement le bon choix. Pour confirmer, saisissez de nouveau l’identifiant du site ci-dessous.",
+      "role": "Rôle à accorder",
+      "confirmLabel": "Saisissez de nouveau l’identifiant du site pour confirmer",
+      "createWarning": "Un site répond déjà sur le site indiqué",
+      "createWarningHelp": "Relier ce compte à ce site est généralement le bon choix.",
+      "organizationName": "Nom de l’organisation",
+      "alsoSite": "Créer aussi un site brouillon",
+      "createRole": "Le demandeur devient propriétaire de la nouvelle organisation.",
+      "decline": "Refuser",
+      "cancel": "Annuler",
+      "approveCreate": "Créer le client",
+      "approveConnect": "Relier à {site}",
+      "approve": "Valider",
+      "chooseMode": "Choisissez ce qu’il faut faire.",
+      "chooseSite": "Choisissez un site ou collez un identifiant valide.",
+      "applicantIsMember": "Ce compte est déjà membre de cette organisation.",
+      "chooseRole": "Choisissez un rôle.",
+      "confirmMismatch": "L’identifiant ne correspond pas.",
+      "nameRequired": "Saisissez un nom (2 caractères minimum, sans HTML).",
+      "domainInvalid": "Saisissez un domaine comme exemple.com.",
+      "unchanged": "Rien n’a changé : cette décision était déjà enregistrée.",
+      "fixed": "Relié à {site}. L’organisation vide a été archivée.",
+      "approved": "Accès à {site} accordé. {email} a été prévenu par e-mail.",
+      "approvedNoEmail": "Accès à {site} accordé, mais l’e-mail n’a pas pu être envoyé. Prévenez le client vous-même.",
+      "approvedShort": "Accès à {site} accordé.",
+      "declineConfirm": "Refuser la demande de {name} ?",
+      "declined": "Demande refusée. Le demandeur a été prévenu par e-mail."
+    },
+    "siteAccess": {
+      "title": "Accès client · {site}",
+      "description": "Laissez entrer le vrai client sans validation à l’aveugle : un e-mail de propriétaire pré-enregistré, ou un code d’activation à usage unique. L’identifiant du site seul ne donne jamais accès (il est public).",
+      "loadFailed": "Impossible de charger les accès de ce site.",
+      "organization": "Organisation",
+      "siteId": "Identifiant du site",
+      "owners": "Propriétaires",
+      "noOwner": "Pas encore de propriétaire",
+      "ownerEmailTitle": "E-mail du propriétaire",
+      "ownerEmailHint": "Quand un compte avec exactement cet e-mail (confirmé) s’inscrit ou se connecte, il devient propriétaire, une seule fois, tant que l’organisation n’a pas de propriétaire.",
+      "ownerExists": "Cette organisation a déjà un propriétaire : invitez des personnes depuis sa page Équipe, ou utilisez un code d’activation.",
+      "ownerEmailLabel": "E-mail du propriétaire client",
+      "pendingSince": "En attente depuis le {date}. Videz le champ et enregistrez pour le retirer.",
+      "save": "Enregistrer",
+      "ownerEmailSaved": "{email} deviendra propriétaire à sa prochaine connexion.",
+      "ownerEmailCleared": "E-mail du propriétaire retiré.",
+      "codesTitle": "Codes d’activation",
+      "codesHint": "Usage unique, valables 7 jours, conservés hachés. Envoyez le code au client vous-même ; il le saisit après s’être connecté (« J’ai un code d’activation »).",
+      "codeShownOnce": "Copiez ce code maintenant : il ne sera plus affiché",
+      "codeFacts": "Accorde : {role}. Expire le {date}.",
+      "boundTo": "Uniquement pour {email}",
+      "copy": "Copier",
+      "copied": "Copié",
+      "copyFailed": "Échec de la copie : sélectionnez le code et copiez-le.",
+      "done": "Terminé",
+      "role": "Rôle",
+      "bindEmail": "Uniquement pour cet e-mail (facultatif)",
+      "anyAccount": "Tout compte confirmé",
+      "generate": "Générer un code d’activation",
+      "noCodes": "Aucun code d’activation pour le moment.",
+      "codeStatus": {
+        "active": "Actif",
+        "used": "Utilisé",
+        "revoked": "Révoqué",
+        "expired": "Expiré"
+      },
+      "usedBy": "utilisé par {email}",
+      "expires": "expire le {date}",
+      "revoke": "Révoquer",
+      "revokeConfirm": "Révoquer ce code ? Il cessera de fonctionner immédiatement.",
+      "codeRevoked": "Code révoqué."
     }
   },
   "mfaStep": {
@@ -397,7 +506,29 @@
     "invalidOrigin": "Un des domaines n’est pas valide (utilisez https://exemple.com).",
     "contractChanged": "Ce contrat a été mis à jour. Relisez la nouvelle version, puis signez de nouveau.",
     "contractNotSignable": "Ce contrat ne peut plus être signé. Rechargez la page.",
-    "signFailed": "Nous n’avons pas pu enregistrer votre signature. Veuillez réessayer."
+    "signFailed": "Nous n’avons pas pu enregistrer votre signature. Veuillez réessayer.",
+    "emailUnconfirmed": "Ce compte n’a pas encore confirmé son adresse e-mail.",
+    "invalidWebsiteId": "Cet identifiant de site n’est pas valide (il ressemble à ws_…).",
+    "websiteNotFound": "Aucun site n’a cet identifiant.",
+    "websiteArchived": "Ce site ou son organisation est archivé.",
+    "alreadyMember": "Cette personne est déjà membre.",
+    "alreadyApproved": "Cette demande a déjà été validée.",
+    "confirmationRequired": "Saisissez de nouveau l’identifiant du site pour confirmer.",
+    "invalidEmail": "Cette adresse e-mail n’est pas valide.",
+    "requestNotFound": "Cet élément est introuvable. Actualisez la page.",
+    "invitationNotFound": "Cette invitation n’existe plus.",
+    "invitationAccepted": "Cette invitation a déjà été acceptée.",
+    "invitationRevoked": "Cette invitation a été révoquée.",
+    "organizationHasOwner": "Cette organisation a déjà un propriétaire.",
+    "emailPendingElsewhere": "Cet e-mail attend déjà de réclamer un autre site.",
+    "tooManyCodes": "Ce site a déjà 5 codes actifs. Révoquez-en un d’abord.",
+    "rateLimited": "Trop de tentatives. Patientez un instant puis réessayez.",
+    "reviewFailed": "Nous n’avons pas pu enregistrer cette décision. Réessayez.",
+    "inviteFailed": "Nous n’avons pas pu créer l’invitation. Réessayez.",
+    "notFound": "Cet élément n’existe plus.",
+    "tooManyKeys": "Ce site a déjà 10 clés actives. Révoquez-en une d’abord.",
+    "contractRequired": "Signez d’abord votre entente pour faire ceci.",
+    "notReady": "Cette fonctionnalité est en cours de mise en place. Réessayez plus tard."
   },
   "workspaces": {
     "title": "Organisations",
@@ -417,11 +548,8 @@
     "title": "Équipe & accès",
     "description": "Qui peut gérer {name}",
     "descriptionNoOrg": "Membres de votre organisation",
-    "invitationCancelled": "Invitation annulée",
     "roleUpdated": "Rôle mis à jour",
     "memberRemoved": "Membre retiré",
-    "memberAdded": "Membre ajouté",
-    "invited": "Invitation enregistrée : la personne rejoindra l’équipe en créant son compte avec cet e-mail.",
     "members": "Membres ({count})",
     "membersDescription": "Propriétaire et administrateur gèrent l’équipe ; éditeur modifie le contenu ; lecture seule consulte.",
     "member": "Membre",
@@ -429,12 +557,32 @@
     "role": "Rôle",
     "remove": "Retirer",
     "removeConfirm": "Retirer {name} de l’organisation ?",
-    "pendingInvitation": "Invitation en attente · {role}",
-    "cancelInvitation": "Annuler l’invitation",
-    "addTitle": "Ajouter un membre",
-    "addDescription": "La personne doit d’abord avoir créé son compte LevelUp.",
+    "addTitle": "Inviter quelqu’un",
+    "addDescription": "La personne reçoit un e-mail avec un lien sécurisé et se connecte, ou crée son compte LevelUp, avec cette adresse.",
     "email": "E-mail",
-    "add": "Ajouter"
+    "add": "Envoyer l’invitation",
+    "invitationSent": "Invitation envoyée par e-mail à {email}.",
+    "inviteEmailFailed": "L’invitation pour {email} est enregistrée, mais l’e-mail n’a pas pu être envoyé.",
+    "retry": "Réessayer",
+    "invitationRevoked": "Invitation révoquée.",
+    "revokeConfirm": "Révoquer l’invitation envoyée à {email} ? Le lien cessera de fonctionner.",
+    "invitationsTitle": "Invitations",
+    "invitationsDescription": "Chaque invitation est un lien sécurisé valable 7 jours, pour cette adresse e-mail uniquement.",
+    "noInvitations": "Aucune invitation en attente.",
+    "acceptedOn": "acceptée le {date}",
+    "expiredOn": "expirée le {date}",
+    "sentOn": "envoyée le {date} · expire le {expires}",
+    "expiresOn": "expire le {date}",
+    "invitationStatus": {
+      "sent": "E-mail envoyé",
+      "failed": "E-mail non envoyé",
+      "pending": "Pas encore envoyé",
+      "accepted": "Acceptée",
+      "expired": "Expirée"
+    },
+    "resend": "Renvoyer l’e-mail",
+    "revoke": "Révoquer",
+    "revokeFor": "Révoquer l’invitation de {email}"
   },
   "billing": {
     "title": "Facturation",
@@ -595,6 +743,26 @@
         "typedSignature": "Signature saisie",
         "page": "Page {current} sur {total}"
       }
+    },
+    "accessReady": {
+      "subject": "Votre accès à {site} est prêt",
+      "title": "Votre accès à {site} est prêt",
+      "line1": "L’équipe LevelUp a relié votre compte à {site}.",
+      "line2": "Connectez-vous pour gérer votre site, vos rendez-vous et vos demandes.",
+      "account": "Votre compte",
+      "cta": "Se connecter"
+    },
+    "teamInvite": {
+      "subject": "{inviter} vous invite à rejoindre {organization} sur LevelUp",
+      "title": "Rejoignez {organization} sur LevelUp",
+      "line1": "{inviter} vous invite à rejoindre {place} en tant que {role}.",
+      "line2": "Connectez-vous, ou créez votre compte LevelUp, avec {email} pour accepter.",
+      "invitedBy": "Invité par",
+      "organization": "Équipe",
+      "role": "Rôle",
+      "account": "Pour",
+      "cta": "Accepter l’invitation",
+      "footnote": "Ce lien ne fonctionne qu’une fois et expire dans 7 jours. Si vous n’attendiez pas cette invitation, ignorez cet e-mail."
     }
   },
   "brandImage": {
@@ -651,7 +819,10 @@
       "description": "Votre accès LevelUp pour gérer votre site, vos réservations et vos demandes.",
       "metaDescription": "Créer un compte LevelUp.",
       "haveAccount": "Déjà un compte ?",
-      "signIn": "Se connecter"
+      "signIn": "Se connecter",
+      "haveCode": "Vous avez un code d’activation LevelUp ?",
+      "haveCodeLink": "Créez votre compte, puis saisissez-le",
+      "codeNext": "Une fois votre e-mail confirmé, vous saisirez votre code d’activation."
     },
     "form": {
       "lastUsed": "Dernière méthode utilisée",
@@ -675,7 +846,8 @@
       "signIn": "Se connecter",
       "signUp": "Créer mon compte",
       "forgot": "Mot de passe oublié ?",
-      "idleSignedOut": "Vous avez été déconnecté après 30 minutes d’inactivité. Reconnectez-vous pour continuer."
+      "idleSignedOut": "Vous avez été déconnecté après 30 minutes d’inactivité. Reconnectez-vous pour continuer.",
+      "emailLocked": "C’est l’adresse à laquelle votre invitation a été envoyée."
     },
     "google": {
       "continue": "Continuer avec Google",
@@ -790,7 +962,8 @@
       "continue": "Continuer",
       "signedInAs": "Connecté en tant que {email}.",
       "switchAccount": "Changer de compte",
-      "tooMany": "Trop de tentatives. Patientez quelques minutes, puis réessayez."
+      "tooMany": "Trop de tentatives. Patientez quelques minutes, puis réessayez.",
+      "haveCode": "LevelUp vous a donné un code d’activation ? Saisissez-le plutôt."
     },
     "pending": {
       "metaTitle": "Compte en cours de vérification",
@@ -805,7 +978,8 @@
       "emailTitle": "La suite",
       "email": "Vous recevrez un e-mail à <email></email> dès que votre accès sera prêt.",
       "edit": "Modifier ma demande",
-      "question": "Une question ?"
+      "question": "Une question ?",
+      "haveCode": "J’ai un code d’activation"
     },
     "rejected": {
       "title": "Votre demande n’a pas été retenue",
@@ -818,6 +992,55 @@
       "description": "Pour votre sécurité, vous serez déconnecté dans <time></time> en raison de l’inactivité.",
       "stay": "Rester connecté",
       "signOut": "Me déconnecter"
+    },
+    "acceptInvite": {
+      "metaTitle": "Invitation d’équipe",
+      "title": "Rejoindre {organization}",
+      "description": "Une invitation d’équipe LevelUp.",
+      "invalidTitle": "Ce lien d’invitation n’est pas valide",
+      "invalid": "Vérifiez que vous avez ouvert le lien complet de l’e-mail, ou demandez une nouvelle invitation.",
+      "expiredTitle": "Cette invitation a expiré",
+      "expired": "Les invitations sont valables 7 jours. Demandez à la personne qui vous a invité de vous en renvoyer une.",
+      "usedTitle": "Cette invitation a déjà été utilisée",
+      "used": "Chaque lien d’invitation ne fonctionne qu’une fois. Si ce n’était pas vous, demandez une nouvelle invitation.",
+      "revokedTitle": "Cette invitation a été annulée",
+      "revoked": "Demandez à la personne qui vous a invité si vous avez encore besoin d’un accès.",
+      "signIn": "Se connecter",
+      "goDashboard": "Aller au tableau de bord",
+      "invitedBy": "Invité par",
+      "role": "Rôle",
+      "forEmail": "Pour",
+      "validUntil": "Valable jusqu’au",
+      "needAccount": "Connectez-vous, ou créez votre compte LevelUp, avec cette adresse e-mail pour accepter.",
+      "signInCta": "Se connecter pour accepter",
+      "signUpCta": "Créer mon compte LevelUp",
+      "mismatchTitle": "Vous êtes connecté avec un autre compte",
+      "mismatch": "Cette invitation est destinée à {invited}. Vous êtes connecté en tant que {current}. Déconnectez-vous, puis connectez-vous avec l’adresse invitée.",
+      "unconfirmed": "Confirmez d’abord votre adresse e-mail (consultez votre boîte de réception), puis rouvrez ce lien.",
+      "rateLimited": "Trop de tentatives. Patientez un peu puis réessayez.",
+      "failed": "Nous n’avons pas pu accepter l’invitation. Réessayez.",
+      "retry": "Réessayer",
+      "accepting": "Vous rejoignez {organization}…",
+      "welcome": "Bienvenue dans {organization} !"
+    },
+    "activate": {
+      "metaTitle": "Code d’activation",
+      "title": "Saisissez votre code d’activation",
+      "description": "LevelUp vous a envoyé un code à usage unique qui ouvre le tableau de bord de votre site.",
+      "label": "Code d’activation",
+      "formatHint": "Il ressemble à LVL-XXXX-XXXX-XXXX. Les tirets et les majuscules n’ont pas d’importance.",
+      "formatInvalid": "Saisissez le code de 12 caractères (LVL-XXXX-XXXX-XXXX).",
+      "submit": "Activer mon accès",
+      "invalid": "Ce code n’est pas valide. Vérifiez-le, ou demandez un nouveau code à LevelUp.",
+      "expired": "Ce code a expiré. Demandez-en un nouveau à LevelUp.",
+      "alreadyMember": "Vous avez déjà accès à ce site.",
+      "rateLimited": "Trop de tentatives. Réessayez dans une heure.",
+      "unconfirmed": "Confirmez d’abord votre adresse e-mail, puis saisissez le code.",
+      "failed": "Une erreur est survenue. Réessayez.",
+      "success": "Accès activé. Bienvenue sur {site} !",
+      "activated": "Accès activé. Ouverture de votre tableau de bord…",
+      "signedInAs": "Connecté en tant que {email}",
+      "back": "Retour"
     }
   },
   "profile": {
@@ -945,8 +1168,8 @@
         "description": "Clients en attente au salon"
       },
       "requests": {
-        "title": "Demandes",
-        "description": "Formulaires de contact, devis et inscriptions"
+        "title": "Formulaires et demandes",
+        "description": "Tous les formulaires envoyés depuis votre site"
       },
       "media": {
         "title": "Médiathèque",
@@ -967,6 +1190,22 @@
       "assistant": {
         "title": "Assistant IA",
         "description": "Questions, textes et aide sur votre site"
+      },
+      "analytics": {
+        "title": "Statistiques",
+        "description": "Visiteurs, pages et référents"
+      },
+      "payments": {
+        "title": "Paiements",
+        "description": "Les paiements faits sur votre site"
+      },
+      "capabilities": {
+        "title": "Tout sur mon site",
+        "description": "Ce que contient votre site et où le gérer"
+      },
+      "projectRequests": {
+        "title": "Demandes de projet",
+        "description": "Demandes « Démarrer un projet » avec le tri par l’IA"
       }
     },
     "unavailable": {
@@ -1325,6 +1564,7 @@
         "won": "Gagné",
         "lost": "Perdu",
         "closed": "Fermé",
+        "archived": "Archivé",
         "spam": "Spam"
       },
       "types": {
@@ -1413,8 +1653,8 @@
       "originsSaved": "Domaines enregistrés",
       "save": "Enregistrer",
       "allOrigins": "Tous les domaines (non restreint).",
-      "serverKeysTitle": "Clés serveur",
-      "serverKeysDescription": "Pour connecter un back-office ou une application à LevelUp côté serveur, demandez une clé secrète à LevelUp. Elle ne doit jamais apparaître dans le code d’une page web."
+      "paymentsTitle": "Transmettre les paiements depuis votre serveur",
+      "paymentsDescription": "Appelez <code>site_ingest_payment</code> depuis votre serveur (par exemple dans votre webhook Stripe) avec votre clé serveur. Le contrat complet est dans la documentation de l’API LevelUp des sites."
     },
     "fieldGroups": {
       "general": "Général",
@@ -1502,6 +1742,420 @@
       "featured_on_home": "Accueil"
     }
   },
+  "insights": {
+    "range": {
+      "label": "Période",
+      "days": "{count} jours"
+    },
+    "table": {
+      "range": "{from}–{to} sur {total}",
+      "previous": "Page précédente",
+      "next": "Page suivante"
+    },
+    "overview": {
+      "rangeHint": "Données réelles de votre site sur les {count} derniers jours.",
+      "attention": "À traiter",
+      "period": "{count} derniers jours",
+      "newRequests": "Nouvelles demandes",
+      "openRequests": "{count, plural, =0 {Rien en cours} one {# en cours} other {# en cours}}",
+      "newProjectRequests": "Nouvelles demandes de projet",
+      "qualifiedInRange": "{count, plural, =0 {Aucune qualifiée sur la période} one {# qualifiée sur la période} other {# qualifiées sur la période}}",
+      "toConfirm": "Rendez-vous à confirmer",
+      "today": "{count, plural, =0 {Aucun aujourd’hui} one {# aujourd’hui} other {# aujourd’hui}}",
+      "waitingNow": "En attente",
+      "servedToday": "{count, plural, =0 {Personne servi aujourd’hui} one {# servi aujourd’hui} other {# servis aujourd’hui}}",
+      "openQuotes": "Devis en cours",
+      "inRange": "{count, plural, =0 {Aucun sur la période} one {# sur la période} other {# sur la période}}",
+      "visitors": "Visiteurs",
+      "views": "{count, plural, one {# page vue} other {# pages vues}}",
+      "vsPrevious": "par rapport à la période précédente",
+      "revenue": "Chiffre d’affaires",
+      "payments": "{count, plural, =0 {Aucun paiement} one {# paiement} other {# paiements}}",
+      "otherCurrencies": "{count, plural, one {+# devise} other {+# devises}}",
+      "noPayments": "Aucun paiement sur la période",
+      "bookings": "Réservations",
+      "noShows": "{count, plural, =0 {Aucune absence} one {# absence} other {# absences}}",
+      "subscribers": "Abonnés à l’infolettre",
+      "newInRange": "{count, plural, =0 {Aucune nouvelle inscription} one {# nouvelle} other {# nouvelles}}",
+      "rating": "Note moyenne",
+      "reviews": "{count, plural, =0 {Aucun avis publié} one {# avis publié} other {# avis publiés}}",
+      "projectRequests": "Demandes de projet",
+      "averageScore": "Score IA moyen {score}/100",
+      "studioProjects": "Projets LevelStudio",
+      "creators": "{count, plural, =0 {Aucun créateur} one {# créateur} other {# créateurs}}",
+      "trafficTitle": "Visiteurs par jour",
+      "trafficDescription": "Visiteurs uniques comptés par la balise LevelUp (sans cookies).",
+      "noTrafficTitle": "Pas encore de données de visite",
+      "noTrafficDescription": "Installez ou mettez à jour la balise LevelUp sur votre site pour voir vos visiteurs ici.",
+      "installTag": "Installer la balise LevelUp",
+      "revenueTitle": "Chiffre d’affaires par jour",
+      "revenueDescription": "Montants payés en {currency}.",
+      "noPaymentsTitle": "Aucun paiement pour l’instant",
+      "noPaymentsDescription": "Les paiements faits sur votre site apparaissent ici dès que son serveur les transmet.",
+      "submissionsTitle": "Formulaires reçus par jour",
+      "submissionsDescription": "Tous les formulaires de votre site, par type (hors indésirables).",
+      "noSubmissionsTitle": "Aucun formulaire sur la période",
+      "noSubmissionsDescription": "Contact, devis, inscription ou tout autre formulaire envoyé depuis votre site apparaîtra ici.",
+      "other": "Autres",
+      "bookingsTitle": "Rendez-vous par jour",
+      "bookingsDescription": "Jours passés et deux prochaines semaines · {completed} terminés, {noShows} absences sur la période.",
+      "studioTitle": "Projets LevelStudio par jour",
+      "studioDescription": "{generations} générations sur la période · {shared} projets partagés · {claimed} transferts récupérés.",
+      "healthTitle": "Votre site",
+      "healthDescription": "Connexion et fraîcheur.",
+      "tag": "Balise LevelUp",
+      "tagSeen": "Vue {date} · version {version}",
+      "tagNever": "Jamais détectée sur votre site pour l’instant.",
+      "tagActive": "Active",
+      "tagInactive": "Non détectée",
+      "freshness": "Contenu",
+      "updated": "Dernière modification {date}",
+      "neverUpdated": "Aucune modification de contenu pour l’instant.",
+      "seeEverything": "Tout voir",
+      "details": "Détails"
+    },
+    "analytics": {
+      "privacy": "Respect de la vie privée : aucun cookie, aucune adresse IP ni donnée personnelle conservée.",
+      "visitors": "Visiteurs",
+      "views": "Pages vues",
+      "vsPrevious": "par rapport à la période précédente",
+      "viewsPerVisitor": "Pages par visiteur",
+      "direct": "Direct ou interne",
+      "directHint": "Vues sans site référent externe",
+      "visitorsTitle": "Visiteurs par jour",
+      "visitorsDescription": "Visiteurs uniques par jour.",
+      "viewsTitle": "Pages vues par jour",
+      "viewsDescription": "Chaque page chargée sur votre site.",
+      "pagesTitle": "Pages les plus vues",
+      "referrersTitle": "Principaux référents",
+      "referrersDescription": "Les sites qui vous ont envoyé des visiteurs.",
+      "languagesTitle": "Langues",
+      "visitorsShort": "{count, plural, one {# visiteur} other {# visiteurs}}",
+      "viewsCount": "{count, plural, one {# vue} other {# vues}}",
+      "none": "Rien sur cette période.",
+      "noReferrers": "Aucun référent externe sur cette période.",
+      "unknownLanguage": "Inconnue",
+      "emptyTitle": "Pas encore de données de visite",
+      "emptyDescription": "Installez ou mettez à jour la balise LevelUp pour voir vos visiteurs : pages vues, visiteurs uniques, pages populaires, référents et langues, sans cookies.",
+      "installTag": "Installer la balise LevelUp"
+    },
+    "payments": {
+      "emptyTitle": "Aucun paiement pour l’instant",
+      "emptyDescription": "Quand le serveur de votre site transmet ses paiements avec sa clé LevelUp (page Développeurs), chaque paiement apparaît ici : montants, offres, clients et remboursements.",
+      "testMode": "Afficher les paiements de test",
+      "revenue": "Chiffre d’affaires",
+      "vsPrevious": "par rapport à la période précédente",
+      "count": "Paiements",
+      "pendingFailed": "{pending} en attente · {failed} échoués ou expirés",
+      "average": "Panier moyen",
+      "refunds": "Remboursements",
+      "refundCount": "{count, plural, =0 {Aucun remboursement} one {# remboursement} other {# remboursements}}",
+      "chartTitle": "Chiffre d’affaires par jour",
+      "chartDescription": "Montants payés en {currency}.",
+      "offersTitle": "Offres les plus vendues",
+      "noOffer": "Sans offre",
+      "noOffers": "Aucune offre payée sur cette période.",
+      "countShort": "×{count}",
+      "tableTitle": "Tous les paiements",
+      "export": "Exporter en CSV",
+      "exported": "{count, plural, one {# paiement exporté} other {# paiements exportés}}",
+      "search": "Rechercher un paiement",
+      "searchPlaceholder": "Client, offre, session…",
+      "searchPlaceholderMasked": "Offre, session…",
+      "statusFilter": "Filtrer par statut",
+      "maskedNotice": "Les coordonnées des clients sont masquées pour votre rôle (lecteur).",
+      "noMatch": "Aucun paiement ne correspond à ces filtres.",
+      "date": "Date",
+      "customer": "Client",
+      "email": "Courriel",
+      "offer": "Offre",
+      "statusLabel": "Statut",
+      "amount": "Montant",
+      "detailTitle": "Paiement",
+      "paidAt": "Payé le",
+      "refundedAt": "Remboursé le",
+      "mode": "Mode",
+      "live": "Réel",
+      "test": "Test",
+      "session": "Session de paiement",
+      "intent": "Intention de paiement",
+      "metadata": "Détails envoyés par votre site",
+      "history": "Historique",
+      "ignored": "ignoré (événement plus ancien)",
+      "status": {
+        "paid": "Payé",
+        "pending": "En attente",
+        "failed": "Échoué",
+        "refunded": "Remboursé",
+        "expired": "Expiré"
+      }
+    },
+    "inbox": {
+      "views": {
+        "open": "À traiter",
+        "handled": "Traités",
+        "archived": "Archivés",
+        "spam": "Indésirables",
+        "all": "Tous"
+      },
+      "formFilter": "Filtrer par formulaire",
+      "allForms": "Tous les formulaires",
+      "search": "Rechercher dans les formulaires",
+      "searchPlaceholder": "Nom, courriel, n’importe quel champ…",
+      "columnsButton": "Colonnes",
+      "columnsTitle": "Colonnes",
+      "detectedFields": "Champs de vos formulaires",
+      "columns": {
+        "name": "Nom",
+        "email": "Courriel",
+        "phone": "Téléphone",
+        "company": "Entreprise",
+        "message": "Message"
+      },
+      "export": "Exporter en CSV",
+      "exported": "{count, plural, one {# formulaire exporté} other {# formulaires exportés}}",
+      "noMatch": "Aucun formulaire ne correspond à ces filtres",
+      "received": "Reçu",
+      "form": "Formulaire",
+      "statusLabel": "Statut",
+      "statusSaved": "Marqué « {status} »",
+      "markHandled": "Traité",
+      "archive": "Archiver",
+      "spam": "Indésirable",
+      "editNotes": "Modifier",
+      "noNotes": "Aucune note pour l’instant.",
+      "allFields": "Tous les champs",
+      "source": "Page"
+    },
+    "keys": {
+      "title": "Clés serveur",
+      "description": "Permettent au serveur de votre site d’envoyer paiements et événements à LevelUp.",
+      "adminOnly": "Seuls les propriétaires et administrateurs de l’organisation gèrent les clés serveur.",
+      "serverOnly": "Une clé serveur se place dans une variable d’environnement du serveur (LEVELUP_SITE_KEY), jamais dans le navigateur ni dans le code de votre site.",
+      "none": "Aucune clé pour l’instant.",
+      "live": "Réelle",
+      "test": "Test",
+      "revokedBadge": "Révoquée",
+      "lastUsed": "Utilisée {date}",
+      "neverUsed": "Jamais utilisée",
+      "revoke": "Révoquer",
+      "revoked": "Clé révoquée",
+      "revokeTitle": "Révoquer « {name} » ?",
+      "revokeDescription": "Le serveur de votre site ne pourra plus utiliser cette clé. Les requêtes avec elle sont refusées immédiatement. Action irréversible.",
+      "create": "Créer une clé",
+      "createTitle": "Nouvelle clé serveur",
+      "createDescription": "La clé n’est affichée qu’une fois. Copiez-la dans les variables d’environnement de votre hébergeur.",
+      "name": "Nom",
+      "namePlaceholder": "Serveur de production",
+      "mode": "Mode",
+      "modeLive": "Réel (vrais paiements)",
+      "modeTest": "Test (mode test de Stripe)",
+      "scopesLabel": "Autorisations",
+      "scopes": {
+        "payments:write": "Transmettre les paiements",
+        "events:write": "Transmettre les événements"
+      },
+      "cancel": "Annuler",
+      "createdTitle": "Copiez votre clé maintenant",
+      "createdDescription": "C’est la seule fois qu’elle est affichée. LevelUp n’en garde qu’une empreinte.",
+      "envHint": "Ajoutez-la à l’environnement du serveur de votre site (par exemple Vercel → Settings → Environment Variables) :",
+      "onceWarning": "Perdue ? Révoquez-la et créez-en une nouvelle.",
+      "done": "Je l’ai copiée"
+    },
+    "capabilities": {
+      "areasTitle": "Ce que contient votre site",
+      "areasDescription": "Tout ce qui est enregistré pour votre site, et où le gérer. Un nouveau formulaire ou type de contenu apparaît ici dès que votre site l’utilise.",
+      "areas": {
+        "project_requests": {
+          "title": "Demandes de projet",
+          "description": "Demandes « Démarrer un projet » avec le tri par l’IA."
+        },
+        "submissions": {
+          "title": "Formulaires",
+          "description": "Tous les formulaires envoyés depuis votre site."
+        },
+        "payments": {
+          "title": "Paiements",
+          "description": "Paiements transmis par le serveur de votre site."
+        },
+        "appointments": {
+          "title": "Rendez-vous",
+          "description": "Réservations en ligne."
+        },
+        "waitlist": {
+          "title": "File d’attente",
+          "description": "File d’attente sans rendez-vous avec tickets."
+        },
+        "services": {
+          "title": "Services",
+          "description": "Services et prix affichés sur votre site."
+        },
+        "team": {
+          "title": "Équipe",
+          "description": "Profils des membres de l’équipe."
+        },
+        "gallery": {
+          "title": "Galerie",
+          "description": "Photos et vidéos."
+        },
+        "reviews": {
+          "title": "Avis",
+          "description": "Avis et témoignages clients."
+        },
+        "announcements": {
+          "title": "Annonces",
+          "description": "Nouvelles, promotions et articles."
+        },
+        "faq": {
+          "title": "FAQ",
+          "description": "Questions fréquentes."
+        },
+        "templates": {
+          "title": "Modèles",
+          "description": "Modèles de la vitrine."
+        },
+        "case-studies": {
+          "title": "Études de cas",
+          "description": "Projets de la vitrine."
+        },
+        "page-sections": {
+          "title": "Sections de pages",
+          "description": "Textes des pages de la vitrine."
+        },
+        "content_blocks": {
+          "title": "Contenu des pages",
+          "description": "Sections de vos pages (accueil, à propos…)."
+        },
+        "settings": {
+          "title": "Paramètres",
+          "description": "Coordonnées, horaires, réseaux sociaux, image de marque."
+        },
+        "media": {
+          "title": "Médiathèque",
+          "description": "Images et fichiers."
+        },
+        "traffic_days": {
+          "title": "Statistiques de visite",
+          "description": "Jours avec des données de la balise LevelUp."
+        },
+        "studio_projects": {
+          "title": "LevelStudio",
+          "description": "Projets créés dans LevelStudio (totaux uniquement)."
+        },
+        "api_keys": {
+          "title": "Clés serveur",
+          "description": "Clés actives du serveur de votre site."
+        }
+      },
+      "formsTitle": "Formulaires détectés",
+      "formsDescription": "Chaque type de formulaire envoyé par votre site, avec ses propres champs.",
+      "noForms": "Aucun formulaire envoyé pour l’instant.",
+      "newCount": "{count} nouveaux",
+      "formTotal": "{count, plural, one {# envoi} other {# envois}}",
+      "integrationsTitle": "Intégrations",
+      "integrationsDescription": "Comment votre site est relié à LevelUp.",
+      "tag": "Balise LevelUp",
+      "tagSeen": "Vue {date} · version {version}",
+      "tagNever": "Pas encore détectée sur votre site",
+      "analytics": "Statistiques de visite",
+      "analyticsDays": "{count, plural, one {# jour de données} other {# jours de données}}",
+      "analyticsNone": "Pas encore de données de visite",
+      "payments": "Paiements",
+      "lastPayment": "Dernier paiement {date}",
+      "noPayments": "Aucun paiement transmis pour l’instant",
+      "keys": "Clés serveur",
+      "activeKeys": "{count, plural, =0 {Aucune clé active} one {# clé active} other {# clés actives}}",
+      "connected": "Connecté",
+      "notConnected": "Pas encore",
+      "featuresTitle": "Fonctionnalités activées",
+      "featuresDescription": "Activées par LevelUp pour votre site. Demandez-nous d’en ajouter.",
+      "noFeatures": "Aucune fonctionnalité activée.",
+      "contentTitle": "Pages et paramètres",
+      "contentDescription": "Les pages avec des sections modifiables et les paramètres lus par votre site.",
+      "pages": "Pages",
+      "settingsKeys": "Paramètres",
+      "none": "Aucun"
+    },
+    "features": {
+      "announcements": "Annonces",
+      "blog": "Blogue",
+      "bookings": "Réservations",
+      "business_hours": "Heures d’ouverture",
+      "contact_form": "Formulaire de contact",
+      "customer_accounts": "Comptes clients",
+      "events": "Événements",
+      "gallery": "Galerie",
+      "newsletter": "Infolettre",
+      "payments": "Paiements",
+      "products": "Produits",
+      "promotions": "Promotions",
+      "quotes": "Demandes de devis",
+      "reviews": "Avis",
+      "services": "Services",
+      "showcase_cms": "CMS vitrine",
+      "team": "Équipe",
+      "waitlist": "File d’attente",
+      "project_requests": "Demandes de projet",
+      "studio_insights": "Statistiques LevelStudio"
+    },
+    "activity": {
+      "label": "{count, plural, =0 {Activité} one {Activité, # nouveau} other {Activité, # nouveaux}}",
+      "title": "Activité récente",
+      "empty": "Rien pour l’instant. Les nouveaux formulaires, réservations et paiements apparaissent ici.",
+      "new": "Nouveau",
+      "submission": "{form} : {name}",
+      "appointment": "Réservation : {name} · {service}",
+      "waitlist": "Arrivée dans la file : {name}",
+      "payment": "Paiement {amount} · {offer} ({status})",
+      "review": "Avis de {name} · {rating}/5",
+      "projectRequest": "Demande de projet : {name} · score IA {score}"
+    },
+    "projectRequests": {
+      "search": "Rechercher une demande",
+      "searchPlaceholder": "Entreprise, projet, secteur…",
+      "statusFilter": "Statut",
+      "allStatuses": "Tous les statuts",
+      "verdictFilter": "Verdict de l’IA",
+      "allVerdicts": "Tous les verdicts",
+      "masked": "Les coordonnées sont masquées pour votre rôle (lecteur).",
+      "emptyTitle": "Aucune demande de projet",
+      "emptyDescription": "Les demandes envoyées depuis « Démarrer un projet » sur votre site apparaissent ici avec le tri par l’IA.",
+      "claimed": "Récupéré dans LevelStudio",
+      "untitled": "Demande de projet",
+      "triage": "Tri par l’IA",
+      "redFlags": "Signaux d’alerte",
+      "contact": "Contact",
+      "email": "Courriel",
+      "phone": "Téléphone",
+      "website": "Site web",
+      "sector": "Secteur",
+      "stage": "Entreprise",
+      "budget": "Budget",
+      "timeline": "Délai",
+      "language": "Langue",
+      "handoff": "Transfert LevelStudio",
+      "handoffClaimed": "Récupéré {date}",
+      "handoffOpen": "{count, plural, =0 {Pas encore ouvert} one {Ouvert une fois} other {Ouvert # fois}}",
+      "brief": "Brief",
+      "editNotes": "Notes",
+      "noNotes": "Aucune note pour l’instant.",
+      "saved": "Enregistré",
+      "hqLater": "Le suivi complet de ces demandes (propositions, contrats) se fait dans LevelUp HQ.",
+      "status": {
+        "new": "Nouvelle",
+        "contacted": "Contactée",
+        "demo": "Démo",
+        "won": "Gagnée",
+        "lost": "Perdue",
+        "rejected": "Refusée"
+      },
+      "verdict": {
+        "qualified": "Qualifiée",
+        "review": "À examiner",
+        "rejected": "Non pertinente"
+      }
+    }
+  },
   "assistant": {
     "noAnswer": "Je n’ai pas de réponse pour le moment.",
     "title": "Assistant de {name}",
@@ -1564,18 +2218,12 @@
     "site": "LevelUp Ecosystem",
     "contact": "Contacter le support"
   },
-  "statsError": {
-    "title": "Impossible de charger cette section",
-    "loadFailed": "Ces données ne sont pas disponibles pour le moment. Réessayez.",
-    "retry": "Réessayer",
-    "retrying": "Nouvel essai…"
-  },
   "breadcrumbs": {
     "dashboard": "Tableau de bord",
     "site": "Mon site",
     "appointments": "Rendez-vous",
     "waitlist": "File d’attente",
-    "requests": "Demandes",
+    "requests": "Formulaires et demandes",
     "media": "Médiathèque",
     "seo": "SEO",
     "settings": "Paramètres",
@@ -1590,7 +2238,11 @@
     "workspaces": "Organisations",
     "profile": "Profil",
     "billing": "Facturation",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "analytics": "Statistiques",
+    "payments": "Paiements",
+    "capabilities": "Tout sur mon site",
+    "project-requests": "Demandes de projet"
   },
   "errorPage": {
     "eyebrow": "Erreur inattendue",

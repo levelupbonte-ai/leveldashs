@@ -120,7 +120,11 @@ export const PATTERNS = {
   isoDate: /^\d{4}-\d{2}-\d{2}$/,
   uuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
   /** example.com, www.example.co.uk (no scheme, no path) */
-  domain: /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
+  domain: /^(?=.{4,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i,
+  /** LevelUp website id (public: it appears in every client site's code). */
+  websiteId: /^ws_[a-z0-9]{8,32}$/,
+  /** Single-use link token: 32 random bytes, base64url (43 characters). */
+  urlToken: /^[A-Za-z0-9_-]{43}$/
 } as const;
 
 export function isEmail(value: string): boolean {

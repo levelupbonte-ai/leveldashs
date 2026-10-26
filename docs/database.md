@@ -33,6 +33,15 @@ the schema from application code or by hand in the dashboard.
 | `20261011130000` | contracts (templates, contracts, signatures, required tasks, gate helpers, restrictive content policies, private `contracts` bucket, staff + `sign_contract` RPCs; see [contracts.md](./contracts.md)) | **Applied** (through the MCP in parts: `contracts_tables`, `contracts_access_gate`, `contracts_order_form`, `contracts_staff_create_send`, `contracts_staff_manage`, `contracts_publish_template`, `contracts_sign`) |
 | `20261011130100` | contract_templates_seed (Master Services Agreement v1 EN + FR) | **Applied** (`contract_templates_seed_en`, `contract_templates_seed_fr`, `contract_templates_publish_v1`; bodies verified byte-for-byte by SHA-256) |
 | `20261012130000` | msa_v2 (Master Services Agreement v2 EN + FR: v1 without the §12.1 non-solicitation clause, §12 renumbered) | **Applied** (`msa_v2`, derived from v1 in SQL; bodies checked by MD5 against this file) |
+| `20261024100000` | access_review (`private.url_host`, `email_domain`, `website_hosts`; `access_requests.website_id`; `admin_list_access_requests`, `admin_access_review_context`) | **Applied** (`access_review_helpers`, `access_review_url_host_backslash`) |
+| `20261024100100` | admin_review_access_request (explicit connect / create / reject, fix + archive empty org, audit; old `review_access_request` delegates and never creates an organization) | **Applied** (`admin_review_access_request`) |
+| `20261024100200` | team_invitation_emails (invitation columns, `private.organization_invitation_tokens`, create / resend / record / revoke / preview / accept RPCs, `accept_invitations` skips revoked) | **Applied** (`team_invitation_tokens`, `team_invitation_send`, `team_invitation_accept`) |
+| `20261024100300` | site_owner_claims (`private.website_owner_claims`, `private.website_activation_codes`, owner e-mail auto-link trigger + `claim_site_ownership`, staff code functions, `redeem_activation_code`) | **Applied** (`site_owner_claims_tables`, `site_owner_claims_autolink`, `site_owner_claims_staff`, `site_activation_redeem`) |
+| `20261024120000` | site_api_keys (per-site server keys, sha256 only, admin create/revoke; `site_audit_log`; see [site-api.md](./site-api.md)) | **Applied** (`site_audit_log`, `site_api_keys`) |
+| `20261024120100` | site_payments (`site_payments`, `site_payment_events`, `site_ingest_payment`, masked list / detail, admin export, summary) | **Applied** (`site_payments_tables`, `site_ingest_payment`, `site_payments_reads`) |
+| `20261024120200` | site_analytics (`track_pageview`, daily counters, salted bloom filter for unique visitors, `site_analytics_summary`) | **Applied** (`site_analytics_tables`, `site_analytics_track_summary`) |
+| `20261024120250` | levelup_own_sources (features `project_requests`, `studio_insights`; project requests + LevelStudio aggregates for the owning organization) | **Applied** (`levelup_own_sources`) |
+| `20261024120300` | site_insights (`site_capabilities`, `site_overview_stats`, `site_recent_activity`, `site_submissions_list`; custom form types; `archived` inbox status) | **Applied** (`custom_form_types`, `site_insights_reads`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -86,7 +95,7 @@ insert into platform_admins (user_id) select id from auth.users where email = 'y
 | `website_settings` | key/value: contact, hours, social, booking slots, waitlist toggle, branding | read `is_public` rows of live sites | viewer read, editor write |
 | `content_blocks` | page sections (hero, about…) as JSON | read published | viewer read, editor write |
 | `team_members`, `services`, `gallery_items`, `reviews`, `faq_items`, `announcements` | site content | read published | viewer read, editor write |
-| `appointments`, `waitlist_entries`, `form_submissions` | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
+| `appointments`, `waitlist_entries`, `form_submissions` (any form type `^[a-z][a-z0-9_]{1,39}$`) | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
 | `studio_templates`, `studio_projects`, `studio_usage` | LevelStudio | published starter/style templates | owner reads own; writes via LevelStudio server |
 
 Public RPCs (callable with the publishable key): `get_public_website`,
@@ -96,6 +105,28 @@ enabled, take prices/names from the database (never from the browser),
 rate-limit (5/hour per contact, 300/hour per site) and return ticket codes
 instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 `PT409`, `PT429`).
+
+## Payments, analytics and the adaptive dashboard
+
+| Table | Holds | Members | Writes |
+|---|---|---|---|
+| `site_api_keys` | server keys of a website (hash, prefix, last 4, scopes, last use, revoked) | owners / admins read (no hash column) | `site_create_api_key`, `site_revoke_api_key` (audited) |
+| `site_audit_log` | key creation / revocation, payment exports, project request updates | owners / admins read | SECURITY DEFINER functions only (append-only) |
+| `site_payments`, `site_payment_events` | payments reported by the website server, every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
+| `site_traffic_daily`, `site_pageviews_daily` | daily views / unique visitors per path, referrer host, language | viewer read | `track_pageview` (LevelUp tag) |
+
+Contracts and rules: [site-api.md](./site-api.md). Tests:
+`supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
+`levelup_sources.sql`.
+
+Applied through the MCP (names above). After any change, run the four suites
+(they always roll back and must report `0 failed`). Advisors after applying:
+*RLS enabled, no policy* on `private.analytics_salt`, `private.site_visitor_bloom`,
+`private.pageview_buckets` (closed to every API role, intentional); *SECURITY
+DEFINER executable* for `track_pageview`, `site_ingest_payment` (anon: they
+authenticate by origin / server key) and the `site_payments_*`,
+`site_project_requests_*`, `site_owned_*`, `site_studio_summary` readers
+(authenticated: each checks membership, role and MFA itself).
 
 ## Showcase CMS (showcase_cms)
 
@@ -140,6 +171,23 @@ show in *Demandes de projet* on the same page.
   **existing** account to an organization by e-mail, or changes its role (admin+;
   owner to grant `owner` or change an owner). Returns `added`, `updated` or
   `not_found` (no account with that e-mail). Callable by `authenticated` only.
+- `public.admin_review_access_request(user_id, mode, website_id, role, confirm_website_id,
+  organization_name, website_name, website_domain)` — staff decision on an access request
+  (`connect` / `create` / `reject`). Raises short codes (`email_unconfirmed`,
+  `invalid_website_id`, `website_not_found`, `website_archived`, `already_member`,
+  `already_approved`, `confirmation_required`, `domain_taken`, …) mapped to `AppError` codes
+  by `src/lib/access/db-errors.ts`. Returns the organization / website it used.
+- Team invitations: `create_organization_invitation`, `resend_organization_invitation`,
+  `record_organization_invitation_email`, `revoke_organization_invitation`,
+  `get_organization_invitation(token)` (anon: preview), `accept_organization_invitation(token)`.
+  Tokens are stored as SHA-256 only (`private.sha256_hex`).
+- Client self-serve access: `admin_set_site_owner_email`, `admin_create_activation_code`
+  (returns the code once), `admin_revoke_activation_code`, `admin_get_site_access`,
+  `claim_site_ownership()`, `redeem_activation_code(code, client_hash)`.
+- Audit: these functions write `public.hq_audit_log` through `private.hq_log` (the
+  append-only log of LevelUp HQ, same database): `access_request.*`, `organization.*`,
+  `team.invitation_*`, `site.owner_*`, `site.activation_code_*`. Codes and tokens are never
+  logged.
 - `public.get_public_website(website_id)` — public config of an **active** website
   (name, domain, enabled features). Callable by `anon`.
 - Platform staff are listed in `platform_admins` (insert with the service role only).

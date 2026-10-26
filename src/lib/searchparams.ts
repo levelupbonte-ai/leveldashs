@@ -1,22 +1,14 @@
-import {
-  createSearchParamsCache,
-  createSerializer,
-  parseAsInteger,
-  parseAsString
-} from 'nuqs/server';
+import { createSearchParamsCache } from 'nuqs/server';
+import { rangeParser } from '@/features/insights/lib/range';
+import { paymentParams } from '@/features/payments/lib/filters';
+import { submissionParams } from '@/features/submissions/lib/filters';
+import { projectRequestParams } from '@/features/project-requests/lib/filters';
 
-export const searchParams = {
-  page: parseAsInteger.withDefault(1),
-  perPage: parseAsInteger.withDefault(10),
-  name: parseAsString,
-  gender: parseAsString,
-  category: parseAsString,
-  role: parseAsString,
-  sort: parseAsString
-  // advanced filter
-  // filters: getFiltersStateParser().withDefault([]),
-  // joinOperator: parseAsStringEnum(['and', 'or']).withDefault('and')
-};
+// Server-side readers of the URL state of each page. The parsers are the same
+// ones the client components use with useQueryStates, so the server prefetch
+// and the client build the same query key.
 
-export const searchParamsCache = createSearchParamsCache(searchParams);
-export const serialize = createSerializer(searchParams);
+export const rangeSearchParamsCache = createSearchParamsCache({ range: rangeParser });
+export const paymentSearchParamsCache = createSearchParamsCache(paymentParams);
+export const submissionSearchParamsCache = createSearchParamsCache(submissionParams);
+export const projectRequestSearchParamsCache = createSearchParamsCache(projectRequestParams);

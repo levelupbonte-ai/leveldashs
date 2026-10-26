@@ -7,6 +7,7 @@ import { HydrationBoundary, dehydrate, type QueryClient } from '@tanstack/react-
 import { Suspense } from 'react';
 import { loadSitePage } from '../server';
 import { SiteUnavailable } from './site-unavailable';
+import type { CapabilityKey } from '@/features/insights/api/types';
 
 function ListSkeleton() {
   return (
@@ -27,16 +28,22 @@ export async function SitePage({
   title,
   description,
   feature,
+  dataKey,
+  action,
   prefetch,
   children
 }: {
   title: string;
   description: string;
   feature?: string | string[];
+  /** Also open the page when the website has rows of this kind (see loadSitePage). */
+  dataKey?: CapabilityKey;
+  /** Header action (PageContainer `pageHeaderAction`). */
+  action?: React.ReactNode;
   prefetch: (queryClient: QueryClient, db: SupabaseClient, websiteId: string) => void;
   children: React.ReactNode;
 }) {
-  const page = await loadSitePage(feature);
+  const page = await loadSitePage(feature, dataKey);
   if (page.status !== 'ok') {
     return (
       <PageContainer pageTitle={title} pageDescription={description}>
@@ -52,6 +59,7 @@ export async function SitePage({
     <PageContainer
       pageTitle={title}
       pageDescription={`${description} · ${page.website.primaryDomain ?? page.website.name}`}
+      pageHeaderAction={action}
     >
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense fallback={<ListSkeleton />}>{children}</Suspense>

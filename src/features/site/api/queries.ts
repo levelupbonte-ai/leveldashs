@@ -3,18 +3,15 @@ import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { CollectionDef } from '../config/collections';
 import {
   getSeoSettings,
-  getSiteOverview,
   getWebsiteIntegration,
   listAppointments,
   listCollection,
   listContentBlocks,
   listMedia,
   listSettings,
-  listSubmissions,
   listWaitlist,
   PAGE_SIZE,
-  type AppointmentView,
-  type SubmissionView
+  type AppointmentView
 } from './service';
 
 const nextPage = <T>(last: T[], all: T[][]) => (last.length === PAGE_SIZE ? all.length : undefined);
@@ -29,7 +26,7 @@ export const siteKeys = {
   appointments: (websiteId: string, view?: AppointmentView) =>
     [...siteKeys.website(websiteId), 'appointments', ...(view ? [view] : [])] as const,
   waitlist: (websiteId: string) => [...siteKeys.website(websiteId), 'waitlist'] as const,
-  submissions: (websiteId: string, view?: SubmissionView) =>
+  submissions: (websiteId: string, view?: string) =>
     [...siteKeys.website(websiteId), 'submissions', ...(view ? [view] : [])] as const,
   media: (websiteId: string) => [...siteKeys.website(websiteId), 'media'] as const,
   settings: (websiteId: string) => [...siteKeys.website(websiteId), 'settings'] as const,
@@ -66,19 +63,6 @@ export const waitlistQueryOptions = (db: SupabaseClient, websiteId: string) =>
     refetchInterval: 30 * 1000
   });
 
-export const submissionsQueryOptions = (
-  db: SupabaseClient,
-  websiteId: string,
-  view: SubmissionView = 'open'
-) =>
-  infiniteQueryOptions({
-    queryKey: siteKeys.submissions(websiteId, view),
-    queryFn: ({ pageParam }) => listSubmissions(db, websiteId, view, pageParam),
-    initialPageParam: 0,
-    getNextPageParam: nextPage,
-    staleTime: 15 * 1000
-  });
-
 export const mediaQueryOptions = (db: SupabaseClient, websiteId: string) =>
   infiniteQueryOptions({
     queryKey: siteKeys.media(websiteId),
@@ -97,13 +81,6 @@ export const blocksQueryOptions = (db: SupabaseClient, websiteId: string) =>
   queryOptions({
     queryKey: siteKeys.blocks(websiteId),
     queryFn: () => listContentBlocks(db, websiteId)
-  });
-
-export const overviewQueryOptions = (db: SupabaseClient, websiteId: string) =>
-  queryOptions({
-    queryKey: siteKeys.overview(websiteId),
-    queryFn: () => getSiteOverview(db, websiteId),
-    staleTime: 30 * 1000
   });
 
 export const integrationQueryOptions = (db: SupabaseClient, websiteId: string) =>

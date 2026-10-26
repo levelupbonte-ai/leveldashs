@@ -17,15 +17,9 @@ src/
 ├── app/                           # Next.js App Router directory
 │   ├── auth/                      # Auth pages (sign-in, sign-up, callback)
 │   ├── dashboard/                 # Dashboard route group
-│   │   ├── site/                  # Client website management (content, inbox, media, settings)
-│   │   ├── overview/              # Analytics with parallel routes
-│   │   ├── product/               # Product CRUD pages (React Query)
-│   │   ├── users/                 # Users table (React Query + nuqs)
-│   │   ├── react-query/           # React Query demo page
-│   │   ├── kanban/                # Task board page
+│   │   ├── site/                  # Client website: adaptive overview, analytics, payments, forms inbox,
+│   │   │                          #   everything-on-my-site, content, media, SEO, developers, settings
 │   │   ├── chat/                  # Messaging page
-│   │   ├── ai-chat/               # AI chat streaming demo
-│   │   ├── notifications/         # Notifications page
 │   │   ├── workspaces/            # Organizations & team members
 │   │   ├── billing/               # Static "billing handled by LevelUp" page
 │   │   ├── profile/               # User profile & password
@@ -41,14 +35,12 @@ src/
 ├── features/                      # Feature-based modules
 │   ├── site/                      # Website content, inbox, media, settings (Supabase)
 │   ├── organizations/             # Organizations, members, LevelUp admin
-│   ├── overview/                  # Dashboard analytics (charts, cards)
-│   ├── products/                  # Product listing, form, tables (React Query)
-│   ├── users/                     # User management table (React Query)
-│   ├── react-query-demo/          # React Query demo (Pokemon API)
-│   ├── kanban/                    # Drag-drop task board
+│   ├── insights/                  # Adaptive overview, analytics, capabilities, activity (real data)
+│   ├── payments/                  # Payments reported by the website server
+│   ├── submissions/               # Inbox for any form the website sends
+│   ├── api-keys/                  # Per-site server keys
+│   ├── project-requests/          # LevelUp: start-a-project requests + AI triage
 │   ├── chat/                      # Messaging (conversations, bubbles, composer)
-│   ├── ai-chat/                   # Scripted useChat streaming demo (shadcn chat UI)
-│   ├── notifications/             # Notification center & store
 │   ├── auth/                      # Auth components
 │   └── profile/                   # Profile form schemas
 │
@@ -57,7 +49,6 @@ src/
 │   └── auth/                      # Dashboard session, active org/website, roles
 ├── hooks/                         # Custom hooks
 ├── config/                        # Navigation, infobar, data table config
-├── constants/                     # Mock data
 ├── styles/                        # Global CSS & theme files
 │   └── themes/                    # Individual theme CSS files
 └── types/                         # TypeScript types
@@ -71,19 +62,6 @@ src/
 - `bun run dev`
 
 The app runs at http://localhost:3000. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (the only Supabase key the app uses). For auth setup (redirect URLs, Google provider, organizations and roles) see [docs/auth.md](./docs/auth.md); for the schema see [docs/database.md](./docs/database.md).
-
-## Cleanup Script
-
-A cleanup script that removes the optional features you don't need (folders, files, dependencies, docs, and env entries), leaving a minimal base to build on. Run `--list` to see what's removable:
-
-```bash
-bun run cleanup --interactive    # interactive mode
-bun run cleanup --list           # see available features
-bun run cleanup --dry-run chat   # preview before removing
-bun run cleanup kanban chat      # remove specific features
-```
-
-Run `bun run cleanup --help` for all options (with npm, pass flags after `--`: `npm run cleanup -- --list`). The replacement files it writes live in `scripts/cleanup-templates/` as real, typechecked code. When you're done, delete `scripts/cleanup.js`, `scripts/cleanup-templates/`, and the `cleanup` entry in `package.json`.
 
 ## Deploy
 

@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { redirect } from 'next/navigation';
+import { invitedEmailFor } from '@/lib/access/server';
 import { getAuthMethods } from '@/lib/auth/auth-methods';
 import { mfaChallengeUrl, needsMfaChallenge } from '@/lib/auth/mfa';
 import { safeNext } from '@/lib/auth/redirect';
@@ -26,6 +27,15 @@ export default async function Page(props: {
     if (await needsMfaChallenge(supabase, user)) redirect(mfaChallengeUrl(safeNext(next)));
     redirect(safeNext(next));
   }
-  const methods = await getAuthMethods();
-  return <SignInViewPage next={next} error={error} reason={reason} methods={methods} />;
+  // Started from an invitation link: the invited address, prefilled and locked.
+  const [methods, lockedEmail] = await Promise.all([getAuthMethods(), invitedEmailFor(next)]);
+  return (
+    <SignInViewPage
+      next={next}
+      error={error}
+      reason={reason}
+      methods={methods}
+      lockedEmail={lockedEmail}
+    />
+  );
 }

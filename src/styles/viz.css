@@ -1,0 +1,26 @@
+/*
+ * Data-visualization palette (validated: lightness band, chroma floor,
+ * colour-blind separation and normal-vision floor, light and dark). Charts
+ * use these roles instead of the theme's --chart-* tokens, which are not
+ * guaranteed to be distinguishable. Categorical slots are assigned in this
+ * fixed order and never cycled; a 7th series folds into "Other".
+ */
+:root {
+  --viz-1: #2a78d6;
+  --viz-2: #eb6834;
+  --viz-3: #1baf7a;
+  --viz-4: #eda100;
+  --viz-5: #e87ba4;
+  --viz-6: #6250d6;
+  --viz-other: #8a8984;
+}
+
+.dark {
+  --viz-1: #3987e5;
+  --viz-2: #d95926;
+  --viz-3: #199e70;
+  --viz-4: #c98500;
+  --viz-5: #d55181;
+  --viz-6: #9085e9;
+  --viz-other: #7c7b76;
+}

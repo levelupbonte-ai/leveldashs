@@ -10,6 +10,7 @@
 @custom-variant data-vertical (&[data-orientation='vertical']);
 
 @import './theme.css';
+@import './viz.css';
 
 @layer base {
   * {

@@ -1,6 +1,16 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { AppError, isMfaError } from '@/lib/errors';
-import type { AdminWebsiteRow } from './types';
+import { dbErrorCode, responseErrorCode } from '@/lib/access/db-errors';
+import type {
+  AccessRequest,
+  AdminWebsiteRow,
+  NewActivationCode,
+  OrgRole,
+  ReviewContext,
+  ReviewDecision,
+  ReviewOutcome,
+  SiteAccess
+} from './types';
 
 // LevelUp staff only (RLS: platform admins). Kept out of the client features so
 // regular accounts never load this code.
@@ -81,55 +91,69 @@ export async function createClientSite(db: SupabaseClient, input: NewClientInput
   };
 }
 
-export interface AccessRequest {
-  user_id: string;
-  business_name: string;
-  website: string | null;
-  phone: string | null;
-  message: string | null;
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  email: string | null;
-  full_name: string | null;
-}
-
-/** LevelUp staff: dashboard access requests, pending first (RLS: platform admins only). */
+/** LevelUp staff: every access request with the account and organization facts (pending first). */
 export async function listAccessRequests(db: SupabaseClient): Promise<AccessRequest[]> {
-  const { data, error } = await db
-    .from('access_requests')
-    .select('user_id, business_name, website, phone, message, status, created_at')
-    .order('created_at', { ascending: false })
-    .limit(100);
-  if (error) throw new AppError('loadFailed', { cause: error });
-  const ids = (data ?? []).map((r) => r.user_id);
-  const { data: profiles } = ids.length
-    ? await db.from('profiles').select('id, email, full_name').in('id', ids)
-    : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
-  const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
-  return (data ?? [])
-    .map((r) => ({
-      ...(r as Omit<AccessRequest, 'email' | 'full_name'>),
-      email: byId.get(r.user_id)?.email ?? null,
-      full_name: byId.get(r.user_id)?.full_name ?? null
-    }))
-    .toSorted((a, b) => Number(b.status === 'pending') - Number(a.status === 'pending'));
+  const { data, error } = await db.rpc('admin_list_access_requests');
+  if (error) throw new AppError(dbErrorCode(error, 'loadFailed'), { cause: error });
+  return (data ?? []) as AccessRequest[];
 }
 
-/** Approve (new organization named after the business, or an existing one) or reject; e-mails the applicant. */
-export async function decideAccessRequest(input: {
-  userId: string;
-  approve: boolean;
-  organizationId?: string;
-}) {
+/** One request and the websites / organizations it could be connected to. */
+export async function getReviewContext(db: SupabaseClient, userId: string): Promise<ReviewContext> {
+  const { data, error } = await db.rpc('admin_access_review_context', { p_user_id: userId });
+  if (error) throw new AppError(dbErrorCode(error, 'loadFailed'), { cause: error });
+  return data as ReviewContext;
+}
+
+/**
+ * Explicit decision (connect to a website, create a new client, decline). Goes
+ * through the route handler, which e-mails the applicant.
+ */
+export async function decideAccessRequest(input: ReviewDecision): Promise<ReviewOutcome> {
   const res = await fetch('/api/access/decision', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input)
+  }).catch((cause) => {
+    throw new AppError('network', { cause });
   });
-  const body = (await res.json().catch(() => ({}))) as { error?: string };
-  if (!res.ok) {
-    throw new AppError(
-      body.error === 'mfa' ? 'mfaRequired' : body.error === 'forbidden' ? 'forbidden' : 'generic'
-    );
-  }
+  const body = (await res.json().catch(() => ({}))) as Partial<ReviewOutcome> & { error?: string };
+  if (!res.ok) throw new AppError(responseErrorCode(body.error));
+  return body as ReviewOutcome;
+}
+
+// ---------------------------------------------------------------- site access
+
+export async function getSiteAccess(db: SupabaseClient, websiteId: string): Promise<SiteAccess> {
+  const { data, error } = await db.rpc('admin_get_site_access', { p_website_id: websiteId });
+  if (error) throw new AppError(dbErrorCode(error, 'loadFailed'), { cause: error });
+  return data as SiteAccess;
+}
+
+/** Pending owner e-mail of a website ('' clears it). */
+export async function setSiteOwnerEmail(db: SupabaseClient, websiteId: string, email: string) {
+  const { error } = await db.rpc('admin_set_site_owner_email', {
+    p_website_id: websiteId,
+    p_email: email || null
+  });
+  if (error) throw new AppError(dbErrorCode(error, 'saveFailed'), { cause: error });
+}
+
+/** A new one-time activation code; the only time the code itself is returned. */
+export async function createActivationCode(
+  db: SupabaseClient,
+  input: { websiteId: string; role: OrgRole; email?: string }
+): Promise<NewActivationCode> {
+  const { data, error } = await db.rpc('admin_create_activation_code', {
+    p_website_id: input.websiteId,
+    p_role: input.role,
+    p_email: input.email || null
+  });
+  if (error) throw new AppError(dbErrorCode(error, 'createFailed'), { cause: error });
+  return data as NewActivationCode;
+}
+
+export async function revokeActivationCode(db: SupabaseClient, codeId: string) {
+  const { error } = await db.rpc('admin_revoke_activation_code', { p_code_id: codeId });
+  if (error) throw new AppError(dbErrorCode(error, 'saveFailed'), { cause: error });
 }

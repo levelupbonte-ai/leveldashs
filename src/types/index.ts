@@ -5,6 +5,11 @@ export interface PermissionCheck {
   role?: 'viewer' | 'editor' | 'admin' | 'owner';
   /** Shown when the active website has one of these features enabled */
   feature?: string | string[];
+  /**
+   * Also shown (despite `feature`) when the active website already has rows of
+   * this kind: a key of `site_capabilities().counts`.
+   */
+  data?: string;
   requireOrg?: boolean;
   requireWebsite?: boolean;
   /** LevelUp staff only */

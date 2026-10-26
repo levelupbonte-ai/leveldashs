@@ -151,6 +151,17 @@ export function createFields(m: FieldMessages = {}) {
     return str().regex(PATTERNS.uuid, msg(m.invalid));
   }
 
+  /** LevelUp website id (ws_…), lower-cased; '' when optional. */
+  function websiteId(options: { required?: boolean } = {}) {
+    const valid = (v: string) => PATTERNS.websiteId.test(v);
+    const s = str()
+      .overwrite((v) => cleanLine(v).toLowerCase())
+      .max(40, msg(m.tooLong?.(40)));
+    return options.required
+      ? s.min(1, msg(m.required)).refine(valid, msg(m.invalid))
+      : optional(s, valid, m.invalid);
+  }
+
   /** One of a fixed list of values. */
   function oneOf<const T extends readonly [string, ...string[]]>(values: T) {
     return z.enum(values, msg(m.choice));
@@ -171,7 +182,7 @@ export function createFields(m: FieldMessages = {}) {
     return z.array(text(maxLength, { min: 1 })).max(maxItems, msg(m.tooMany?.(maxItems)));
   }
 
-  return { text, email, url, phone, slug, hexColor, date, uuid, oneOf, amount, tags };
+  return { text, email, url, phone, slug, hexColor, date, uuid, websiteId, oneOf, amount, tags };
 }
 
 export type Fields = ReturnType<typeof createFields>;

@@ -5,6 +5,7 @@ import { collectionQueryOptions } from '@/features/site/api/queries';
 import { CollectionManager } from '@/features/site/components/collection-manager';
 import { SitePage } from '@/features/site/components/site-page';
 import { getCollection, type CollectionKey } from '@/features/site/config/collections';
+import type { CapabilityKey } from '@/features/insights/api/types';
 
 export async function generateMetadata(props: {
   params: Promise<{ collection: string }>;
@@ -27,6 +28,7 @@ export default async function Page(props: { params: Promise<{ collection: string
       title={t(`${def.key}.title`)}
       description={t(`${def.key}.description`)}
       feature={def.feature}
+      dataKey={def.key as CapabilityKey}
       prefetch={(qc, db, websiteId) =>
         void qc.prefetchQuery(collectionQueryOptions(db, def, websiteId))
       }

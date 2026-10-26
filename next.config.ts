@@ -36,7 +36,7 @@ function contentSecurityPolicy(): { enforced: string; reportOnly: string } {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     `media-src 'self' blob: ${SUPABASE}`,
-    `connect-src 'self' ${SUPABASE} ${SUPABASE.replace(/^https:/, 'wss:')} https://accounts.google.com/gsi/ https://challenges.cloudflare.com https://api.pwnedpasswords.com https://pokeapi.co`,
+    `connect-src 'self' ${SUPABASE} ${SUPABASE.replace(/^https:/, 'wss:')} https://accounts.google.com/gsi/ https://challenges.cloudflare.com https://api.pwnedpasswords.com`,
     'frame-src https://accounts.google.com/gsi/ https://challenges.cloudflare.com',
     "worker-src 'self' blob:",
     "manifest-src 'self'",
@@ -72,11 +72,6 @@ const baseConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'api.slingacademy.com',
-        port: ''
-      },
       {
         protocol: 'https',
         hostname: 'rncuhmvykrmtxfzqpitc.supabase.co',

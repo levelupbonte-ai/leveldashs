@@ -157,7 +157,6 @@ export async function deleteCollectionItem(db: SupabaseClient, def: CollectionDe
 
 export const PAGE_SIZE = 50;
 export type AppointmentView = 'upcoming' | 'past' | 'all';
-export type SubmissionView = 'open' | 'all';
 
 function pageRange(page: number): [number, number] {
   return [page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE - 1];
@@ -232,26 +231,6 @@ export async function listWaitlist(db: SupabaseClient, websiteId: string) {
 export async function updateWaitlistEntry(db: SupabaseClient, id: string, status: WaitlistStatus) {
   const { error } = await db.from('waitlist_entries').update({ status }).eq('id', id);
   if (error) fail(error);
-}
-
-export async function listSubmissions(
-  db: SupabaseClient,
-  websiteId: string,
-  view: SubmissionView = 'open',
-  page = 0
-) {
-  let query = db
-    .from('form_submissions')
-    .select(
-      'id, form_type, ticket_code, name, email, phone, company, message, data, status, staff_notes, source, created_at'
-    )
-    .eq('website_id', websiteId);
-  if (view === 'open') query = query.in('status', ['new', 'contacted', 'in_progress', 'quoted']);
-  const { data, error } = await query
-    .order('created_at', { ascending: false })
-    .range(...pageRange(page));
-  if (error) fail(error);
-  return (data ?? []) as FormSubmission[];
 }
 
 export async function updateSubmission(

@@ -10,7 +10,6 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "cleanup": "node scripts/cleanup.js",
     "typecheck": "tsc --noEmit",
     "test": "bun test src",
     "lint": "oxlint",
