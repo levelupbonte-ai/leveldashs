@@ -128,7 +128,9 @@ import {
   IconUsers,
   IconVideo,
   IconCrown,
-  IconX
+  IconX,
+  IconArrowBackUp,
+  IconBellOff
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -408,5 +410,9 @@ export const Icons = {
   signature: IconSignature,
   certificate: IconFileCertificate,
   eraser: IconEraser,
-  download: IconDownload
+  download: IconDownload,
+
+  // Chat
+  reply: IconArrowBackUp,
+  bellOff: IconBellOff
 };

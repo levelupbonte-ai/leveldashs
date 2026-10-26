@@ -528,7 +528,10 @@
     "notFound": "This item no longer exists.",
     "tooManyKeys": "This website already has 10 active keys. Revoke one first.",
     "contractRequired": "Sign your agreement first to do this.",
-    "notReady": "This feature is being set up. Please try again later."
+    "notReady": "This feature is being set up. Please try again later.",
+    "chatRateLimited": "You’re sending messages too quickly. Wait a moment and try again.",
+    "chatInvalidMessage": "Messages must be 1 to 4,000 characters, without HTML.",
+    "chatNotFound": "This conversation isn’t available."
   },
   "workspaces": {
     "title": "Organizations",
@@ -2364,5 +2367,175 @@
       "title": "No contract yet",
       "description": "When LevelUp sends you an agreement, it appears here."
     }
+  },
+  "chat": {
+    "metadataTitle": "Messages",
+    "pageTitle": "Messages",
+    "pageDescription": "Talk with your team and answer the people who write to you from your website.",
+    "noOrg": {
+      "title": "No organization selected",
+      "description": "Choose an organization to see its messages."
+    },
+    "notMember": {
+      "title": "Only members can read these messages",
+      "description": "Messages are private to the members of {org}. LevelUp staff can’t read them unless they are invited to the team."
+    },
+    "list": {
+      "title": "Messages",
+      "count": "{count, plural, =0 {No conversations} one {# conversation} other {# conversations}}",
+      "search": "Search conversations",
+      "newMessage": "New message",
+      "noMatch": "No conversations match your search.",
+      "showArchived": "Show archived",
+      "hideArchived": "Hide archived",
+      "label": "Conversations"
+    },
+    "tabs": {
+      "all": "All",
+      "team": "Team",
+      "direct": "Direct",
+      "visitors": "Visitors"
+    },
+    "sections": {
+      "team": "Team",
+      "direct": "Direct messages",
+      "visitors": "Website visitors"
+    },
+    "emptySection": {
+      "direct": "No direct messages yet. Start one with a teammate.",
+      "visitors": "No visitor messages yet. Messages sent from your website’s contact form appear here."
+    },
+    "teamName": "Team",
+    "teamSubtitle": "{count, plural, one {# member} other {# members}}",
+    "directSubtitle": "Direct message",
+    "formerMember": "No longer in the organization",
+    "unknownMember": "Former member",
+    "visitorFallback": "Visitor",
+    "visitorSubtitle": "Visitor · {site}",
+    "visitorUnverified": "Identity not verified",
+    "source": {
+      "form": "Contact form",
+      "widget": "Website chat"
+    },
+    "preview": {
+      "you": "You: {text}",
+      "deleted": "Message deleted",
+      "note": "Note: {text}",
+      "empty": "No messages yet"
+    },
+    "status": {
+      "resolved": "Resolved",
+      "archived": "Archived",
+      "muted": "Muted"
+    },
+    "unreadLabel": "{count, plural, one {# unread message} other {# unread messages}}",
+    "thread": {
+      "back": "Back to conversations",
+      "loadingOlder": "Loading older messages…",
+      "beginning": "This is the beginning of the conversation.",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "label": "Messages with {name}",
+      "newMessages": "New messages",
+      "select": {
+        "title": "Select a conversation",
+        "description": "Pick a conversation, or start a new one with a teammate."
+      },
+      "empty": {
+        "team": {
+          "title": "Say hello to your team",
+          "description": "Everyone in {org} can read and reply here."
+        },
+        "direct": {
+          "title": "Start the conversation",
+          "description": "Only you and {name} can read these messages."
+        },
+        "visitor": {
+          "title": "No messages",
+          "description": "Messages from this visitor appear here."
+        }
+      }
+    },
+    "message": {
+      "you": "You",
+      "edited": "edited",
+      "deleted": "This message was deleted.",
+      "sending": "Sending…",
+      "failed": "Not sent.",
+      "retry": "Retry",
+      "reply": "Reply",
+      "edit": "Edit",
+      "delete": "Delete",
+      "copy": "Copy text",
+      "copied": "Copied",
+      "actions": "Message actions",
+      "note": "Internal note",
+      "visitor": "Visitor",
+      "replyDeleted": "Original message deleted",
+      "at": "{name}, {time}"
+    },
+    "composer": {
+      "label": "Write a message",
+      "placeholder": {
+        "team": "Message the team",
+        "direct": "Message {name}",
+        "visitor": "Add an internal note (the visitor won’t see it)"
+      },
+      "send": "Send",
+      "save": "Save changes",
+      "hint": "Enter to send · Shift+Enter for a new line",
+      "replyingTo": "Replying to {name}",
+      "editing": "Editing your message",
+      "cancel": "Cancel",
+      "remaining": "{count, plural, one {# character left} other {# characters left}}",
+      "readOnlyViewer": "Viewers can read visitor messages. Ask an editor to reply.",
+      "readOnlyFormer": "{name} is no longer in the organization. This conversation is read-only."
+    },
+    "security": "Encrypted in transit and at rest. Only members of {org} can read these messages.",
+    "actions": {
+      "menu": "Conversation options",
+      "mute": "Mute notifications",
+      "unmute": "Unmute notifications",
+      "resolve": "Mark resolved",
+      "reopen": "Reopen",
+      "archive": "Archive",
+      "unarchive": "Restore",
+      "replyByEmail": "Reply by email",
+      "emailSubject": "Re: your message to {site}",
+      "emailGreeting": "Hello {name},",
+      "noEmail": "This visitor didn’t leave an e-mail address."
+    },
+    "deleteDialog": {
+      "title": "Delete this message?",
+      "description": "The text is erased for everyone. This can’t be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "newDirect": {
+      "title": "New message",
+      "description": "Choose a member of {org}.",
+      "search": "Search members",
+      "empty": "No other members yet. Invite your team from Team & access.",
+      "noMatch": "No member matches your search.",
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "editor": "Editor",
+        "viewer": "Viewer"
+      }
+    },
+    "toasts": {
+      "resolved": "Marked as resolved",
+      "reopened": "Conversation reopened",
+      "archived": "Conversation archived",
+      "restored": "Conversation restored",
+      "muted": "Notifications muted",
+      "unmuted": "Notifications on"
+    },
+    "live": {
+      "live": "Live",
+      "polling": "Refreshing automatically"
+    },
+    "navBadge": "{count, plural, one {# unread message} other {# unread messages}}"
   }
 }

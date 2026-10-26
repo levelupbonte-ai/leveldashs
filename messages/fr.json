@@ -528,7 +528,10 @@
     "notFound": "Cet élément n’existe plus.",
     "tooManyKeys": "Ce site a déjà 10 clés actives. Révoquez-en une d’abord.",
     "contractRequired": "Signez d’abord votre entente pour faire ceci.",
-    "notReady": "Cette fonctionnalité est en cours de mise en place. Réessayez plus tard."
+    "notReady": "Cette fonctionnalité est en cours de mise en place. Réessayez plus tard.",
+    "chatRateLimited": "Vous envoyez des messages trop vite. Patientez un instant et réessayez.",
+    "chatInvalidMessage": "Un message doit compter de 1 à 4 000 caractères, sans HTML.",
+    "chatNotFound": "Cette conversation n’est pas disponible."
   },
   "workspaces": {
     "title": "Organisations",
@@ -2364,5 +2367,175 @@
       "title": "Aucun contrat pour le moment",
       "description": "Lorsque LevelUp vous envoie un contrat, il apparaît ici."
     }
+  },
+  "chat": {
+    "metadataTitle": "Messages",
+    "pageTitle": "Messages",
+    "pageDescription": "Échangez avec votre équipe et répondez aux personnes qui vous écrivent depuis votre site.",
+    "noOrg": {
+      "title": "Aucune organisation sélectionnée",
+      "description": "Choisissez une organisation pour voir ses messages."
+    },
+    "notMember": {
+      "title": "Seuls les membres peuvent lire ces messages",
+      "description": "Les messages sont réservés aux membres de {org}. L’équipe LevelUp ne peut pas les lire sans être invitée dans l’équipe."
+    },
+    "list": {
+      "title": "Messages",
+      "count": "{count, plural, =0 {Aucune conversation} one {# conversation} other {# conversations}}",
+      "search": "Rechercher une conversation",
+      "newMessage": "Nouveau message",
+      "noMatch": "Aucune conversation ne correspond à votre recherche.",
+      "showArchived": "Afficher les archives",
+      "hideArchived": "Masquer les archives",
+      "label": "Conversations"
+    },
+    "tabs": {
+      "all": "Tout",
+      "team": "Équipe",
+      "direct": "Directs",
+      "visitors": "Visiteurs"
+    },
+    "sections": {
+      "team": "Équipe",
+      "direct": "Messages directs",
+      "visitors": "Visiteurs du site"
+    },
+    "emptySection": {
+      "direct": "Aucun message direct pour l’instant. Écrivez à un membre de l’équipe.",
+      "visitors": "Aucun message de visiteur pour l’instant. Les messages envoyés depuis le formulaire de contact de votre site apparaissent ici."
+    },
+    "teamName": "Équipe",
+    "teamSubtitle": "{count, plural, one {# membre} other {# membres}}",
+    "directSubtitle": "Message direct",
+    "formerMember": "Ne fait plus partie de l’organisation",
+    "unknownMember": "Ancien membre",
+    "visitorFallback": "Visiteur",
+    "visitorSubtitle": "Visiteur · {site}",
+    "visitorUnverified": "Identité non vérifiée",
+    "source": {
+      "form": "Formulaire de contact",
+      "widget": "Chat du site"
+    },
+    "preview": {
+      "you": "Vous : {text}",
+      "deleted": "Message supprimé",
+      "note": "Note : {text}",
+      "empty": "Aucun message"
+    },
+    "status": {
+      "resolved": "Résolue",
+      "archived": "Archivée",
+      "muted": "En sourdine"
+    },
+    "unreadLabel": "{count, plural, one {# message non lu} other {# messages non lus}}",
+    "thread": {
+      "back": "Retour aux conversations",
+      "loadingOlder": "Chargement des messages précédents…",
+      "beginning": "C’est le début de la conversation.",
+      "today": "Aujourd’hui",
+      "yesterday": "Hier",
+      "label": "Messages avec {name}",
+      "newMessages": "Nouveaux messages",
+      "select": {
+        "title": "Choisissez une conversation",
+        "description": "Sélectionnez une conversation, ou écrivez à un membre de l’équipe."
+      },
+      "empty": {
+        "team": {
+          "title": "Dites bonjour à votre équipe",
+          "description": "Tous les membres de {org} peuvent lire et répondre ici."
+        },
+        "direct": {
+          "title": "Lancez la conversation",
+          "description": "Seuls vous et {name} pouvez lire ces messages."
+        },
+        "visitor": {
+          "title": "Aucun message",
+          "description": "Les messages de ce visiteur apparaissent ici."
+        }
+      }
+    },
+    "message": {
+      "you": "Vous",
+      "edited": "modifié",
+      "deleted": "Ce message a été supprimé.",
+      "sending": "Envoi…",
+      "failed": "Non envoyé.",
+      "retry": "Réessayer",
+      "reply": "Répondre",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "copy": "Copier le texte",
+      "copied": "Copié",
+      "actions": "Actions du message",
+      "note": "Note interne",
+      "visitor": "Visiteur",
+      "replyDeleted": "Message d’origine supprimé",
+      "at": "{name}, {time}"
+    },
+    "composer": {
+      "label": "Écrire un message",
+      "placeholder": {
+        "team": "Écrire à l’équipe",
+        "direct": "Écrire à {name}",
+        "visitor": "Ajouter une note interne (le visiteur ne la voit pas)"
+      },
+      "send": "Envoyer",
+      "save": "Enregistrer",
+      "hint": "Entrée pour envoyer · Maj+Entrée pour aller à la ligne",
+      "replyingTo": "Réponse à {name}",
+      "editing": "Modification de votre message",
+      "cancel": "Annuler",
+      "remaining": "{count, plural, one {# caractère restant} other {# caractères restants}}",
+      "readOnlyViewer": "Les lecteurs peuvent lire les messages des visiteurs. Demandez à un éditeur de répondre.",
+      "readOnlyFormer": "{name} ne fait plus partie de l’organisation. Cette conversation est en lecture seule."
+    },
+    "security": "Chiffré pendant le transfert et au repos. Seuls les membres de {org} peuvent lire ces messages.",
+    "actions": {
+      "menu": "Options de la conversation",
+      "mute": "Couper les notifications",
+      "unmute": "Réactiver les notifications",
+      "resolve": "Marquer comme résolue",
+      "reopen": "Rouvrir",
+      "archive": "Archiver",
+      "unarchive": "Restaurer",
+      "replyByEmail": "Répondre par e-mail",
+      "emailSubject": "Re : votre message à {site}",
+      "emailGreeting": "Bonjour {name},",
+      "noEmail": "Ce visiteur n’a pas laissé d’adresse e-mail."
+    },
+    "deleteDialog": {
+      "title": "Supprimer ce message ?",
+      "description": "Le texte est effacé pour tout le monde. Cette action est définitive.",
+      "confirm": "Supprimer",
+      "cancel": "Annuler"
+    },
+    "newDirect": {
+      "title": "Nouveau message",
+      "description": "Choisissez un membre de {org}.",
+      "search": "Rechercher un membre",
+      "empty": "Aucun autre membre pour l’instant. Invitez votre équipe depuis Équipe et accès.",
+      "noMatch": "Aucun membre ne correspond à votre recherche.",
+      "roles": {
+        "owner": "Propriétaire",
+        "admin": "Admin",
+        "editor": "Éditeur",
+        "viewer": "Lecteur"
+      }
+    },
+    "toasts": {
+      "resolved": "Marquée comme résolue",
+      "reopened": "Conversation rouverte",
+      "archived": "Conversation archivée",
+      "restored": "Conversation restaurée",
+      "muted": "Notifications coupées",
+      "unmuted": "Notifications réactivées"
+    },
+    "live": {
+      "live": "En direct",
+      "polling": "Actualisation automatique"
+    },
+    "navBadge": "{count, plural, one {# message non lu} other {# messages non lus}}"
   }
 }
