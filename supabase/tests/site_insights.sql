@@ -43,7 +43,7 @@ BEGIN
   PERFORM set_config('request.jwt.claims', json_build_object('sub', u_v, 'role', 'authenticated')::text, true);
   EXECUTE 'SET LOCAL ROLE authenticated';
   j := public.site_capabilities(ws_a);
-  r := r || (CASE WHEN (j->'counts'->>'submissions')::int = 2 AND (j->'counts'->>'services')::int = 1
+  r := r || (CASE WHEN (j->'counts'->>'submissions')::int = 2 AND (j->'counts'->>'services')::int = 1 AND (j->'counts'->>'project_requests')::int = 0
     AND j->'features' = '["contact_form", "newsletter"]'::jsonb
     AND EXISTS (SELECT 1 FROM jsonb_array_elements(j->'forms') f WHERE f->>'form_type' = 'volunteer_signup' AND (f->>'new')::int = 1)
     AND j->>'last_content_update' IS NOT NULL THEN 'PASS' ELSE 'FAIL ' || j::text END || ' capabilities: features, counts, detected forms');
@@ -59,7 +59,7 @@ BEGIN
   r := r || (CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END || ' viewer cannot change a status');
   j := public.site_overview_stats(ws_a, 30);
   r := r || (CASE WHEN (j->'newsletter'->>'total')::int = 1 AND (j->'submissions'->>'new')::int = 2
-    AND jsonb_array_length(j->'submissions'->'by_type') = 2 AND j ? 'payments' AND j ? 'traffic' THEN 'PASS' ELSE 'FAIL ' || j::text END || ' overview stats');
+    AND jsonb_array_length(j->'submissions'->'by_type') = 2 AND j->'payments' ? 'currencies' AND j ? 'traffic' AND j->'project_requests' = 'null'::jsonb THEN 'PASS' ELSE 'FAIL ' || j::text END || ' overview stats');
   j := public.site_recent_activity(ws_a, 10);
   r := r || (CASE WHEN jsonb_array_length(j) = 2 AND j->0->>'kind' = 'submission' THEN 'PASS' ELSE 'FAIL ' || j::text END || ' recent activity');
   EXECUTE 'RESET ROLE';

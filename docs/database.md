@@ -37,11 +37,11 @@ the schema from application code or by hand in the dashboard.
 | `20261024100100` | admin_review_access_request (explicit connect / create / reject, fix + archive empty org, audit; old `review_access_request` delegates and never creates an organization) | **Applied** (`admin_review_access_request`) |
 | `20261024100200` | team_invitation_emails (invitation columns, `private.organization_invitation_tokens`, create / resend / record / revoke / preview / accept RPCs, `accept_invitations` skips revoked) | **Applied** (`team_invitation_tokens`, `team_invitation_send`, `team_invitation_accept`) |
 | `20261024100300` | site_owner_claims (`private.website_owner_claims`, `private.website_activation_codes`, owner e-mail auto-link trigger + `claim_site_ownership`, staff code functions, `redeem_activation_code`) | **Applied** (`site_owner_claims_tables`, `site_owner_claims_autolink`, `site_owner_claims_staff`, `site_activation_redeem`) |
-| `20261024120000` | site_api_keys (per-site server keys, sha256 only, admin create/revoke; `site_audit_log`; see [site-api.md](./site-api.md)) | **Not applied yet** (validated in a rolled-back transaction) |
-| `20261024120100` | site_payments (`site_payments`, `site_payment_events`, `site_ingest_payment`, masked list / detail, admin export, summary) | **Not applied yet** (validated) |
-| `20261024120200` | site_analytics (`track_pageview`, daily counters, salted bloom filter for unique visitors, `site_analytics_summary`) | **Not applied yet** (validated) |
-| `20261024120250` | levelup_own_sources (features `project_requests`, `studio_insights`; project requests + LevelStudio aggregates for the owning organization) | **Not applied yet** (validated) |
-| `20261024120300` | site_insights (`site_capabilities`, `site_overview_stats`, `site_recent_activity`, `site_submissions_list`; custom form types; `archived` inbox status) | **Not applied yet** (validated) |
+| `20261024120000` | site_api_keys (per-site server keys, sha256 only, admin create/revoke; `site_audit_log`; see [site-api.md](./site-api.md)) | **Applied** (`site_audit_log`, `site_api_keys`) |
+| `20261024120100` | site_payments (`site_payments`, `site_payment_events`, `site_ingest_payment`, masked list / detail, admin export, summary) | **Applied** (`site_payments_tables`, `site_ingest_payment`, `site_payments_reads`) |
+| `20261024120200` | site_analytics (`track_pageview`, daily counters, salted bloom filter for unique visitors, `site_analytics_summary`) | **Applied** (`site_analytics_tables`, `site_analytics_track_summary`) |
+| `20261024120250` | levelup_own_sources (features `project_requests`, `studio_insights`; project requests + LevelStudio aggregates for the owning organization) | **Applied** (`levelup_own_sources`) |
+| `20261024120300` | site_insights (`site_capabilities`, `site_overview_stats`, `site_recent_activity`, `site_submissions_list`; custom form types; `archived` inbox status) | **Applied** (`custom_form_types`, `site_insights_reads`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -119,9 +119,14 @@ Contracts and rules: [site-api.md](./site-api.md). Tests:
 `supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
 `levelup_sources.sql`.
 
-To apply (in order): `supabase db push`, or the SQL editor / MCP
-`apply_migration` with each file of `20261024120000` → `20261024120300`, then run
-the four suites (they always roll back and must report `0 failed`).
+Applied through the MCP (names above). After any change, run the four suites
+(they always roll back and must report `0 failed`). Advisors after applying:
+*RLS enabled, no policy* on `private.analytics_salt`, `private.site_visitor_bloom`,
+`private.pageview_buckets` (closed to every API role, intentional); *SECURITY
+DEFINER executable* for `track_pageview`, `site_ingest_payment` (anon: they
+authenticate by origin / server key) and the `site_payments_*`,
+`site_project_requests_*`, `site_owned_*`, `site_studio_summary` readers
+(authenticated: each checks membership, role and MFA itself).
 
 ## Showcase CMS (showcase_cms)
 

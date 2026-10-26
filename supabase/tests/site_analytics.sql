@@ -50,7 +50,7 @@ BEGIN
   -- through the tag proxy: same proxy address, the visitor comes in x-lu-client-*
   PERFORM set_config('request.headers', '{"origin":"https://shop-a.example","user-agent":"node","x-forwarded-for":"10.9.9.9","x-lu-client-ip":"203.0.113.7","x-lu-client-ua":"Mozilla/5.0 (Macintosh) Safari/605"}', true);
   PERFORM public.track_pageview(ws_a, '/contact');
-    BEGIN SELECT count(*) INTO n FROM public.site_traffic_daily; r := r || 'FAIL anon reads traffic'::text;
+  BEGIN SELECT count(*) INTO n FROM public.site_traffic_daily; r := r || 'FAIL anon reads traffic'::text;
   EXCEPTION WHEN insufficient_privilege THEN r := r || 'PASS anon cannot read traffic'::text; END;
 
   -- rate limit: one bucket accepts 60 views per 5 minutes
