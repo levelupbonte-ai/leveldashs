@@ -45,6 +45,7 @@ the schema from application code or by hand in the dashboard.
 | `20261025100000` | chat_schema (`chat_conversations`, `chat_participants`, `chat_messages`, `chat_visitors`, RLS reads via `private.chat_can_read`, Realtime publication, Vault key + pgcrypto body encryption, feature `site_chat`; see [chat.md](./chat.md)) | **Applied** (`chat_tables`, `chat_access_rls`, `chat_encryption`, `chat_key_integer`; the live database also keeps an unused `private.chat_key(smallint)` from the first apply, safe to drop) |
 | `20261025100100` | chat_member_rpcs (`chat_list_conversations`, `chat_list_messages`, `chat_get_message`, `chat_list_members`, `chat_unread_total`, `chat_send_message`, `chat_edit_message`, `chat_delete_message`, `chat_mark_read`, `chat_set_muted`, `chat_open_direct`) | **Applied** (`chat_rpc_helpers`, `chat_rpc_reads`, `chat_rpc_writes`) |
 | `20261025100200` | chat_visitors (contact form trigger, public `send_site_message`, `chat_set_visitor_status`, `chat_visitor_contact`) | **Applied** (`chat_visitor_ingest`, `chat_visitor_rpcs`) |
+| `20261026100000` | platform_admin_aal2 (`private.is_platform_admin()` requires an aal2 session, so a staff password alone gives no cross-tenant access; `assert_platform_admin` keeps the aal2 message; drops unused grants on `ai_usage` and `organization_invitations`) | **Not applied yet** (MCP confirmation unanswered during the 2026-10-26 audit) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -53,6 +54,11 @@ timestamp; align the history once with `supabase migration list` /
 After applying, run the suites in [`supabase/tests`](../supabase/tests) in the SQL
 editor. They always roll back; the error message is the report and must show
 `0 failed`.
+`tenant_isolation.sql` is the cross-tenant suite (two organizations, two LevelStudio
+users, platform admins on aal1 / aal2): every table with `organization_id`, Storage,
+every member-facing RPC with another tenant's ids, anon, viewer masking. Run it after
+every migration that adds a table or a function. `tenant_foundation.sql` keeps the
+phase 1 role checks.
 
 ## Tenant model (tenant_foundation)
 
@@ -194,6 +200,7 @@ show in *Demandes de projet* on the same page.
 - `public.get_public_website(website_id)` — public config of an **active** website
   (name, domain, enabled features). Callable by `anon`.
 - Platform staff are listed in `platform_admins` (insert with the service role only).
+  `private.is_platform_admin()` is true only on an **aal2** session (`platform_admin_aal2`).
   Since `platform_admin_management`, `private.has_org_role()` grants them any role
   up to `admin` in every non-archived organization, so content, inbox, media and
   Storage policies apply to them without extra policies. Owner-only actions stay
