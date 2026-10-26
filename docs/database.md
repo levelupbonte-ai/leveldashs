@@ -46,6 +46,10 @@ the schema from application code or by hand in the dashboard.
 | `20261025100100` | chat_member_rpcs (`chat_list_conversations`, `chat_list_messages`, `chat_get_message`, `chat_list_members`, `chat_unread_total`, `chat_send_message`, `chat_edit_message`, `chat_delete_message`, `chat_mark_read`, `chat_set_muted`, `chat_open_direct`) | **Applied** (`chat_rpc_helpers`, `chat_rpc_reads`, `chat_rpc_writes`) |
 | `20261025100200` | chat_visitors (contact form trigger, public `send_site_message`, `chat_set_visitor_status`, `chat_visitor_contact`) | **Applied** (`chat_visitor_ingest`, `chat_visitor_rpcs`) |
 | `20261026100000` | platform_admin_aal2 (`private.is_platform_admin()` requires an aal2 session, so a staff password alone gives no cross-tenant access; `assert_platform_admin` keeps the aal2 message; drops unused grants on `ai_usage` and `organization_invitations`) | **Not applied yet** (MCP confirmation unanswered during the 2026-10-26 audit) |
+| `20261026110000` | billing_schema (`plans`, `organization_billing`, `discounts`, `discount_redemptions`, `billing_charges`, `plan_upgrade_requests`; staff-only read RLS, no client grants beyond SELECT; seed Free / Starter / Pro / Business, LevelUp's own organization on Business) | **Applied** (`billing_schema`) |
+| `20261026110100` | billing_functions (`private.plan_limit`, `assert_within_limit`, `effective_price`, `best_discount`; `billing_summary`, `redeem_discount_code`, `request_plan_upgrade`; staff `admin_*` billing functions, audited) | **Applied** (`billing_helpers`, `billing_client_functions`, `billing_staff_functions`; the later fixes to `admin_create_charge`, `admin_update_charge`, `admin_save_discount`, `admin_set_discount_active`, `admin_save_plan`, `admin_list_billing_orgs` were applied with `execute_sql`) |
+| `20261026110200` | billing_limits (seat limit in `create_organization_invitation` / `add_organization_member`, monthly plan allowance in `assistant_consume`) | **Applied with `execute_sql`** (the `apply_migration` call waited for a confirmation that never came; not in the migration history: `supabase migration repair --status applied 20261026110200`) |
+| `20261026110300` | billing_usage (`private.org_storage`, `public.billing_usage`: storage, media files, chat messages, assistant requests, team, websites this month) | **Applied with `execute_sql`** (same: repair `20261026110300`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -136,6 +140,53 @@ DEFINER executable* for `track_pageview`, `site_ingest_payment` (anon: they
 authenticate by origin / server key) and the `site_payments_*`,
 `site_project_requests_*`, `site_owned_*`, `site_studio_summary` readers
 (authenticated: each checks membership, role and MFA itself).
+
+## Billing, plans and limits (billing_*)
+
+LevelUp sets every price; clients see what they owe and pay outside the app (no
+online payment yet). Money is an integer in minor units (cents) with a lower-case
+ISO currency. Amounts are always computed by the database.
+
+| Table | Holds | Read | Write |
+|---|---|---|---|
+| `plans` | key, name, description, `price_monthly` (null = *price to be set by LevelUp*, never shown as a number; 0 = free), currency, `limits` jsonb (`team_members`, `assistant_requests_month`, `media_mb`, `websites`; null = unlimited), `features` (keys translated by `billing.features.*`), order, `active`, one `is_default` | staff (RLS); clients through `billing_summary` | `admin_save_plan` |
+| `organization_billing` | one row per organization: `plan_key`, `custom_price` (overrides the plan price), currency, `billing_note` (shown to the client's owners and admins), `next_due_date`, `status` (`active` / `trial` / `past_due` / `suspended`). No row = default plan | staff; clients through `billing_summary` | `admin_set_org_billing`, `admin_decide_upgrade_request` |
+| `discounts`, `discount_redemptions` | organization discounts (no code, apply at once, e.g. label *Partner*) and promo codes (apply once redeemed; single use per organization; `max_uses` counts organizations for codes and charges for organization discounts) | staff | `admin_save_discount`, `admin_set_discount_active`, `redeem_discount_code` |
+| `billing_charges` | what the client owes: label, kind (`setup` / `subscription` / `one_off`), `base_amount`, the discount applied (`discount_label`, `discount_amount`), `amount` (generated), due date, `due` / `paid` / `void` (`overdue` is reported for a due charge past its date) | staff; owners and admins through `billing_summary` | `admin_create_charge`, `admin_update_charge` (due only), `admin_void_charge`, `admin_mark_charge_paid` |
+| `plan_upgrade_requests` | plan changes asked from Billing (one pending per organization) | staff (`admin_list_upgrade_requests`) | `request_plan_upgrade`, `admin_decide_upgrade_request` |
+
+Rules:
+
+- **Who sees what.** `billing_summary(org)` answers every member (viewer and up) with the
+  plan, its limits, the usage meters and the plan catalog. Prices, discounts, charges,
+  the note, the due date and the total due (`money`) are returned to **owners and admins
+  only**: editors and viewers see their plan, not the money. The navigation lists Billing
+  for owners and admins; limit notices link every member to it.
+- **Discounts never stack.** A charge gets the single best discount in effect (largest
+  reduction) that applies to its kind and currency (`fixed` discounts only in their own
+  currency). Percent discounts round half up to the cent; a fixed discount never goes
+  past the charge. A subscription charge without an amount uses the organization's
+  monthly price and is refused while that price is not set (`price_not_set`).
+- **Promo codes** are redeemed by owners and admins (`redeem_discount_code`), 5 attempts
+  per organization and 10 per account per hour (failures count: the function answers
+  `invalid` / `already_redeemed` instead of raising).
+- **Limits.** `private.assert_within_limit(org, key, current, adding = 1)` raises
+  `plan_limit_reached` (errcode `PT402`, detail `{"key", "limit", "plan"}`), shown by the
+  dashboard as *Your plan allows N … Upgrade to do more.* Enforced in
+  `create_organization_invitation` and `add_organization_member` (members + live
+  invitations; re-inviting a pending address keeps its seat; accepting never checks) and
+  in `assistant_consume` (monthly requests, UTC month, on top of the 60 per day cap).
+  `media_mb` and `websites` are measured and shown but not enforced yet: websites are
+  created by LevelUp, and the media upload path belongs to the media library work (hook:
+  call `assert_within_limit(org, 'media_mb', used_mb, file_mb)` with
+  `private.org_storage(org)` before the upload, and switch `private.org_storage` to
+  `public.org_storage_usage` once it exists).
+- **Audit.** Every staff change and every client redemption or request writes
+  `hq_audit_log` (`billing.*`); discounts are logged on their organization (or with no
+  target type for a promo code), plans with the plan key as target id.
+
+Test: `supabase/tests/billing.sql` (67 checks). `team_invitations.sql` puts its test
+organization on an unlimited-seat plan so it keeps testing invitations only.
 
 ## Showcase CMS (showcase_cms)
 
