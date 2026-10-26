@@ -1,253 +1,92 @@
 'use client';
 
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTranslations } from 'next-intl';
+import { parseAsStringLiteral, useQueryStates } from 'nuqs';
+import { useEffect, useRef } from 'react';
 import { Icons } from '@/components/icons';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { createClient } from '@/lib/supabase/client';
-import { cleanLine, isWebOrigin } from '@/lib/validation/sanitize';
-import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { useFormatter, useTranslations } from 'next-intl';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { useSiteMutations } from '../api/mutations';
-import { integrationQueryOptions, siteKeys } from '../api/queries';
-import { useSiteScope } from './use-site-scope';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DeveloperActivityCard } from '@/features/api-keys/components/developer-activity';
 import { ServerKeysCard } from '@/features/api-keys/components/server-keys-card';
+import { useNow } from '@/features/insights/lib/use-now';
+import { createClient } from '@/lib/supabase/client';
+import { integrationQueryOptions } from '../api/queries';
+import { JavaScriptGuide, PaymentsGuide, QuickStart } from './developers/guides';
+import { DevelopersOverview, tagInstalled } from './developers/overview';
+import { useSiteScope } from './use-site-scope';
 
-export const TAG_URL = 'https://levelup-ecosystem.com/sdk/v1/levelup.js';
-const INSTALLED_WITHIN_MS = 7 * 24 * 3600 * 1000;
+export { TAG_URL } from './developers/snippets';
 
-function CodeBlock({ code }: { code: string }) {
-  const t = useTranslations('common');
-  const copy = async (text: string) => {
-    await navigator.clipboard.writeText(text);
-    toast.success(t('copied'));
-  };
-  return (
-    <div className='relative'>
-      <pre className='bg-muted overflow-x-auto rounded-md p-3 pr-12 text-xs'>
-        <code>{code}</code>
-      </pre>
-      <Button
-        size='icon'
-        variant='ghost'
-        className='absolute top-1.5 right-1.5 size-7'
-        aria-label={t('copy')}
-        onClick={() => copy(code)}
-      >
-        <Icons.copy className='size-3.5' />
-      </Button>
-    </div>
-  );
-}
+const TABS = ['quickstart', 'javascript', 'keys', 'payments', 'activity'] as const;
+type Tab = (typeof TABS)[number];
+const TAB_ICONS = {
+  quickstart: Icons.circleCheck,
+  javascript: Icons.code,
+  keys: Icons.key,
+  payments: Icons.creditCard,
+  activity: Icons.activity
+} satisfies Record<Tab, unknown>;
 
-const code = (chunks: React.ReactNode) => <code>{chunks}</code>;
-
+/**
+ * Developers page: overview (site ID, environment, tag status, domains) and
+ * guides in tabs. Everyone reads the docs; owners and admins also manage server
+ * keys and see the activity log (RLS returns nothing to the other roles).
+ */
 export function DevelopersPanel() {
   const scope = useSiteScope();
-  const queryClient = useQueryClient();
   const { data: site } = useSuspenseQuery(integrationQueryOptions(createClient(), scope.websiteId));
-  const { adminUpdateWebsite } = useSiteMutations(scope);
-  const [origins, setOrigins] = useState(site.allowed_origins.join('\n'));
-  const [originsError, setOriginsError] = useState<string | null>(null);
-  const tsv = useTranslations('site.validation');
-  const t = useTranslations('site.developers');
-  const format = useFormatter();
+  const [{ tab }, setParams] = useQueryStates(
+    { tab: parseAsStringLiteral(TABS).withDefault('quickstart') },
+    { shallow: true, history: 'replace' }
+  );
+  const t = useTranslations('site.developers.tabs');
+  const now = useNow();
+  const tabs = TABS.filter((k) => k !== 'activity' || scope.canAdmin);
+  const current: Tab = tabs.includes(tab) ? tab : 'quickstart';
+  const strip = useRef<HTMLDivElement>(null);
 
-  const snippet = `<script src="${TAG_URL}" data-site="${site.id}" defer></script>`;
-  const lastSeen = site.tag_last_seen_at ? new Date(site.tag_last_seen_at) : null;
-  const installed = !!lastSeen && Date.now() - lastSeen.getTime() < INSTALLED_WITHIN_MS;
+  // Phones: keep the selected tab visible in the scrollable strip.
+  useEffect(() => {
+    strip.current
+      ?.querySelector(`#dev-tab-${current}`)
+      ?.scrollIntoView({ block: 'nearest', inline: 'center' });
+  }, [current]);
 
   return (
-    <div className='grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_380px]'>
-      <div className='space-y-6'>
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('installTitle')}</CardTitle>
-            <CardDescription>
-              {t.rich('installDescription', { code: () => <code>&lt;/body&gt;</code> })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            <CodeBlock code={snippet} />
-            <p className='text-muted-foreground text-xs'>
-              {t.rich('siteId', { id: () => <code className='break-all'>{site.id}</code> })}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('formsTitle')}</CardTitle>
-            <CardDescription>{t.rich('formsDescription', { code })}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CodeBlock
-              code={`<form data-lu-form="contact">
-  <input name="name" required>
-  <input name="email" type="email" required>
-  <textarea name="message"></textarea>
-  <input name="_hp" style="display:none" tabindex="-1" autocomplete="off">
-  <button type="submit">Send</button>
-  <p data-lu-status></p>
-</form>`}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('contentTitle')}</CardTitle>
-            <CardDescription>{t.rich('contentDescription', { code })}</CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            <CodeBlock
-              code={`<span data-lu="settings.contact.address"></span>
-<img data-lu="settings.branding.logo_url" data-lu-attr="src" alt="Logo">
-<footer><span data-lu-badge></span></footer>
-
-<script>
-  // JavaScript API (optional)
-  LevelUp.ready.then((site) => console.log(site.services));
-  LevelUp.submitForm('quote', { name, email, message });
-</script>`}
-            />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('paymentsTitle')}</CardTitle>
-            <CardDescription>{t.rich('paymentsDescription', { code })}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CodeBlock
-              code={`// Server only (e.g. your Stripe webhook). Never in the browser.
-await fetch(\`\${SUPABASE_URL}/rest/v1/rpc/site_ingest_payment\`, {
-  method: 'POST',
-  headers: {
-    apikey: SUPABASE_PUBLISHABLE_KEY,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    p_key: process.env.LEVELUP_SITE_KEY,
-    p_event: {
-      provider: 'stripe',
-      provider_event_id: event.id,
-      provider_session_id: session.id,
-      provider_payment_intent: session.payment_intent ?? null,
-      status: 'paid',
-      amount: session.amount_total,
-      currency: session.currency,
-      offer_id: 'my-offer',
-      offer_name: 'My offer',
-      customer_email: session.customer_details?.email ?? null,
-      customer_name: session.customer_details?.name ?? null,
-      occurred_at: new Date(event.created * 1000).toISOString(),
-      metadata: {}
-    }
-  })
-});`}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className='space-y-6'>
-        <Card>
-          <CardHeader>
-            <CardTitle className='flex items-center gap-2'>
-              {t('statusTitle')}
-              {installed ? (
-                <Badge>{t('active')}</Badge>
-              ) : (
-                <Badge variant='secondary'>{t('notDetected')}</Badge>
-              )}
-            </CardTitle>
-            <CardDescription>
-              {lastSeen
-                ? t('lastSeen', {
-                    date: format.dateTime(lastSeen, { dateStyle: 'medium', timeStyle: 'short' }),
-                    origin: site.tag_last_seen_origin ?? '',
-                    version: site.tag_version ? ` (v${site.tag_version})` : ''
-                  })
-                : t('neverSeen')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() =>
-                queryClient.invalidateQueries({ queryKey: siteKeys.integration(scope.websiteId) })
-              }
-            >
-              <Icons.check className='mr-2 size-4' /> {t('check')}
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('originsTitle')}</CardTitle>
-            <CardDescription>
-              {t('originsDescription')}
-              {!scope.isPlatformAdmin && ` ${t('originsContact')}`}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className='space-y-3'>
-            {scope.isPlatformAdmin ? (
-              <>
-                <Textarea
-                  rows={4}
-                  className='font-mono text-xs'
-                  value={origins}
-                  maxLength={4000}
-                  aria-invalid={!!originsError}
-                  onChange={(e) => {
-                    setOrigins(e.target.value);
-                    setOriginsError(null);
-                  }}
-                  placeholder='https://example.com'
-                />
-                {originsError && <p className='text-destructive text-xs'>{originsError}</p>}
-                <Button
-                  size='sm'
-                  disabled={adminUpdateWebsite.isPending}
-                  onClick={() => {
-                    const list = origins
-                      .split(/[\s,]+/)
-                      .map((o) => cleanLine(o).replace(/\/$/, ''))
-                      .filter(Boolean);
-                    if (list.length > 50 || list.some((o) => !isWebOrigin(o))) {
-                      setOriginsError(tsv('origin'));
-                      return;
-                    }
-                    adminUpdateWebsite.mutate(
-                      { allowedOrigins: list },
-                      { onSuccess: () => toast.success(t('originsSaved')) }
-                    );
-                  }}
-                >
-                  {t('save')}
-                </Button>
-              </>
-            ) : site.allowed_origins.length ? (
-              <ul className='space-y-1 font-mono text-xs'>
-                {site.allowed_origins.map((o) => (
-                  <li key={o}>{o}</li>
-                ))}
-              </ul>
-            ) : (
-              <p className='text-muted-foreground text-sm'>{t('allOrigins')}</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <ServerKeysCard />
-      </div>
+    <div className='space-y-6'>
+      <DevelopersOverview site={site} />
+      <Tabs value={current} onValueChange={(value) => void setParams({ tab: value as Tab })}>
+        <div ref={strip} className='-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0'>
+          <TabsList variant='line' className='w-max min-w-full justify-start border-b sm:min-w-0'>
+            {tabs.map((key) => {
+              const Icon = TAB_ICONS[key];
+              return (
+                <TabsTrigger key={key} id={`dev-tab-${key}`} value={key} className='flex-none px-3'>
+                  <Icon className='size-4' aria-hidden />
+                  {t(key)}
+                </TabsTrigger>
+              );
+            })}
+          </TabsList>
+        </div>
+        <TabsContent value='quickstart' className='pt-4'>
+          <QuickStart site={site} installed={tagInstalled(site, now)} />
+        </TabsContent>
+        <TabsContent value='javascript' className='pt-4'>
+          <JavaScriptGuide />
+        </TabsContent>
+        <TabsContent value='keys' className='pt-4'>
+          <ServerKeysCard />
+        </TabsContent>
+        <TabsContent value='payments' className='pt-4'>
+          <PaymentsGuide />
+        </TabsContent>
+        {scope.canAdmin && (
+          <TabsContent value='activity' className='pt-4'>
+            <DeveloperActivityCard />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 }

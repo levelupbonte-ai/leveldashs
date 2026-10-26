@@ -5,6 +5,8 @@ import { Fragment } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { PlanLimitNotice } from '@/features/billing/components/plan-limit-notice';
+import { PlanLimitError, parsePlanLimit } from '@/lib/plan-limit';
 
 /** **bold** only: the summary is short Markdown from our own prompt. */
 function inline(text: string) {
@@ -59,7 +61,13 @@ export function WeeklySummaryCard() {
         headers: { 'Content-Type': 'application/json' },
         body: '{}'
       });
-      const body = (await res.json().catch(() => ({}))) as { summary?: string; error?: string };
+      const body = (await res.json().catch(() => ({}))) as {
+        summary?: string;
+        error?: string;
+        limit?: unknown;
+      };
+      const limit = body.error === 'plan_limit' ? parsePlanLimit(body.limit) : null;
+      if (limit) throw new PlanLimitError(limit);
       if (!res.ok || !body.summary) throw new Error(body.error ?? 'unavailable');
       return body.summary;
     }
@@ -90,6 +98,8 @@ export function WeeklySummaryCard() {
         <CardContent aria-live='polite'>
           {summary.data ? (
             <SummaryText text={summary.data} />
+          ) : summary.error instanceof PlanLimitError ? (
+            <PlanLimitNotice info={summary.error.info} />
           ) : (
             <p className='text-muted-foreground text-sm'>
               {summary.error?.message === 'limit' ? t('limit') : t('unavailable')}

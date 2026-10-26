@@ -1,12 +1,14 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query';
 import type { CollectionDef } from '../config/collections';
+import type { MediaCursor, MediaFilters } from './types';
 import {
   getSeoSettings,
   getWebsiteIntegration,
   listAppointments,
   listCollection,
   listContentBlocks,
+  getMediaStats,
   listMedia,
   listSettings,
   listWaitlist,
@@ -63,12 +65,25 @@ export const waitlistQueryOptions = (db: SupabaseClient, websiteId: string) =>
     refetchInterval: 30 * 1000
   });
 
-export const mediaQueryOptions = (db: SupabaseClient, websiteId: string) =>
+export const mediaKeys = {
+  all: (websiteId: string) => siteKeys.media(websiteId),
+  list: (websiteId: string, filters: MediaFilters) =>
+    [...siteKeys.media(websiteId), 'list', filters] as const,
+  stats: (websiteId: string) => [...siteKeys.media(websiteId), 'stats'] as const
+};
+
+export const mediaQueryOptions = (db: SupabaseClient, websiteId: string, filters: MediaFilters) =>
   infiniteQueryOptions({
-    queryKey: siteKeys.media(websiteId),
-    queryFn: ({ pageParam }) => listMedia(db, websiteId, pageParam),
-    initialPageParam: 0,
-    getNextPageParam: nextPage
+    queryKey: mediaKeys.list(websiteId, filters),
+    queryFn: ({ pageParam }) => listMedia(db, websiteId, filters, pageParam),
+    initialPageParam: null as MediaCursor | null,
+    getNextPageParam: (last) => last.next ?? undefined
+  });
+
+export const mediaStatsQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: mediaKeys.stats(websiteId),
+    queryFn: () => getMediaStats(db, websiteId)
   });
 
 export const settingsQueryOptions = (db: SupabaseClient, websiteId: string) =>

@@ -83,6 +83,15 @@ pages server-side: `SitePage` / `loadSitePage(feature)` show an "unavailable" st
 the feature is off, and the content collections in `src/features/site/config/collections.ts`
 declare their own `feature`.
 
+## Billing
+
+*Account → Billing* (`/dashboard/billing`) has `role: 'admin'`: owners and admins (and
+LevelUp staff) see it in the sidebar, the user menu and Cmd+K. Editors and viewers can
+still open the page (limit notices link to it): the database returns them the plan,
+limits and usage only, never prices, charges or discounts (`billing_summary`, see
+[database.md](./database.md)). Staff billing screens are in the server-built staff menu:
+*Billing*, *Plans*, *Discounts & codes* under `/dashboard/exclusive/billing`.
+
 ## Contract gate
 
 While `session.access.state` is not `active` (required contract to sign, blocking setup

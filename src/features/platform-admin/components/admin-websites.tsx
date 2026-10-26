@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState, useTransition } from 'react';
 import { allWebsitesQueryOptions } from '../api/queries';
+import { OrgBillingSheet } from './billing/org-billing-sheet';
 import { SiteAccessDialog } from './site-access-dialog';
 
 /** LevelUp staff: every client website, one click to manage it. */
@@ -28,6 +29,7 @@ export function AdminWebsites() {
   const [pending, startTransition] = useTransition();
   const [q, setQ] = useState('');
   const [accessFor, setAccessFor] = useState<string | null>(null);
+  const [billingFor, setBillingFor] = useState<string | null>(null);
   const rows = useMemo(() => {
     const s = q.trim().toLowerCase();
     return s
@@ -87,6 +89,13 @@ export function AdminWebsites() {
                   <Button
                     size='sm'
                     variant='outline'
+                    onClick={() => setBillingFor(w.organizationId)}
+                  >
+                    {t('billing')}
+                  </Button>
+                  <Button
+                    size='sm'
+                    variant='outline'
                     disabled={pending}
                     onClick={() =>
                       startTransition(async () => {
@@ -105,6 +114,10 @@ export function AdminWebsites() {
         </Table>
       </div>
       <SiteAccessDialog websiteId={accessFor} onOpenChange={(v) => !v && setAccessFor(null)} />
+      <OrgBillingSheet
+        organizationId={billingFor}
+        onOpenChange={(v) => !v && setBillingFor(null)}
+      />
     </div>
   );
 }

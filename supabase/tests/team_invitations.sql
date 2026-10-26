@@ -22,6 +22,9 @@ BEGIN
     (u_n, 'unconfirmed@zz-inv.test', 'authenticated', 'authenticated', NULL);
   INSERT INTO public.organizations (name, slug) VALUES ('Zz Invite Org', 'zz-inv-a') RETURNING id INTO org_a;
   INSERT INTO public.organization_members VALUES (org_a, u_o, 'owner'), (org_a, u_e, 'editor');
+  -- These cases test invitations, not the plan seat limit (covered by billing.sql).
+  UPDATE public.plans SET limits = limits || '{"team_members": null}' WHERE key = 'business';
+  INSERT INTO public.organization_billing (organization_id, plan_key) VALUES (org_a, 'business');
 
   results := results || (CASE WHEN private.sha256_hex('abc') = 'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'
     THEN 'PASS' ELSE 'FAIL' END || ' sha256_hex matches the dashboard (known vector)');

@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import type { OrgRole } from '@/lib/auth/types';
 import { dbErrorCode, responseErrorCode } from '@/lib/access/db-errors';
 import { AppError, isMfaError } from '@/lib/errors';
+import { PlanLimitError, parsePlanLimit } from '@/lib/plan-limit';
 import type { OrgMember } from './types';
 
 export async function listMembers(
@@ -134,8 +135,15 @@ async function postInvitation(path: string, body: unknown): Promise<InviteResult
   }).catch((cause) => {
     throw new AppError('network', { cause });
   });
-  const json = (await res.json().catch(() => ({}))) as Partial<InviteResult> & { error?: string };
-  if (!res.ok || !json.invitationId) throw new AppError(responseErrorCode(json.error));
+  const json = (await res.json().catch(() => ({}))) as Partial<InviteResult> & {
+    error?: string;
+    limit?: unknown;
+  };
+  if (!res.ok || !json.invitationId) {
+    const limit = parsePlanLimit(json.limit);
+    if (limit) throw new PlanLimitError(limit);
+    throw new AppError(responseErrorCode(json.error));
+  }
   return json as InviteResult;
 }
 

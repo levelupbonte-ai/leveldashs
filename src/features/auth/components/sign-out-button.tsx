@@ -1,32 +1,21 @@
 'use client';
-import { useFormStatus } from 'react-dom';
-import { Icons } from '@/components/icons';
-import { LoadingButton } from '@/components/ui/loading-button';
 import { useTranslations } from 'next-intl';
-import { signOut } from '@/lib/auth/actions';
+import { useState } from 'react';
+import { Icons } from '@/components/icons';
+import { Button } from '@/components/ui/button';
+import { SignOutDialog } from './sign-out-dialog';
 
-function Submit({ className }: { className?: string }) {
-  const { pending } = useFormStatus();
-  const t = useTranslations('auth.signOut');
-  return (
-    <LoadingButton
-      type='submit'
-      variant='ghost'
-      loading={pending}
-      loadingLabel={t('loading')}
-      className={className}
-    >
-      <Icons.logout className='size-4' aria-hidden />
-      {t('label')}
-    </LoadingButton>
-  );
-}
-
-/** "Sign out": signs out of Supabase (server action), then the sign-in page. */
+/** "Sign out": asks for confirmation, then signs out (server action) to the sign-in page. */
 export function SignOutButton({ className }: { className?: string }) {
+  const t = useTranslations('auth.signOut');
+  const [open, setOpen] = useState(false);
   return (
-    <form action={signOut} className='w-full'>
-      <Submit className={className} />
-    </form>
+    <>
+      <Button type='button' variant='ghost' className={className} onClick={() => setOpen(true)}>
+        <Icons.logout className='size-4' aria-hidden />
+        {t('label')}
+      </Button>
+      <SignOutDialog open={open} onOpenChange={setOpen} />
+    </>
   );
 }

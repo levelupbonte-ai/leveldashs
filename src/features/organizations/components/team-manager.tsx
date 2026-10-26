@@ -20,6 +20,8 @@ import { useFields } from '@/lib/validation/use-fields';
 import { MfaStepNotice } from '@/components/mfa-step-notice';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { errorCode } from '@/lib/errors';
+import { PlanLimitError, type PlanLimitInfo } from '@/lib/plan-limit';
+import { PlanLimitNotice } from '@/features/billing/components/plan-limit-notice';
 import { invitationsQueryOptions, membersQueryOptions, orgKeys } from '../api/queries';
 import {
   inviteMember,
@@ -40,8 +42,11 @@ export function TeamManager() {
   const errorMessage = useErrorMessage();
   // The database asked for two-step verification first: calm notice, not an error.
   const [mfaBlocked, setMfaBlocked] = useState(false);
+  // The plan's seats are all used: upgrade notice with a link to Billing.
+  const [planLimit, setPlanLimit] = useState<PlanLimitInfo | null>(null);
   const onError = (e: unknown) => {
-    if (errorCode(e) === 'mfaRequired') setMfaBlocked(true);
+    if (e instanceof PlanLimitError) setPlanLimit(e.info);
+    else if (errorCode(e) === 'mfaRequired') setMfaBlocked(true);
     else toast.error(errorMessage(e));
   };
   const f = useFields();
@@ -140,6 +145,7 @@ export function TeamManager() {
   return (
     <div className='grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]'>
       {mfaBlocked && <MfaStepNotice className='lg:col-span-2' />}
+      {planLimit && <PlanLimitNotice info={planLimit} className='lg:col-span-2' />}
       <Card>
         <CardHeader>
           <CardTitle>{t('members', { count: members.length })}</CardTitle>

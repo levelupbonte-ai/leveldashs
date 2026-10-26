@@ -3,6 +3,7 @@ import { getLocale } from 'next-intl/server';
 import { z } from 'zod';
 import { dbErrorCode, ERROR_STATUS } from '@/lib/access/db-errors';
 import { sendInvitationEmail, type InvitationPayload } from '@/lib/email/access-emails';
+import { planLimitFromDb } from '@/lib/plan-limit';
 import { createClient } from '@/lib/supabase/server';
 import { fields } from '@/lib/validation/fields';
 import { readJsonBody } from '@/lib/validation/http';
@@ -31,7 +32,11 @@ export async function POST(request: NextRequest) {
   if (error) {
     const code = dbErrorCode(error, 'inviteFailed');
     console.error('create_organization_invitation failed', error.code, code);
-    return NextResponse.json({ error: code }, { status: ERROR_STATUS[code] ?? 400 });
+    // Plan seat limit: the UI says how many seats the plan allows (key + limit only).
+    const limit = planLimitFromDb(error);
+    return NextResponse.json(limit ? { error: code, limit } : { error: code }, {
+      status: ERROR_STATUS[code] ?? 400
+    });
   }
   const payload = data as InvitationPayload;
   const sent = await sendInvitationEmail(payload, await getLocale());

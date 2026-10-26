@@ -14,6 +14,7 @@ import {
   saveSetting,
   updateAppointment,
   updateCollectionItem,
+  updateMediaAlt,
   updateContentBlock,
   updateSubmission,
   updateWaitlistEntry,
@@ -94,7 +95,13 @@ export function useSiteMutations(scope: SiteScope) {
       ...common
     }),
     deleteMedia: useMutation({
-      mutationFn: (item: Pick<MediaItem, 'id' | 'storage_path'>) => deleteMedia(db, item),
+      mutationFn: (item: Pick<MediaItem, 'id' | 'storage_path' | 'thumb_path'>) =>
+        deleteMedia(db, item),
+      ...common
+    }),
+    updateMediaAlt: useMutation({
+      mutationFn: ({ id, altText }: { id: string; altText: string }) =>
+        updateMediaAlt(db, id, altText),
       ...common
     }),
     saveSetting: useMutation({

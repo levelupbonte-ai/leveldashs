@@ -1,5 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { assertFileSignature } from '@/lib/file-signature';
+import { optimizeImage } from '@/lib/media/optimize-image';
+import {
+  MEDIA_CACHE_SECONDS,
+  mediaObjectPath,
+  storedFileName,
+  thumbPathFor
+} from '@/lib/media/paths';
+import { rpc } from '@/lib/supabase/rpc-error';
 import { AppError, isMfaError } from '@/lib/errors';
 import { fields } from '@/lib/validation/fields';
 import type { CollectionDef } from '../config/collections';
@@ -18,7 +26,11 @@ import type {
   ContentBlock,
   ContentRow,
   FormSubmission,
+  MediaCursor,
+  MediaFilters,
   MediaItem,
+  MediaPage,
+  MediaStats,
   SiteOverview,
   SeoSettings,
   SubmissionStatus,
@@ -245,7 +257,11 @@ export async function updateSubmission(
 // ---------------------------------------------------------------- media
 
 const MEDIA_BUCKET = 'media';
+/** Stored file limit (the `media` bucket's file_size_limit). */
 export const MEDIA_MAX_BYTES = 10 * 1024 * 1024;
+/** Picked image before optimization (resized and re-encoded in the browser). */
+export const MEDIA_IMAGE_INPUT_MAX_BYTES = 30 * 1024 * 1024;
+export const MEDIA_PAGE_SIZE = 48;
 export const MEDIA_TYPES: Record<string, string> = {
   'image/jpeg': 'jpg',
   'image/png': 'png',
@@ -256,48 +272,103 @@ export const MEDIA_TYPES: Record<string, string> = {
   'video/mp4': 'mp4',
   'video/webm': 'webm'
 };
+const MEDIA_COLUMNS =
+  'id, storage_path, thumb_path, filename, mime_type, size_bytes, width, height, alt_text, created_at, created_by';
 
+type MediaRow = Omit<MediaItem, 'url' | 'thumbUrl'>;
+
+function withUrls(db: SupabaseClient, row: MediaRow): MediaItem {
+  const bucket = db.storage.from(MEDIA_BUCKET);
+  const url = bucket.getPublicUrl(row.storage_path).data.publicUrl;
+  return {
+    ...row,
+    url,
+    thumbUrl: row.thumb_path ? bucket.getPublicUrl(row.thumb_path).data.publicUrl : url
+  };
+}
+
+/** One page of the library (newest first), from the media index: never lists the bucket. */
 export async function listMedia(
   db: SupabaseClient,
   websiteId: string,
-  page = 0
-): Promise<MediaItem[]> {
-  const { data, error } = await db
-    .from('media')
-    .select('id, storage_path, filename, mime_type, size_bytes, alt_text, created_at')
-    .eq('website_id', websiteId)
-    .order('created_at', { ascending: false })
-    .range(...pageRange(page));
-  if (error) fail(error);
-  return (data ?? []).map((m) => ({
-    ...m,
-    url: db.storage.from(MEDIA_BUCKET).getPublicUrl(m.storage_path).data.publicUrl
-  })) as MediaItem[];
+  filters: MediaFilters,
+  cursor: MediaCursor | null
+): Promise<MediaPage> {
+  const page = await rpc<{ rows: MediaRow[]; next: MediaCursor | null }>(
+    db.rpc('media_list', {
+      p_website_id: websiteId,
+      p_kind: filters.kind,
+      p_search: filters.search,
+      p_before_created_at: cursor?.created_at ?? null,
+      p_before_id: cursor?.id ?? null,
+      p_limit: MEDIA_PAGE_SIZE
+    })
+  );
+  return { rows: page.rows.map((row) => withUrls(db, row)), next: page.next };
 }
 
+export async function getMediaStats(db: SupabaseClient, websiteId: string): Promise<MediaStats> {
+  return rpc<MediaStats>(db.rpc('media_library_stats', { p_website_id: websiteId }));
+}
+
+/**
+ * Uploads a file to org/<org>/site/<site>/<yyyy>/<mm>/<uuid>.<ext> with a one-year
+ * cache, then registers it in the media index. Images are resized, converted to
+ * WebP and stripped of their metadata in the browser first, with a WebP thumbnail.
+ */
 export async function uploadMedia(
   db: SupabaseClient,
   scope: SiteScope,
   file: File,
   altText?: string
 ): Promise<MediaItem> {
-  const ext = MEDIA_TYPES[file.type];
-  if (!ext) throw new AppError('mediaFormat');
-  if (file.size > MEDIA_MAX_BYTES) throw new AppError('mediaTooLarge');
+  if (!MEDIA_TYPES[file.type]) throw new AppError('mediaFormat');
+  const isImage = file.type.startsWith('image/');
+  if (file.size > (isImage ? MEDIA_IMAGE_INPUT_MAX_BYTES : MEDIA_MAX_BYTES)) {
+    throw new AppError(isImage ? 'mediaImageTooLarge' : 'mediaTooLarge');
+  }
   // The content must really be the declared format (a renamed HTML/SVG is refused).
   await assertFileSignature(file, Object.keys(MEDIA_TYPES), 'mediaFormat');
+
+  let body: Blob = file;
+  let type = file.type;
+  let size: { width: number; height: number } | null = null;
+  let thumb: Blob | null = null;
+  if (isImage) {
+    const optimized = await optimizeImage(file);
+    body = optimized.blob;
+    type = optimized.type;
+    size = { width: optimized.width, height: optimized.height };
+    thumb = optimized.thumb;
+  }
+  const ext = MEDIA_TYPES[type];
+  if (!ext) throw new AppError('mediaFormat');
+  if (body.size > MEDIA_MAX_BYTES) throw new AppError('mediaTooLarge');
 
   const {
     data: { user }
   } = await db.auth.getUser();
   if (!user) throw new AppError('sessionExpired');
 
-  const path = `${scope.organizationId}/${scope.websiteId}/${crypto.randomUUID()}.${ext}`;
-  const upload = await db.storage
-    .from(MEDIA_BUCKET)
-    .upload(path, file, { contentType: file.type, cacheControl: '31536000', upsert: false });
-  if (upload.error) {
-    throw new AppError('uploadForbidden', { cause: upload.error });
+  const bucket = db.storage.from(MEDIA_BUCKET);
+  const path = mediaObjectPath(scope.organizationId, scope.websiteId, crypto.randomUUID(), ext);
+  const upload = await bucket.upload(path, body, {
+    contentType: type,
+    cacheControl: MEDIA_CACHE_SECONDS,
+    upsert: false
+  });
+  if (upload.error) throw new AppError('uploadForbidden', { cause: upload.error });
+
+  let thumbPath: string | null = null;
+  if (thumb) {
+    const candidate = thumbPathFor(path);
+    const thumbUpload = await bucket.upload(candidate, thumb, {
+      contentType: 'image/webp',
+      cacheControl: MEDIA_CACHE_SECONDS,
+      upsert: false
+    });
+    // A missing thumbnail is not fatal: the grid shows the file itself.
+    if (!thumbUpload.error) thumbPath = candidate;
   }
 
   const { data, error } = await db
@@ -307,29 +378,39 @@ export async function uploadMedia(
       website_id: scope.websiteId,
       bucket: MEDIA_BUCKET,
       storage_path: path,
-      filename: safeFileName(file.name, `upload.${ext}`, 200),
-      mime_type: file.type,
-      size_bytes: file.size,
+      thumb_path: thumbPath,
+      filename: safeFileName(storedFileName(file.name, ext), `upload.${ext}`, 200),
+      // Size and type are re-read from Storage by the database.
+      mime_type: type,
+      size_bytes: body.size,
+      width: size?.width ?? null,
+      height: size?.height ?? null,
       alt_text: cleanLine(altText ?? '').slice(0, 500) || null,
       created_by: user.id
     })
-    .select('id, storage_path, filename, mime_type, size_bytes, alt_text, created_at')
+    .select(MEDIA_COLUMNS)
     .single();
   if (error) {
-    await db.storage.from(MEDIA_BUCKET).remove([path]);
+    await bucket.remove(thumbPath ? [path, thumbPath] : [path]);
     fail(error);
   }
-  return {
-    ...data,
-    url: db.storage.from(MEDIA_BUCKET).getPublicUrl(path).data.publicUrl
-  } as MediaItem;
+  return withUrls(db, data as MediaRow);
+}
+
+export async function updateMediaAlt(db: SupabaseClient, id: string, altText: string) {
+  const { error } = await db
+    .from('media')
+    .update({ alt_text: cleanLine(altText).slice(0, 500) || null })
+    .eq('id', id);
+  if (error) fail(error);
 }
 
 export async function deleteMedia(
   db: SupabaseClient,
-  item: Pick<MediaItem, 'id' | 'storage_path'>
+  item: Pick<MediaItem, 'id' | 'storage_path' | 'thumb_path'>
 ) {
-  const removed = await db.storage.from(MEDIA_BUCKET).remove([item.storage_path]);
+  const paths = item.thumb_path ? [item.storage_path, item.thumb_path] : [item.storage_path];
+  const removed = await db.storage.from(MEDIA_BUCKET).remove(paths);
   if (removed.error) throw new AppError('deleteFailed', { cause: removed.error });
   const { error } = await db.from('media').delete().eq('id', item.id);
   if (error) fail(error);

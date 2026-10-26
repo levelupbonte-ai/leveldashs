@@ -21,6 +21,15 @@ A server key is a **server secret**: put it in the website's server environment
 (`LEVELUP_SITE_KEY`, e.g. Vercel → Settings → Environment Variables), never in
 browser code, a `NEXT_PUBLIC_*` variable or the repository.
 
+The dashboard's **Developers** page (`/dashboard/site/developers`) shows the site ID,
+environment, tag status and allowed domains, then tabs: Quick start, Forms & JavaScript,
+Server keys (owners / admins: table, create shown once with an “I've stored it safely”
+confirmation, revoke with confirmation), Payments (the exact endpoint, labelled
+“LevelUp API endpoint”, the public key, the contract and a webhook example) and Activity
+(owners / admins: `site_audit_log` + the latest `site_payment_events`). Client-facing
+text never names the hosting or database providers; the samples use
+`LEVELUP_API_URL` / `LEVELUP_PUBLIC_KEY` / `LEVELUP_SITE_KEY`.
+
 ## Payments: `site_ingest_payment`
 
 Call it from the website's **server** (typically its Stripe webhook, after the

@@ -65,15 +65,49 @@ export type SubmissionStatus =
   | 'archived'
   | 'spam';
 
+export type MediaKind = 'image' | 'video' | 'document';
+
 export interface MediaItem {
   id: string;
   storage_path: string;
+  thumb_path: string | null;
   filename: string;
   mime_type: string;
   size_bytes: number;
+  width: number | null;
+  height: number | null;
   alt_text: string | null;
   created_at: string;
+  created_by: string | null;
+  /** Public URL of the file. */
   url: string;
+  /** Small WebP for the library grid (falls back to the file itself). */
+  thumbUrl: string;
+}
+
+/** Position after the last row of a page (newest first). */
+export interface MediaCursor {
+  created_at: string;
+  id: string;
+}
+
+export interface MediaPage {
+  rows: MediaItem[];
+  next: MediaCursor | null;
+}
+
+export interface MediaFilters {
+  kind: MediaKind | null;
+  search: string | null;
+}
+
+/** media_library_stats: totals of one website (bytes include thumbnails). */
+export interface MediaStats {
+  files: number;
+  bytes: number;
+  images: number;
+  videos: number;
+  documents: number;
 }
 
 export interface WebsiteSetting {

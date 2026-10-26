@@ -58,7 +58,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 - Row Level Security enforces every read/write; the app only uses the publishable key and queries as the signed-in user
 - LevelUp platform admins (`platform_admins`) act with up to `admin` rights in every organization
 - Client-side RBAC for navigation visibility (UX only)
-- Billing is handled by LevelUp outside the app (static `/dashboard/billing` page)
+- Billing: plans with limits, discounts and charges set by LevelUp; clients see their plan, usage and what they owe on `/dashboard/billing` and pay outside the app for now (see `docs/database.md` → Billing)
 
 ### Data & APIs
 
@@ -91,7 +91,7 @@ The project follows a feature-based folder structure. The UI is in English by de
 │   │   │                  #   requests (forms inbox), [collection], appointments, waitlist, media, seo, developers, settings
 │   │   ├── chat/          # Messages: team, direct and website visitors (docs/chat.md)
 │   │   ├── workspaces/    # Organizations (list/create) + team/ (members & roles)
-│   │   ├── billing/       # Static "billing handled by LevelUp" page
+│   │   ├── billing/       # Plan, limits, usage, what you owe, plan requests, promo code
 │   │   ├── exclusive/     # LevelUp admin "Tous les clients" (platform admins only)
 │   │   └── profile/       # User profile & password
 │   ├── api/               # API routes (if any)
