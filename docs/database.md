@@ -50,6 +50,7 @@ the schema from application code or by hand in the dashboard.
 | `20261026110100` | billing_functions (`private.plan_limit`, `assert_within_limit`, `effective_price`, `best_discount`; `billing_summary`, `redeem_discount_code`, `request_plan_upgrade`; staff `admin_*` billing functions, audited) | **Applied** (`billing_helpers`, `billing_client_functions`, `billing_staff_functions`; the later fixes to `admin_create_charge`, `admin_update_charge`, `admin_save_discount`, `admin_set_discount_active`, `admin_save_plan`, `admin_list_billing_orgs` were applied with `execute_sql`) |
 | `20261026110200` | billing_limits (seat limit in `create_organization_invitation` / `add_organization_member`, monthly plan allowance in `assistant_consume`) | **Applied with `execute_sql`** (the `apply_migration` call waited for a confirmation that never came; not in the migration history: `supabase migration repair --status applied 20261026110200`) |
 | `20261026110300` | billing_usage (`private.org_storage`, `public.billing_usage`: storage, media files, chat messages, assistant requests, team, websites this month) | **Applied with `execute_sql`** (same: repair `20261026110300`) |
+| `20261026120000` | media_storage (object layout `org/<org>/site/<site>/<yyyy>/<mm>/<uuid>.<ext>`, immutable objects, trusted `media` index with thumbnails, `media_list`, `media_library_stats`, `org_storage_usage`; see *Media storage* below) | **Pending**: written and dry-run tested (suite `media_storage.sql`, 47/47, rolled back). Apply with `apply_migration` (`media_storage`); it drops and replaces the legacy `media_check` constraint |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -73,7 +74,7 @@ auth.users ─1:1─ profiles
             role: owner|admin|editor|viewer          │
                                                      ├─< website_features >─ features (catalog)
                                                      └─< media  → Storage bucket "media"
-                                                                  <organization_id>/<website_id>/<file>
+                                                                  org/<organization_id>/site/<website_id>/<yyyy>/<mm>/<uuid>.<ext>
 ```
 
 - Every tenant-owned row carries `organization_id` (and `website_id` when it belongs
@@ -130,7 +131,7 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 
 Contracts and rules: [site-api.md](./site-api.md). Tests:
 `supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
-`levelup_sources.sql`.
+`levelup_sources.sql`, `media_storage.sql`.
 
 Applied through the MCP (names above). After any change, run the four suites
 (they always roll back and must report `0 failed`). Advisors after applying:
@@ -266,7 +267,7 @@ until ownership is transferred.
 |---|---|---|---|---|
 | `brand` (public) | avatars, organization logos | 2 MB | `image/png`, `image/jpeg`, `image/webp` | `avatars/<user id>/`, `orgs/<org id>/` |
 | `contracts` (private) | signed contract PDFs | 5 MB | `application/pdf` | `<organization id>/<contract id>.pdf` (members read, owners/admins insert once signed, no update/delete) |
-| `media` (public) | website media library | 10 MB | jpeg, png, webp, gif, avif, pdf, mp4, webm | `<organization id>/<website id>/` (editor+) |
+| `media` (public) | website media library | 10 MB | jpeg, png, webp, gif, avif, pdf, mp4, webm | `org/<org id>/site/<website id>/<yyyy>/<mm>/<uuid>.<ext>` (editor+ upload, members list) |
 
 The bucket limits are enforced by Supabase Storage for every client. The dashboard checks
 the same rules before uploading (`src/lib/brand-images.ts`, `uploadMedia` in
@@ -276,6 +277,62 @@ the declared one, so a renamed HTML or SVG file is refused. **SVG is never accep
 (it can carry scripts; there is no sanitizer). Brand images are re-encoded to a 512 px
 WebP in the browser (any picked PNG/JPEG/WebP up to 8 MB, stored file ≤ 2 MB). There is
 no upload route handler: files go straight to Storage as the signed-in user.
+
+## Media storage (media_storage)
+
+Built for thousands of files per website and many websites per organization.
+
+**Layout and rights (storage policies).**
+
+- New objects: `org/<organization id>/site/<website id>/<yyyy>/<mm>/<uuid>.<ext>` and the
+  thumbnail `…/<uuid>_thumb.webp` (`private.media_path_ok`: lowercase UUIDs, month 01–12,
+  extension in the allow-list, no traversal, no double extension).
+- Upload (`media_objects_insert`): `private.can_upload_media_path` — new layout only, the
+  website belongs to the organization in the path and is not archived, caller is
+  **editor or above** (platform admins as admin). The contract gate (restrictive policies)
+  reads the organization from both layouts (`private.media_object_org`).
+- List / read through the API and delete: members of that organization
+  (`private.can_access_media_path`, viewer to list, editor to delete), both layouts.
+  Files uploaded before this migration keep `<org>/<site>/<file>` and stay readable and
+  deletable; nothing new is written there.
+- **Immutable objects**: the update policy is `false` (no overwrite, no move). Every
+  upload gets a new name, so the dashboard sends `Cache-Control: max-age=31536000` and
+  the CDN can keep files for a year.
+- The bucket is **public** (published site images are linked from public pages): a file
+  is readable by anyone who has its URL (UUID names, not guessable), but nobody can
+  list another organization's files, and the `contracts` bucket stays private.
+  Covered by `supabase/tests/media_storage.sql`.
+
+**Browser optimization before upload** (`src/lib/media/optimize-image.ts`, no dependency):
+images up to 30 MB / 50 megapixels are decoded with `createImageBitmap` (EXIF
+orientation applied), resized to a 2400 px long edge, re-encoded to WebP (JPEG, or PNG
+when transparent, where the browser cannot encode WebP, e.g. Safari) — re-encoding drops
+EXIF, GPS, XMP and ICC metadata. GIF keeps its bytes (animation). A 512 px WebP thumbnail
+is uploaded next to the file: the Free plan has no on-the-fly image transformations, so
+the library grid never downloads full-size images. When the project moves to Pro, the
+grid can switch to `getPublicUrl(path, { transform })` and stop generating thumbnails.
+
+**Media index (`public.media`).** One row per library file, inserted by the browser
+after the upload. The `media_before_insert` trigger refuses a row unless the stored
+object exists in the new layout inside the row's organization / website, then **copies
+size and type from Storage** (the browser cannot under-report them) and checks the
+extension matches the type; `thumb_path` must be the `_thumb.webp` sibling (its size goes
+to `thumb_size_bytes`). Clients may only update `alt_text` and `filename`.
+
+| Function | Who | Returns |
+|---|---|---|
+| `media_list(website, kind, search, before_created_at, before_id, limit ≤ 100)` | members (viewer+) | `{ rows, next }`: newest first, cursor = `{created_at, id}` of the last row (index `media_site_cursor_idx`); `kind` = `image` / `video` / `document`; `search` matches file name or alt text (wildcards escaped) |
+| `media_library_stats(website)` | members | `{ files, bytes, images, videos, documents }` of one website (bytes include thumbnails) |
+| `org_storage_usage(p_org uuid)` | members of `p_org` | one row: `bytes`, `files`, `media_bytes`, `media_files`, `thumbnail_bytes`, `brand_bytes` |
+| `private.org_storage_usage(p_org uuid)` | SECURITY DEFINER functions only | same, without the membership check (for plan limits) |
+
+`org_storage_usage` measures the **stored objects** (`storage.objects`, current versions),
+not the index, so a file uploaded without its row still counts: `bytes` = media library
+(both layouts, thumbnails included) + organization logos (`brand/orgs/<org>/`); `files` =
+objects that are not thumbnails. Contract PDFs are not counted. It uses range scans on the
+`(bucket_id, name COLLATE "C")` index, so it stays fast at any size. Billing hook:
+`private.org_storage(org)` (plan limit `media_mb`) can return
+`select bytes, media_files from private.org_storage_usage(org)`.
 
 ## Backups
 

@@ -64,8 +64,14 @@ const uploaded = new Map(); // source key -> public URL
 async function store(bytes, mime, filename, altText) {
   if (!MIME[EXT[mime] ?? ''] && !EXT[mime]) throw new Error(`Unsupported type ${mime} (${filename})`);
   if (bytes.length > MAX_BYTES) throw new Error(`${filename} is larger than 10 MB`);
-  const hash = createHash('sha256').update(bytes).digest('hex').slice(0, 24);
-  const path = `${ORG}/${WEBSITE_ID}/${hash}${EXT[mime]}`;
+  // Layout enforced by Storage policies and the media table (migration media_storage):
+  // org/<org>/site/<site>/<yyyy>/<mm>/<uuid>.<ext>. The uuid is derived from the
+  // content, so a re-run in the same month reuses the same file.
+  const h = createHash('sha256').update(bytes).digest('hex');
+  const id = `${h.slice(0, 8)}-${h.slice(8, 12)}-4${h.slice(13, 16)}-8${h.slice(17, 20)}-${h.slice(20, 32)}`;
+  const now = new Date();
+  const month = `${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+  const path = `org/${ORG}/site/${WEBSITE_ID}/${month}/${id}${EXT[mime]}`;
   const url = publicUrl(path);
   if (DRY) return url;
 

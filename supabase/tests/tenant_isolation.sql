@@ -338,7 +338,9 @@ BEGIN
         format('INSERT INTO public.showcase_templates (website_id, organization_id, slug, name, url, status) VALUES (%L, %L, %L, %L, %L, %L)', w, o, m || '-t', m || ' template', 'https://' || m || '.test', 'draft'),
         -- showcase sections have no status (public on a live site): neutral text
         format('INSERT INTO public.showcase_sections (website_id, organization_id, page, section_key) VALUES (%L, %L, %L, %L)', w, o, 'home', 'iso-intro'),
-        format('INSERT INTO public.media (organization_id, website_id, storage_path, filename, mime_type, size_bytes, created_by) VALUES (%L, %L, %L, %L, %L, 1, %L)', o, w, o || '/' || w || '/' || m || '.jpg', m || '.jpg', 'image/jpeg', u),
+        -- media_storage: the file is stored first (new layout), then registered.
+        format('INSERT INTO storage.objects (bucket_id, name, owner, metadata) VALUES (%L, %L, %L, %L::jsonb)', 'media', 'org/' || o || '/site/' || w || '/2026/10/' || md5(m)::uuid || '.jpg', u, '{"size": 1, "mimetype": "image/jpeg"}'),
+        format('INSERT INTO public.media (organization_id, website_id, storage_path, filename, mime_type, size_bytes, created_by) VALUES (%L, %L, %L, %L, %L, 1, %L)', o, w, 'org/' || o || '/site/' || w || '/2026/10/' || md5(m)::uuid || '.jpg', m || '.jpg', 'image/jpeg', u),
         format('INSERT INTO public.site_audit_log (website_id, organization_id, action, metadata) VALUES (%L, %L, %L, jsonb_build_object(%L, %L))', w, o, 'api_key.created', 'note', m),
         format('INSERT INTO public.site_traffic_daily (website_id, organization_id, day, views, visitors) VALUES (%L, %L, current_date, %s, 1)', w, o, num[k]),
         format('INSERT INTO public.site_pageviews_daily (website_id, organization_id, day, path, views) VALUES (%L, %L, current_date, %L, %s)', w, o, '/' || m, num[k]),
@@ -466,9 +468,10 @@ BEGIN
 
   -- Storage
   results := results || pg_temp.judge('A list B storage objects', pg_temp.try(format(
-    'SELECT count(*)::text FROM storage.objects WHERE name LIKE %L OR name LIKE %L', orgs[2] || '/%', 'orgs/' || orgs[2] || '/%')), false, NULL, '^0$');
+    'SELECT count(*)::text FROM storage.objects WHERE name LIKE %L OR name LIKE %L OR name LIKE %L', orgs[2] || '/%', 'orgs/' || orgs[2] || '/%', 'org/' || orgs[2] || '/%')), false, NULL, '^0$');
   SELECT count(*) INTO n FROM storage.objects
-  WHERE bucket_id IN ('media', 'contracts') AND split_part(name, '/', 1) <> orgs[1]::text;
+  WHERE bucket_id IN ('media', 'contracts')
+    AND coalesce(private.media_object_org(name)::text, split_part(name, '/', 1)) <> orgs[1]::text;
   results := results || (CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END || ' A lists no other tenant file in media / contracts (' || n || ')');
   SELECT count(*) INTO n FROM storage.objects WHERE bucket_id = 'brand';
   results := results || (CASE WHEN n = 0 THEN 'PASS' ELSE 'FAIL' END || ' brand bucket cannot be listed (' || n || ')');
