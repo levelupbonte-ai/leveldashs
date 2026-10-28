@@ -1222,11 +1222,11 @@
   "auth": {
     "shell": {
       "eyebrow": "LevelUp Ecosystem",
-      "title": "A website that <accent>levels up</accent> your business.",
-      "subtitle": "Start from a designed template, or let our AI draft your site from a short brief.",
-      "point1": "Real templates, ready to make yours",
-      "point2": "An AI studio that drafts your site in minutes",
-      "point3": "Bookings, requests and content in one dashboard",
+      "title": "Your site, your clients, your numbers. <accent>All in one place.</accent>",
+      "subtitle": "Bookings, requests, content and analytics: everything that keeps your site running, in one simple, protected space.",
+      "point1": "Encrypted sign-in, optional two-factor authentication",
+      "point2": "Every access is checked: only your team sees your data",
+      "point3": "A LevelUp team by your side when you need it",
       "ctaTemplates": "Explore templates",
       "ctaStudio": "Try LevelStudio free",
       "deckLabel": "Templates and AI demo",
@@ -1253,7 +1253,9 @@
       "demoSiteCta": "Book online",
       "demoService1": "Cuts",
       "demoService2": "Colour",
-      "demoService3": "Balayage"
+      "demoService3": "Balayage",
+      "secureBadge": "Secure client area",
+      "rights": "© LevelUp Ecosystem"
     },
     "signIn": {
       "title": "Sign in",
@@ -2180,11 +2182,11 @@
         "apiBody": "For custom interfaces. <code>LevelUp.ready</code> resolves with your public site data. Every call is rate limited and only works on your allowed domains.",
         "errorsTitle": "Error codes",
         "errors": {
+          "22023": "Invalid input (the message names the field)",
           "PT403": "Feature turned off or domain not allowed",
           "PT404": "Not found",
           "PT409": "Time slot already taken",
-          "PT429": "Too many requests, try again later",
-          "22023": "Invalid input (the message names the field)"
+          "PT429": "Too many requests, try again later"
         }
       },
       "payments": {
@@ -2222,9 +2224,9 @@
         "strict": "Any other field, a wrong type (for example \"amount\": \"260\") or a value out of range is refused.",
         "responsesTitle": "Responses",
         "responses": {
+          "22023": "Invalid event; the message names the field",
           "recorded": "Recorded (applied: true)",
           "duplicate": "Already received (duplicate: true), safe to ignore",
-          "22023": "Invalid event; the message names the field",
           "PT401": "Unknown, malformed or revoked key",
           "PT403": "Key without payment access",
           "PT429": "More than 300 calls in 10 minutes for this key"

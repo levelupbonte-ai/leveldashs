@@ -1222,11 +1222,11 @@
   "auth": {
     "shell": {
       "eyebrow": "LevelUp Ecosystem",
-      "title": "Un site web qui <accent>fait monter</accent> votre entreprise d’un niveau.",
-      "subtitle": "Partez d’un modèle soigné, ou laissez notre IA rédiger votre site à partir d’un court brief.",
-      "point1": "De vrais modèles, prêts à être personnalisés",
-      "point2": "Un studio IA qui prépare votre site en quelques minutes",
-      "point3": "Réservations, demandes et contenu dans un seul tableau de bord",
+      "title": "Votre site, vos clients, vos chiffres. <accent>Au même endroit.</accent>",
+      "subtitle": "Réservations, demandes, contenu et statistiques : tout ce qui fait vivre votre site, dans un espace simple et protégé.",
+      "point1": "Connexion chiffrée, double authentification possible",
+      "point2": "Chaque accès est contrôlé : seule votre équipe voit vos données",
+      "point3": "Une équipe LevelUp à vos côtés si besoin",
       "ctaTemplates": "Découvrir les modèles",
       "ctaStudio": "Essayer LevelStudio gratuitement",
       "deckLabel": "Modèles et démo de l’IA",
@@ -1253,7 +1253,9 @@
       "demoSiteCta": "Réserver en ligne",
       "demoService1": "Coupes",
       "demoService2": "Couleurs",
-      "demoService3": "Balayages"
+      "demoService3": "Balayages",
+      "secureBadge": "Espace client sécurisé",
+      "rights": "© LevelUp Ecosystem"
     },
     "signIn": {
       "title": "Connexion",
@@ -2180,11 +2182,11 @@
         "apiBody": "Pour des interfaces sur mesure. <code>LevelUp.ready</code> renvoie les données publiques de votre site. Chaque appel est limité en fréquence et ne fonctionne que sur vos domaines autorisés.",
         "errorsTitle": "Codes d’erreur",
         "errors": {
+          "22023": "Donnée invalide (le message indique le champ)",
           "PT403": "Fonctionnalité désactivée ou domaine non autorisé",
           "PT404": "Introuvable",
           "PT409": "Créneau déjà pris",
-          "PT429": "Trop de requêtes, réessayez plus tard",
-          "22023": "Donnée invalide (le message indique le champ)"
+          "PT429": "Trop de requêtes, réessayez plus tard"
         }
       },
       "payments": {
@@ -2222,9 +2224,9 @@
         "strict": "Tout autre champ, un mauvais type (par exemple \"amount\": \"260\") ou une valeur hors limites est refusé.",
         "responsesTitle": "Réponses",
         "responses": {
+          "22023": "Événement invalide ; le message indique le champ",
           "recorded": "Enregistré (applied: true)",
           "duplicate": "Déjà reçu (duplicate: true), sans conséquence",
-          "22023": "Événement invalide ; le message indique le champ",
           "PT401": "Clé inconnue, mal formée ou révoquée",
           "PT403": "Clé sans accès aux paiements",
           "PT429": "Plus de 300 appels en 10 minutes pour cette clé"
