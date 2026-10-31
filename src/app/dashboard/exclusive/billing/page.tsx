@@ -20,7 +20,7 @@ import { IssuerDetailsCard } from '@/features/platform-admin/components/billing/
 import { OnlinePaymentsCard } from '@/features/platform-admin/components/billing/online-payments-card';
 import { staffMessages } from '@/i18n/client-messages';
 import { requireDashboardSession } from '@/lib/auth/session';
-import { onlinePaymentsEnabled } from '@/lib/payments';
+import { onlinePaymentsProvider } from '@/lib/payments';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
 
@@ -61,7 +61,7 @@ export default async function AdminBillingPage() {
                 <IssuerDetailsCard />
               </Suspense>
               <Suspense fallback={<Skeleton className='h-56 w-full' />}>
-                <OnlinePaymentsCard enabled={onlinePaymentsEnabled()} />
+                <OnlinePaymentsCard provider={onlinePaymentsProvider()} />
               </Suspense>
             </div>
           </div>

@@ -642,11 +642,11 @@
       },
       "online": {
         "title": "Paiements en ligne",
-        "description": "Paiement par carte des factures LevelUp avec Stripe Checkout.",
+        "description": "Paiement par carte des factures LevelUp, avec Stripe Checkout ou les liens de paiement Square.",
         "on": "Activés",
         "off": "Désactivés",
         "offHint": "Désactivés : le bouton « Payer en ligne » est masqué et les routes de paiement répondent 404. Ils s’activent quand le serveur a LEVELUP_ONLINE_PAYMENTS=on et ses clés (voir docs/billing.md).",
-        "onHint": "Activés : les propriétaires et les administrateurs peuvent payer un montant dû par carte. Les paiements sont enregistrés par le webhook Stripe.",
+        "onHint": "Activés : les propriétaires et les administrateurs peuvent payer un montant dû par carte. Les paiements sont enregistrés par le webhook du fournisseur.",
         "keyTitle": "Clé du webhook de facturation",
         "keyHint": "Permet au webhook de paiement d’enregistrer les paiements dans la base. Conservée sous forme de hachage ; affichée une seule fois.",
         "keyNone": "Aucune clé pour l’instant.",
@@ -659,7 +659,12 @@
         "keyTitleNew": "Nouvelle clé du webhook de facturation",
         "copy": "Copier",
         "copied": "Clé copiée",
-        "done": "Terminé"
+        "done": "Terminé",
+        "provider": "Fournisseur des nouveaux paiements : {name}",
+        "providers": {
+          "stripe": "Stripe",
+          "square": "Square"
+        }
       }
     }
   },

@@ -642,11 +642,11 @@
       },
       "online": {
         "title": "Online payments",
-        "description": "Card payments of LevelUp invoices through Stripe Checkout.",
+        "description": "Card payments of LevelUp invoices, through Stripe Checkout or Square payment links.",
         "on": "On",
         "off": "Off",
         "offHint": "Off: the “Pay online” button is hidden and the payment routes answer 404. It turns on when the server has LEVELUP_ONLINE_PAYMENTS=on and its keys (see docs/billing.md).",
-        "onHint": "On: owners and admins can pay a charge due by card. Payments are recorded by the Stripe webhook.",
+        "onHint": "On: owners and admins can pay a charge due by card. Payments are recorded by the provider’s webhook.",
         "keyTitle": "Billing webhook key",
         "keyHint": "Lets the payment webhook record payments in the database. Stored as a hash; shown once.",
         "keyNone": "No key yet.",
@@ -659,7 +659,12 @@
         "keyTitleNew": "New billing webhook key",
         "copy": "Copy",
         "copied": "Key copied",
-        "done": "Done"
+        "done": "Done",
+        "provider": "Provider for new payments: {name}",
+        "providers": {
+          "stripe": "Stripe",
+          "square": "Square"
+        }
       }
     }
   },

@@ -6,8 +6,9 @@ what was added on top: real invoice and receipt PDFs, the plan storage limit, an
 payment of LevelUp's invoices (shipped **switched off**).
 
 Migrations: `20261026130000_billing_invoices.sql`, `20261026130100_media_storage_limit.sql`,
-`20261026130200_billing_online_payments.sql`. Test suite: `supabase/tests/invoices.sql`
-(rolled back, must report `0 failed`).
+`20261026130200_billing_online_payments.sql`, `20261031120000_billing_square.sql`. Test suites:
+`supabase/tests/invoices.sql`, `supabase/tests/billing_square.sql` (rolled back, must report
+`0 failed`).
 
 ## Invoices and receipts
 
@@ -78,10 +79,18 @@ The media library shows the same upgrade notice as the team and assistant limits
 files stay readable, listed and deletable over the limit. Trusted tooling without a user
 (`scripts/migrate-media.mjs`) is not limited, like the role check of the same trigger.
 
-## Online payments (Stripe Checkout) — off by default
+## Online payments (Stripe Checkout or Square) — off by default
 
 LevelUp's Stripe account is under review, so this ships **switched off** and is safe with
-no keys: the "Pay online" button is hidden and both routes answer `404`.
+no keys: the "Pay online" button is hidden and the payment routes answer `404`. Two
+providers are built: **Stripe Checkout** and **Square payment links** (US-native, works for
+sole proprietors). Clients see the same "Pay online" button whichever is used; nothing
+client-facing names the provider (staff see it on the admin Billing card).
+
+**Which provider.** `LEVELUP_PAYMENT_PROVIDER=stripe|square` picks one (its keys must be
+complete, otherwise payments stay off). Unset: the provider whose keys are complete, Stripe
+when both are. Each webhook route keeps working while its own keys are set, so events of
+the previous provider are still recorded after a switch.
 
 **Pieces.**
 
@@ -89,11 +98,14 @@ no keys: the "Pay online" button is hidden and both routes answer `404`.
 |---|---|
 | Provider abstraction (`PaymentProvider`: create / get / expire a checkout) | `src/lib/payments/types.ts` |
 | Stripe implementation, REST over `fetch` (no SDK), `import 'server-only'` | `src/lib/payments/stripe.ts` |
-| Switch: `LEVELUP_ONLINE_PAYMENTS=on` **and** every key well formed | `src/lib/payments/config.ts`, `onlinePaymentsEnabled()` in `src/lib/payments/index.ts` |
-| Signature check (HMAC-SHA256 of `t.raw_body`, 5 min tolerance, timing-safe) | `src/lib/payments/stripe-signature.ts` |
-| Event mapping, deterministic checkout parameters | `stripe-events.ts`, `stripe-form.ts` (unit tests: `payments.test.ts`) |
+| Square implementation (payment links + orders), REST over `fetch`, `import 'server-only'` | `src/lib/payments/square.ts` |
+| Switch: `LEVELUP_ONLINE_PAYMENTS=on`, the billing key **and** the chosen provider's keys well formed; provider selection | `src/lib/payments/config.ts`, `onlinePaymentsEnabled()` in `src/lib/payments/index.ts` |
+| Stripe signature (HMAC-SHA256 of `t.raw_body`, 5 min tolerance, timing-safe) | `src/lib/payments/stripe-signature.ts` |
+| Square signature (base64 HMAC-SHA256 of notification URL + raw body, timing-safe) | `src/lib/payments/square-signature.ts` |
+| Event mapping, deterministic checkout parameters | `stripe-events.ts`, `stripe-form.ts`, `square-form.ts` (unit tests: `payments.test.ts`, `square.test.ts`) |
 | `POST /api/billing/charges/[id]/checkout` | owners / admins, same origin |
 | `POST /api/billing/stripe/webhook` | Stripe only (signature) |
+| `POST /api/billing/square/webhook` | Square only (signature) |
 
 **Checkout.** The route calls `billing_checkout_prepare(charge)` as the signed-in user: it
 checks the role (owner or admin of the charge's organization) and the status (due or
@@ -177,3 +189,94 @@ key*; the dialog shows it once with a Copy button.
 To switch off: remove `LEVELUP_ONLINE_PAYMENTS` (or set it to anything but `on`) and
 redeploy; to rotate the billing key, generate a new one and update `LEVELUP_BILLING_KEY`
 right away (Stripe retries failed webhooks for three days).
+
+### Square payment links
+
+**Checkout.** Same route, same database preparation (`billing_checkout_prepare`: role,
+status, exact amount, one attempt at a time). The route creates a payment link
+(`POST /v2/online-checkout/payment-links`, `quick_pay` with the charge's name, its amount in
+cents and the location) with the idempotency key `levelup-charge-<id>-<attempt>` and a
+byte-identical body for one attempt, so a double click gets the same link back. Tipping is
+off; after paying, Square redirects to `/dashboard/billing?payment=success`. The payment
+note `LevelUp <invoice number> charge <charge id>` is copied by Square onto the payment.
+`billing_checkout_record_square` records the link on the attempt and its **order id** in
+`private.billing_square_orders` (closed to every API role; every order ever created for a
+charge is kept, so a late payment of an older link still maps back). Square links do not
+expire by themselves: when an attempt is replaced, the route deletes the previous link,
+which cancels its order (a link already paid is reported, never replaced).
+
+**Webhook.** `POST /api/billing/square/webhook` reads the raw body and verifies
+`x-square-hmacsha256-signature`: base64 of HMAC-SHA256 over the **notification URL + raw
+body** with `LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY`, compared in constant time. The URL is
+`LEVELUP_SQUARE_WEBHOOK_URL` when set, otherwise the URL the request came in on (they must
+be byte-identical to the subscription's URL). Only `payment.created` / `payment.updated`
+for the configured location, with an order and the LevelUp payment note, are passed on;
+everything else answers `200 ignored` (the location's other sales are not billing's
+business). `billing_ingest_stripe_event(key, { provider: 'square', … })` then:
+
+- finds the charge through **our record of the order** (never the payload alone); a payment
+  note naming another charge is refused;
+- applies only `status = COMPLETED`, with `amount_money` (cents, tips excluded) and the
+  currency equal to the charge's: method `card`, provider `square`, the order id as
+  session, the **payment id** as reference, the amount paid;
+- ignores duplicates: the same event id twice, and later notifications about the payment
+  already applied (`duplicate`); a second, different payment of a paid charge, a payment of
+  a void charge, an amount or currency mismatch and an unknown order are recorded and
+  audited (`billing.online_payment_*`, metadata `provider: square`) for a human to refund.
+
+Square has no test flag on events: sandbox and production are separate applications with
+separate keys and webhook subscriptions (`LEVELUP_SQUARE_ENV`).
+
+### Turning on Square
+
+1. **Square Developer Console** (<https://developer.squareup.com/apps>, sign in with the
+   Square account that receives the money): *Create an application* (e.g. "LevelUp
+   invoices").
+2. In the application, switch to **Production** at the top:
+   - *Credentials* → copy the **Production access token** (`EAAA…`);
+   - *Locations* → copy the **Location ID** of the business location that should receive
+     the payments (`L…`).
+3. Still in Production, *Webhooks* → *Subscriptions* → *Add subscription*:
+   - URL `https://dashboard.levelup-ecosystem.com/api/billing/square/webhook`
+   - API version: the latest offered
+   - event `payment.updated` (adding `payment.created` is harmless)
+   - save, then open the subscription and copy its **Signature key**.
+4. **Dashboard:** *LevelUp → Billing → Online payments → Generate a key* (staff, aal2), copy
+   the `lu_bill_…` key (skip if `LEVELUP_BILLING_KEY` is already set: the same key serves
+   both providers).
+5. **Vercel** (project *leveldashs*, Production, **not** `NEXT_PUBLIC_`, mark each one
+   *Sensitive*):
+
+   ```env
+   LEVELUP_ONLINE_PAYMENTS=on
+   LEVELUP_PAYMENT_PROVIDER=square
+   LEVELUP_SQUARE_ACCESS_TOKEN=EAAA...
+   LEVELUP_SQUARE_LOCATION_ID=L...
+   LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY=...
+   LEVELUP_SQUARE_ENV=production
+   LEVELUP_BILLING_KEY=lu_bill_...
+   # Optional: the exact subscription URL, if the deployment is reached through another host
+   # LEVELUP_SQUARE_WEBHOOK_URL=https://dashboard.levelup-ecosystem.com/api/billing/square/webhook
+   ```
+
+6. Redeploy. The admin Billing card shows **On** and *Provider for new payments: Square*;
+   owners and admins see **Pay online** on charges due.
+
+**Test in the sandbox first, on a preview deployment.** In the Developer Console switch to
+**Sandbox**: copy the sandbox access token and the sandbox location ID, add a sandbox
+webhook subscription whose URL is the preview deployment's
+`https://<preview-host>/api/billing/square/webhook` (event `payment.updated`) and copy its
+signature key. Put these in Vercel's **Preview** environment with
+`LEVELUP_SQUARE_ENV=sandbox` (and the same `LEVELUP_ONLINE_PAYMENTS=on`,
+`LEVELUP_PAYMENT_PROVIDER=square`, `LEVELUP_BILLING_KEY`). Vercel preview deployments sit
+behind Vercel Authentication by default: give Square a way in (a *Protection Bypass for
+Automation* secret in the URL, or a preview without protection), and set
+`LEVELUP_SQUARE_WEBHOOK_URL` to exactly the URL registered on the subscription. Pay a test
+charge with Square's sandbox test card (`4111 1111 1111 1111`, any future date, any CVV);
+the charge turns **Paid** and its receipt shows the card payment. Then do the production
+steps above.
+
+To switch off: remove `LEVELUP_ONLINE_PAYMENTS` (or set it to anything but `on`) and
+redeploy. To go back to Stripe: set `LEVELUP_PAYMENT_PROVIDER=stripe` with the Stripe keys;
+keep the Square keys until open Square links are paid or deleted, so their webhooks are
+still recorded.

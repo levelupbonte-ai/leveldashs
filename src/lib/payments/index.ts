@@ -1,5 +1,10 @@
 import 'server-only';
-import { readOnlinePaymentsConfig, type OnlinePaymentsConfig } from './config';
+import {
+  readOnlinePaymentsConfig,
+  type OnlinePaymentsConfig,
+  type PaymentProviderName
+} from './config';
+import { createSquareProvider } from './square';
 import { createStripeProvider } from './stripe';
 import type { PaymentProvider } from './types';
 
@@ -13,9 +18,25 @@ export function onlinePaymentsEnabled(): boolean {
   return onlinePaymentsConfig() !== null;
 }
 
-export function paymentProvider(config: OnlinePaymentsConfig): PaymentProvider {
-  return createStripeProvider(config.secretKey);
+/** Staff screens only: which provider takes payments (never shown to clients). */
+export function onlinePaymentsProvider(): PaymentProviderName | null {
+  return onlinePaymentsConfig()?.provider ?? null;
 }
 
-export type { OnlinePaymentsConfig } from './config';
+/** Which provider created a checkout session id (Stripe ids start with cs_). */
+export function providerOfSession(id: string): PaymentProviderName {
+  return id.startsWith('cs_') ? 'stripe' : 'square';
+}
+
+/** The provider by name, or null when its keys are not configured. */
+export function paymentProvider(
+  config: OnlinePaymentsConfig,
+  name: PaymentProviderName = config.provider
+): PaymentProvider | null {
+  if (name === 'stripe')
+    return config.stripe ? createStripeProvider(config.stripe.secretKey) : null;
+  return config.square ? createSquareProvider(config.square) : null;
+}
+
+export type { OnlinePaymentsConfig, PaymentProviderName } from './config';
 export { PaymentProviderError } from './types';

@@ -53,13 +53,14 @@ describe('online payments switch (disabled by default)', () => {
   test('on with the flag and every key; mode follows the secret key', () => {
     const test = readOnlinePaymentsConfig(KEYS);
     assert.ok(test);
-    assert.equal(test.livemode, false);
+    assert.equal(test.provider, 'stripe');
+    assert.equal(test.stripe?.livemode, false);
     const live = readOnlinePaymentsConfig({
       ...KEYS,
       LEVELUP_ONLINE_PAYMENTS: ' ON ',
       LEVELUP_STRIPE_SECRET_KEY: 'rk_live_' + 'c'.repeat(24)
     });
-    assert.equal(live?.livemode, true);
+    assert.equal(live?.stripe?.livemode, true);
   });
 });
 

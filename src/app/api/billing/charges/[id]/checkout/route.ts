@@ -1,15 +1,21 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { onlinePaymentsConfig, paymentProvider, PaymentProviderError } from '@/lib/payments';
+import {
+  onlinePaymentsConfig,
+  paymentProvider,
+  PaymentProviderError,
+  providerOfSession
+} from '@/lib/payments';
 import { createClient } from '@/lib/supabase/server';
 import { errorResponse, isSameOrigin } from '@/lib/validation/http';
 import { PATTERNS } from '@/lib/validation/sanitize';
 
-// An owner or admin pays a LevelUp charge online (Stripe Checkout). Off unless
-// LEVELUP_ONLINE_PAYMENTS=on and every key is set (404 otherwise, see
+// An owner or admin pays a LevelUp charge online (Stripe Checkout or a Square
+// payment link, whichever the server is set up for). Off unless
+// LEVELUP_ONLINE_PAYMENTS=on and the provider's keys are set (404 otherwise, see
 // docs/billing.md). The database checks the role and the status and gives the
 // exact amount (billing_checkout_prepare); the browser only names the charge.
 // One attempt per charge at a time: double clicks reuse its idempotency key, so
-// Stripe answers with the same session.
+// the provider answers with the same session / link.
 
 interface Prepared {
   charge_id: string;
@@ -51,12 +57,16 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
   }
   const prep = data as Prepared;
   const provider = paymentProvider(config);
+  if (!provider) return errorResponse(404, 'not_found');
   const origin = new URL(request.url).origin;
 
   try {
-    // The attempt's session already exists: send the client back to it.
+    // The attempt's session already exists: send the client back to it (through the
+    // provider that created it, should the owner have switched since).
     if (prep.session_id) {
-      const open = await provider.getCheckout(prep.session_id);
+      const owner = paymentProvider(config, providerOfSession(prep.session_id));
+      if (!owner) return errorResponse(409, 'payment_in_progress');
+      const open = await owner.getCheckout(prep.session_id);
       // Only a session created for this very charge.
       if (open.chargeId !== prep.charge_id) return errorResponse(409, 'payment_in_progress');
       if (open.status === 'open' && open.url) return ok(open.url);
@@ -64,8 +74,9 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
     }
     // A new attempt: close the previous session first, so only one can be paid.
     if (prep.previous_session_id) {
-      const previous = await provider.expireCheckout(prep.previous_session_id);
-      if (previous.status === 'complete') return errorResponse(409, 'payment_in_progress');
+      const owner = paymentProvider(config, providerOfSession(prep.previous_session_id));
+      const previous = owner ? await owner.expireCheckout(prep.previous_session_id) : null;
+      if (previous?.status === 'complete') return errorResponse(409, 'payment_in_progress');
     }
     const session = await provider.createCheckout({
       chargeId: prep.charge_id,
@@ -79,11 +90,24 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
       successUrl: `${origin}/dashboard/billing?payment=success`,
       cancelUrl: `${origin}/dashboard/billing?payment=cancelled`
     });
-    await db.rpc('billing_checkout_record', {
-      p_charge: prep.charge_id,
-      p_attempt: prep.attempt,
-      p_session_id: session.id
-    });
+    const recorded =
+      config.provider === 'square'
+        ? await db.rpc('billing_checkout_record_square', {
+            p_charge: prep.charge_id,
+            p_attempt: prep.attempt,
+            p_link_id: session.id,
+            p_order_id: session.orderId ?? ''
+          })
+        : await db.rpc('billing_checkout_record', {
+            p_charge: prep.charge_id,
+            p_attempt: prep.attempt,
+            p_session_id: session.id
+          });
+    // Square: the webhook finds the charge through the recorded order. Not recorded,
+    // no link: the next click replays the same idempotency key and records it.
+    if (recorded.error && config.provider === 'square') {
+      return errorResponse(502, 'payment_unavailable');
+    }
     if (session.status !== 'open' || !session.url) return errorResponse(409, 'payment_in_progress');
     return ok(session.url);
   } catch (e) {
