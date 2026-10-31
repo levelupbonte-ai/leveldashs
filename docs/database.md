@@ -54,6 +54,7 @@ the schema from application code or by hand in the dashboard.
 | `20261026130000` | billing_invoices (`billing_issuers` (empty, staff-edited), `private.invoice_counters`, invoice number / issue date / payment method / reference / provider columns on `billing_charges`, numbering triggers, `admin_record_charge_payment`, `billing_charge_document`, `admin_get_billing_issuer`, `admin_save_billing_issuer`; `billing_summary` adds `documents_ready`; see [billing.md](./billing.md)) | **Pending**: the `apply_migration` call of 2026-10-26 waited for a confirmation that never came. Apply it in the SQL editor (or `apply_migration`, name `billing_invoices`). Dry-run on a local replica: suite `invoices.sql` 77/77 |
 | `20261026130100` | media_storage_limit (`private.org_storage` reads `org_storage_usage`; `media_check_upload`, `private.assert_media_quota`, `private.media_quota_open` in the `media_objects_insert` policy, `media_before_insert` checks `media_mb`) | **Pending** (same). Apply after `billing_invoices`, name `media_storage_limit` |
 | `20261026130200` | billing_online_payments (`private.billing_webhook_keys`, `private.billing_checkouts`, `billing_payment_events`, `admin_create_billing_webhook_key` / `admin_revoke_…` / `admin_billing_webhook_key_status`, `billing_checkout_prepare`, `billing_checkout_record`, `billing_ingest_stripe_event` (anon, billing webhook key)) | **Pending** (same). Apply last, name `billing_online_payments` |
+| `20261031100000` | site_payments_providers (provider-neutral payments: provider allow-list `private.site_payment_providers()`, `method` column, `cancelled` status, unique keys per website + provider + payment / event id, aliases for the former Stripe field names, provider / method filters on `site_payments_list` / `site_payments_export`, providers / methods in `site_payments_summary`; see [site-api.md](./site-api.md)) | **Applied** (`site_payments_providers`); suites `site_payments.sql` 53/53, `payments_providers.sql` 52/52 |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -129,11 +130,11 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 |---|---|---|---|
 | `site_api_keys` | server keys of a website (hash, prefix, last 4, scopes, last use, revoked) | owners / admins read (no hash column) | `site_create_api_key`, `site_revoke_api_key` (audited) |
 | `site_audit_log` | key creation / revocation, payment exports, project request updates | owners / admins read | SECURITY DEFINER functions only (append-only) |
-| `site_payments`, `site_payment_events` | payments reported by the website server, every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
+| `site_payments`, `site_payment_events` | payments reported by the website server (any allow-listed provider), every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
 | `site_traffic_daily`, `site_pageviews_daily` | daily views / unique visitors per path, referrer host, language | viewer read | `track_pageview` (LevelUp tag) |
 
 Contracts and rules: [site-api.md](./site-api.md). Tests:
-`supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
+`supabase/tests/site_payments.sql`, `payments_providers.sql`, `site_analytics.sql`, `site_insights.sql`,
 `levelup_sources.sql`, `media_storage.sql`.
 
 Applied through the MCP (names above). After any change, run the four suites

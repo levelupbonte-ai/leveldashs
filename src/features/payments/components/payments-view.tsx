@@ -50,7 +50,15 @@ import {
   paymentsSummaryQueryOptions
 } from '../api/queries';
 import { exportPayments } from '../api/service';
-import { PAYMENT_STATUSES, type Payment, type PaymentSort, type PaymentStatus } from '../api/types';
+import {
+  PAYMENT_STATUSES,
+  type Payment,
+  type PaymentEvent,
+  type PaymentMethod,
+  type PaymentProvider,
+  type PaymentSort,
+  type PaymentStatus
+} from '../api/types';
 import { paymentParams, toPaymentFilters } from '../lib/filters';
 import { minorToMajor, moneyFormat } from '../lib/money';
 
@@ -59,8 +67,72 @@ const STATUS_VARIANT: Record<PaymentStatus, 'default' | 'secondary' | 'destructi
   pending: 'secondary',
   failed: 'destructive',
   refunded: 'outline',
-  expired: 'outline'
+  expired: 'outline',
+  cancelled: 'outline'
 };
+
+/** Brand-neutral chip: the provider name, then the method in a lighter tone. */
+function ProviderBadge({
+  provider,
+  method
+}: {
+  provider: PaymentProvider;
+  method: PaymentMethod | null;
+}) {
+  const t = useTranslations('insights.payments');
+  return (
+    <span className='inline-flex max-w-full flex-col items-start gap-0.5'>
+      <Badge variant='outline' className='font-normal whitespace-nowrap'>
+        {t(`providers.${provider}`)}
+      </Badge>
+      {method && (
+        <span className='text-muted-foreground text-xs whitespace-nowrap'>
+          {t(`methods.${method}`)}
+        </span>
+      )}
+    </span>
+  );
+}
+
+/** A row of toggle chips filtering on one URL array param. */
+function FilterChips<T extends string>({
+  label,
+  values,
+  selected,
+  text,
+  onChange
+}: {
+  label: string;
+  values: { value: T; count: number }[];
+  selected: T[];
+  text: (value: T) => string;
+  onChange: (next: T[]) => void;
+}) {
+  if (values.length < 2 && selected.length === 0) return null;
+  return (
+    <div className='flex flex-wrap items-center gap-1.5' role='group' aria-label={label}>
+      <span className='text-muted-foreground mr-1 text-xs font-medium'>{label}</span>
+      {values.map(({ value, count }) => {
+        const on = selected.includes(value);
+        return (
+          <Button
+            key={value}
+            size='sm'
+            variant={on ? 'secondary' : 'ghost'}
+            aria-pressed={on}
+            className='h-8'
+            onClick={() =>
+              onChange(on ? selected.filter((x) => x !== value) : [...selected, value])
+            }
+          >
+            {text(value)}
+            <span className='text-muted-foreground ml-1 text-xs tabular-nums'>{count}</span>
+          </Button>
+        );
+      })}
+    </div>
+  );
+}
 
 function useMoney() {
   const format = useFormatter();
@@ -103,22 +175,26 @@ export function PaymentsView() {
           'status',
           'amount',
           'currency',
+          'provider',
+          'method',
           'offer',
           'customer_email',
           'customer_name',
-          'session',
-          'payment_intent'
+          'provider_payment_id',
+          'provider_reference'
         ],
         rows.map((p) => [
           p.occurred_at,
           p.status,
           minorToMajor(p.amount, p.currency),
           p.currency.toUpperCase(),
+          p.provider,
+          p.method,
           p.offer_name ?? p.offer_id,
           p.customer_email,
           p.customer_name,
-          p.provider_session_id,
-          p.provider_payment_intent
+          p.provider_payment_id,
+          p.provider_reference
         ])
       );
       downloadCsv(`payments-${scope.websiteId}-${new Date().toISOString().slice(0, 10)}.csv`, csv);
@@ -300,6 +376,20 @@ export function PaymentsView() {
               })}
             </div>
           </div>
+          <FilterChips
+            label={t('providerFilter')}
+            values={(summary.providers ?? []).map((x) => ({ value: x.provider, count: x.count }))}
+            selected={params.provider}
+            text={(v) => t(`providers.${v}`)}
+            onChange={(provider) => setParams({ provider, page: 1 })}
+          />
+          <FilterChips
+            label={t('methodFilter')}
+            values={(summary.methods ?? []).map((x) => ({ value: x.method, count: x.count }))}
+            selected={params.method}
+            text={(v) => t(`methods.${v}`)}
+            onChange={(method) => setParams({ method, page: 1 })}
+          />
           {!page.pii && <p className='text-muted-foreground text-xs'>{t('maskedNotice')}</p>}
         </CardHeader>
         <CardContent className='space-y-4'>
@@ -336,6 +426,14 @@ export function PaymentsView() {
                         active={params.sort === 'offer_name'}
                         ascending={params.asc}
                         onClick={() => sortBy('offer_name')}
+                      />
+                    </TableHead>
+                    <TableHead aria-sort={ariaSort('provider')}>
+                      <SortButton
+                        label={t('provider')}
+                        active={params.sort === 'provider'}
+                        ascending={params.asc}
+                        onClick={() => sortBy('provider')}
                       />
                     </TableHead>
                     <TableHead aria-sort={ariaSort('status')}>
@@ -379,6 +477,9 @@ export function PaymentsView() {
                       </TableCell>
                       <TableCell className='max-w-56 truncate'>
                         {p.offer_name || p.offer_id || '–'}
+                      </TableCell>
+                      <TableCell>
+                        <ProviderBadge provider={p.provider} method={p.method} />
                       </TableCell>
                       <TableCell>
                         <Badge variant={STATUS_VARIANT[p.status]}>{t(`status.${p.status}`)}</Badge>
@@ -442,12 +543,7 @@ function PaymentDetailBody({
 }: {
   payment: Payment & {
     metadata: Record<string, unknown>;
-    events: {
-      provider_event_id: string;
-      status: PaymentStatus;
-      applied: boolean;
-      received_at: string;
-    }[];
+    events: PaymentEvent[];
   };
   money: (amount: number, currency: string) => string;
   date: (value: string | null) => string;
@@ -466,6 +562,7 @@ function PaymentDetailBody({
         {t(`status.${payment.status}`)}
       </Badge>
     ],
+    [t('provider'), <ProviderBadge key='p' provider={payment.provider} method={payment.method} />],
     [t('customer'), payment.customer_name || '–'],
     [t('email'), payment.customer_email || '–'],
     [t('date'), date(payment.occurred_at)],
@@ -473,15 +570,15 @@ function PaymentDetailBody({
     [t('refundedAt'), date(payment.refunded_at)],
     [t('mode'), payment.livemode ? t('live') : t('test')],
     [
-      t('session'),
+      t('paymentId'),
       <code key='c' className='text-xs break-all'>
-        {payment.provider_session_id}
+        {payment.provider_payment_id}
       </code>
     ],
     [
-      t('intent'),
+      t('reference'),
       <code key='i' className='text-xs break-all'>
-        {payment.provider_payment_intent || '–'}
+        {payment.provider_reference || '–'}
       </code>
     ]
   ];
@@ -516,7 +613,10 @@ function PaymentDetailBody({
         <h3 className='text-sm font-medium'>{t('history')}</h3>
         <ol className='space-y-2 text-sm'>
           {payment.events.map((e) => (
-            <li key={e.provider_event_id} className='flex items-center justify-between gap-3'>
+            <li
+              key={`${e.provider}:${e.provider_event_id}`}
+              className='flex items-center justify-between gap-3'
+            >
               <span className='flex items-center gap-2'>
                 <Badge variant={e.applied ? STATUS_VARIANT[e.status] : 'outline'}>
                   {t(`status.${e.status}`)}

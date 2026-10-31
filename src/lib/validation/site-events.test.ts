@@ -6,9 +6,15 @@ import { csvCell, toCsv } from '@/lib/csv';
 import { detectDataFields, displayValue, fieldLabel } from '@/features/submissions/lib/fields';
 import { toSubmissionFilters } from '@/features/submissions/lib/filters';
 import { toPaymentFilters } from '@/features/payments/lib/filters';
-import { minorToMajor } from '@/features/payments/lib/money';
+import {
+  formatMoney,
+  fractionDigits,
+  majorToMinor,
+  minorToMajor,
+  moneyFormat
+} from '@/features/payments/lib/money';
 import { fillDays, percentChange } from '@/features/insights/lib/range';
-import { isSiteKey, paymentEventSchema } from './site-events';
+import { isSiteKey, PAYMENT_PROVIDERS, paymentEventSchema } from './site-events';
 
 const event = {
   provider: 'stripe',
@@ -36,23 +42,83 @@ describe('payment event contract', () => {
       assert.equal(paymentEventSchema.safeParse({ ...event, amount }).success, false);
     }
   });
-  it('rejects unknown statuses, uppercase currencies and bad ids', () => {
+  it('rejects unknown statuses, bad currencies and bad ids', () => {
     assert.equal(paymentEventSchema.safeParse({ ...event, status: 'succeeded' }).success, false);
-    assert.equal(paymentEventSchema.safeParse({ ...event, currency: 'USD' }).success, false);
-    assert.equal(paymentEventSchema.safeParse({ ...event, provider_session_id: 'x' }).success, false);
-    assert.equal(paymentEventSchema.safeParse({ ...event, provider_event_id: 'evt_<x>' }).success, false);
+    assert.equal(paymentEventSchema.safeParse({ ...event, currency: 'US$' }).success, false);
+    assert.equal(
+      paymentEventSchema.safeParse({ ...event, provider_session_id: 'x' }).success,
+      false
+    );
+    assert.equal(
+      paymentEventSchema.safeParse({ ...event, provider_event_id: 'evt_<x>' }).success,
+      false
+    );
+  });
+  it('accepts every allow-listed provider and refuses others', () => {
+    const generic = {
+      provider_event_id: 'ev-1',
+      provider_payment_id: 'TX-1',
+      status: 'paid',
+      amount: 15000,
+      currency: 'XOF',
+      occurred_at: '2026-10-20T14:00:00Z'
+    };
+    for (const provider of PAYMENT_PROVIDERS.filter((p) => p !== 'stripe')) {
+      assert.equal(paymentEventSchema.safeParse({ ...generic, provider }).success, true, provider);
+    }
+    for (const provider of ['venmo', 'Stripe', 'PAYPAL', '']) {
+      assert.equal(paymentEventSchema.safeParse({ ...generic, provider }).success, false, provider);
+    }
+    assert.equal(
+      paymentEventSchema.safeParse({ ...generic, provider: 'stripe' }).success,
+      false,
+      'stripe keeps evt_ / cs_ ids'
+    );
+  });
+  it('accepts the generic names and refuses a field with its alias', () => {
+    const generic = {
+      provider: 'paystack',
+      provider_event_id: '4021945',
+      provider_payment_id: 'T-1001',
+      provider_reference: 'ref_1',
+      method: 'mobile_money',
+      status: 'cancelled',
+      amount: 500000,
+      currency: 'NGN',
+      customer: { email: 'Ama@Example.com', name: 'Ama' },
+      offer: { id: 'box-1', name: 'Box' },
+      occurred_at: '2026-10-20T14:00:00Z'
+    };
+    assert.equal(paymentEventSchema.parse(generic).customer?.email, 'ama@example.com');
+    assert.equal(
+      paymentEventSchema.safeParse({ ...generic, provider_session_id: 'T-1001' }).success,
+      false
+    );
+    assert.equal(paymentEventSchema.safeParse({ ...generic, customer_name: 'Ama' }).success, false);
+    assert.equal(paymentEventSchema.safeParse({ ...generic, method: 'crypto' }).success, false);
+    assert.equal(
+      paymentEventSchema.safeParse({ ...generic, customer: { phone: '+225' } }).success,
+      false
+    );
   });
   it('rejects unknown fields, HTML and bad emails', () => {
     assert.equal(paymentEventSchema.safeParse({ ...event, is_admin: true }).success, false);
     assert.equal(
-      paymentEventSchema.safeParse({ ...event, customer_name: '<img src=x onerror=alert(1)>' }).success,
+      paymentEventSchema.safeParse({ ...event, customer_name: '<img src=x onerror=alert(1)>' })
+        .success,
       false
     );
     assert.equal(paymentEventSchema.safeParse({ ...event, customer_email: 'nope' }).success, false);
   });
   it('requires an ISO date with a time zone, not in the far future', () => {
-    assert.equal(paymentEventSchema.safeParse({ ...event, occurred_at: '2026-10-20' }).success, false);
-    assert.equal(paymentEventSchema.safeParse({ ...event, occurred_at: '2999-01-01T00:00:00Z' }).success, false);
+    assert.equal(
+      paymentEventSchema.safeParse({ ...event, occurred_at: '2026-10-20' }).success,
+      false
+    );
+    assert.equal(
+      paymentEventSchema.safeParse({ ...event, occurred_at: '2999-01-01T00:00:00Z' }).success,
+      false
+    );
   });
   it('caps metadata at 8 KB', () => {
     const metadata = { blob: 'x'.repeat(9000) };
@@ -101,10 +167,24 @@ describe('url state mappers', () => {
     assert.equal(f.formType, null);
     assert.equal(f.search, 'hi');
     assert.equal(f.page, 1);
-    assert.equal(toSubmissionFilters({ view: 'all', type: 'volunteer_signup', q: '', page: 2 }).formType, 'volunteer_signup');
+    assert.equal(
+      toSubmissionFilters({ view: 'all', type: 'volunteer_signup', q: '', page: 2 }).formType,
+      'volunteer_signup'
+    );
   });
   it('maps the payments params safely', () => {
-    const f = toPaymentFilters({ page: 1, perPage: 999, q: '', status: [], sort: 'amount', asc: true, test: true });
+    const f = toPaymentFilters({
+      page: 1,
+      perPage: 999,
+      q: '',
+      status: [],
+      provider: ['paystack'],
+      method: [],
+      sort: 'amount',
+      asc: true,
+      test: true
+    });
+    assert.deepEqual(f.provider, ['paystack']);
     assert.equal(f.perPage, 20);
     assert.equal(f.desc, false);
     assert.equal(f.live, false);
@@ -116,10 +196,34 @@ describe('money and ranges', () => {
   it('converts minor units per currency', () => {
     assert.equal(minorToMajor(260, 'usd'), 2.6);
     assert.equal(minorToMajor(500, 'jpy'), 500);
+    assert.equal(minorToMajor(15000, 'xof'), 15000);
+    assert.equal(minorToMajor(7500, 'XAF'), 7500);
+    assert.equal(minorToMajor(39000, 'krw'), 39000);
+    assert.equal(minorToMajor(1234, 'kwd'), 1.234);
+    assert.equal(majorToMinor(2.6, 'usd'), 260);
+    assert.equal(majorToMinor(15000, 'xof'), 15000);
+    assert.equal(majorToMinor(10.005, 'eur'), 1001);
+    assert.equal(fractionDigits('ngn'), 2);
+    assert.equal(fractionDigits('zzz'), 2);
+  });
+  it('formats zero-decimal and three-decimal currencies without fake decimals', () => {
+    assert.equal(formatMoney(15000, 'xof', 'en').replace(/\s/g, ' '), 'F CFA 15,000');
+    assert.equal(formatMoney(1200, 'jpy', 'en'), '¥1,200');
+    assert.equal(formatMoney(39000, 'krw', 'en'), '₩39,000');
+    assert.equal(formatMoney(260, 'usd', 'en'), '$2.60');
+    assert.equal(formatMoney(1234, 'kwd', 'en').replace(/\s/g, ' '), 'KWD 1.234');
+    assert.match(formatMoney(500000, 'ngn', 'en'), /5,000\.00/);
+    assert.equal(moneyFormat('xof').maximumFractionDigits, 0);
+    assert.equal(moneyFormat('usd').minimumFractionDigits, 2);
   });
   it('fills every day of the range and computes changes', () => {
-    const days = fillDays('2026-10-01', '2026-10-03', [{ day: '2026-10-02', n: 4 }], (r) => ({ n: r?.n ?? 0 }));
-    assert.deepEqual(days.map((d) => d.n), [0, 4, 0]);
+    const days = fillDays('2026-10-01', '2026-10-03', [{ day: '2026-10-02', n: 4 }], (r) => ({
+      n: r?.n ?? 0
+    }));
+    assert.deepEqual(
+      days.map((d) => d.n),
+      [0, 4, 0]
+    );
     assert.equal(percentChange(150, 100), 50);
     assert.equal(percentChange(5, 0), null);
   });

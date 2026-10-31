@@ -12,6 +12,8 @@ export function listPayments(db: SupabaseClient, websiteId: string, filters: Pay
       p_website_id: websiteId,
       p_search: filters.search,
       p_status: filters.status.length ? filters.status : null,
+      p_provider: filters.provider.length ? filters.provider : null,
+      p_method: filters.method.length ? filters.method : null,
       p_livemode: filters.live,
       p_sort: filters.sort,
       p_desc: filters.desc,
@@ -40,12 +42,14 @@ export function getPaymentsSummary(
 export function exportPayments(
   db: SupabaseClient,
   websiteId: string,
-  filters: Pick<PaymentFilters, 'status' | 'live'>
+  filters: Pick<PaymentFilters, 'status' | 'provider' | 'method' | 'live'>
 ) {
   return rpc<Payment[]>(
     db.rpc('site_payments_export', {
       p_website_id: websiteId,
       p_status: filters.status.length ? filters.status : null,
+      p_provider: filters.provider.length ? filters.provider : null,
+      p_method: filters.method.length ? filters.method : null,
       p_livemode: filters.live
     })
   );
