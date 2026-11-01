@@ -17,6 +17,9 @@ import {
   UpgradeRequests
 } from '@/features/platform-admin/components/billing/billing-admin';
 import { IssuerDetailsCard } from '@/features/platform-admin/components/billing/issuer-card';
+import { EmailSendingCard } from '@/features/platform-admin/components/billing/email-sending-card';
+import { emailSendingStatusQueryOptions } from '@/features/platform-admin/api/email';
+import { emailProviderConfigured } from '@/features/email-campaigns/server/sender';
 import { OnlinePaymentsCard } from '@/features/platform-admin/components/billing/online-payments-card';
 import { staffMessages } from '@/i18n/client-messages';
 import { requireDashboardSession } from '@/lib/auth/session';
@@ -44,6 +47,7 @@ export default async function AdminBillingPage() {
   void queryClient.prefetchQuery(billingOrgsQueryOptions(db));
   void queryClient.prefetchQuery(billingIssuerQueryOptions(db));
   void queryClient.prefetchQuery(webhookKeyQueryOptions(db));
+  void queryClient.prefetchQuery(emailSendingStatusQueryOptions(db));
 
   return (
     <PageContainer pageTitle={t('pageTitle')} pageDescription={t('pageDescription')}>
@@ -64,6 +68,12 @@ export default async function AdminBillingPage() {
                 <OnlinePaymentsCard provider={onlinePaymentsProvider()} />
               </Suspense>
             </div>
+            <Suspense fallback={<Skeleton className='h-56 w-full' />}>
+              <EmailSendingCard
+                providerReady={emailProviderConfigured()}
+                workerReady={!!process.env.CRON_SECRET && !!process.env.LEVELUP_EMAIL_KEY}
+              />
+            </Suspense>
           </div>
         </HydrationBoundary>
       </NextIntlClientProvider>

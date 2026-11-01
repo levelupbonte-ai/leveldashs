@@ -58,6 +58,7 @@ the schema from application code or by hand in the dashboard.
 | `20261031110000` | seo_text_limits (`website_settings_seo_len_check`: SEO title 70, description 320, business name 120, verification code 100, image 2048, 20 keywords; NOT VALID then validated, every existing row fits; the form stops at 60 / 160; see [forms.md](./forms.md)) | **Applied** (`seo_text_limits`); suite `text_limits.sql` 6/6 |
 | `20261031120000` | billing_square (Square payment links: `private.billing_square_orders`, `billing_checkout_record_square`, `billing_ingest_stripe_event` accepts `provider: square`; provider / event type / outcome constraints widened; see [billing.md](./billing.md#square-payment-links)) | **Applied** (`billing_square`; suite `billing_square.sql` 28/28) |
 | `20261031120100` | studio_admin (LevelStudio in the staff area: `admin_studio_templates`, `admin_studio_template_preview`, `admin_studio_set_template_published`, `admin_studio_projects`, `admin_studio_project_preview`, `admin_studio_creator_email`; platform admin + aal2, audited `studio.*`; `private.studio_template_publication` + trigger so LevelStudio's template sync keeps a staff unpublish) | **Applied** (`studio_admin`; suite `studio_admin.sql` 22/22) |
+| `20261031130000` | email_campaigns (`email_contacts`, `email_contact_imports`, `email_campaigns`, `email_campaign_recipients`, `email_test_sends`, `email_events`, `email_sender_profiles`; private site state, worker keys, webhook status; newsletter trigger + backfill; member, worker, webhook, unsubscribe and staff `email_*` functions; plan limit `emails_month`; see [email-campaigns.md](./email-campaigns.md)) | **Applied** (`email_campaigns`, 2026-11-01; suite `email_campaigns.sql` 83/83 on the live project, rolled back) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -203,6 +204,8 @@ Rules:
 - **Audit.** Every staff change and every client redemption or request writes
   `hq_audit_log` (`billing.*`); discounts are logged on their organization (or with no
   target type for a promo code), plans with the plan key as target id.
+
+Plan limit `emails_month` (campaign and test e-mails per UTC month; free 500, starter 2,500, pro 10,000, business 50,000) is enforced by the email campaign functions, see [email-campaigns.md](./email-campaigns.md).
 
 Test: `supabase/tests/billing.sql` (67 checks). `team_invitations.sql` puts its test
 organization on an unlimited-seat plan so it keeps testing invitations only.

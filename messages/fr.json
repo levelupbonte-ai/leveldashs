@@ -109,7 +109,8 @@
       "capabilities": "Tout sur mon site",
       "analytics": "Statistiques",
       "payments": "Paiements",
-      "projectRequests": "Demandes de projet"
+      "projectRequests": "Demandes de projet",
+      "emailCampaigns": "Campagnes e-mail"
     }
   },
   "admin": {
@@ -751,6 +752,39 @@
         "empty": "Cet élément n’a aucune page enregistrée à afficher.",
         "frameTitle": "Aperçu de {title}"
       }
+    },
+    "emailSending": {
+      "title": "Campagnes e-mail des clients",
+      "description": "Les campagnes que les clients envoient à leurs abonnés, depuis le domaine d’envoi de LevelUp.",
+      "sendingOn": "Envoi actif",
+      "sendingOff": "Envoi inactif (RESEND_API_KEY)",
+      "workerOn": "Tâche de fond active",
+      "workerOff": "Tâche de fond inactive (CRON_SECRET, LEVELUP_EMAIL_KEY)",
+      "trackingOn": "Événements de remise : dernier le {date}",
+      "trackingOff": "Aucun événement de remise",
+      "keyTitle": "Clé de la tâche d’envoi",
+      "keyHint": "Permet à la tâche de fond et au webhook de remise d’agir dans la base. Stockée sous forme de hachage ; affichée une seule fois.",
+      "keyNone": "Aucune clé.",
+      "keyActive": "Clé active se terminant par {hint}, créée le {date}.",
+      "keyUsed": "Dernière utilisation le {date}.",
+      "generate": "Générer une clé",
+      "regenerate": "Remplacer la clé",
+      "generateConfirm": "La nouvelle clé remplace l’actuelle immédiatement. Les campagnes programmées et le suivi de remise s’arrêtent tant que LEVELUP_EMAIL_KEY n’est pas mise à jour sur le serveur. Continuer ?",
+      "keyShownOnce": "Copiez cette clé maintenant : elle n’est affichée qu’une fois. Mettez-la dans la variable d’environnement serveur LEVELUP_EMAIL_KEY (jamais NEXT_PUBLIC_).",
+      "keyTitleNew": "Nouvelle clé de la tâche d’envoi",
+      "copy": "Copier",
+      "copied": "Clé copiée",
+      "done": "Terminé",
+      "pausedTitle": "Sites suspendus",
+      "pausedNone": "Aucun site n’est suspendu.",
+      "reason": {
+        "bounces": "Trop d’échecs de remise",
+        "complaints": "Trop de signalements comme spam",
+        "staff": "Suspendu par LevelUp"
+      },
+      "rates": "{sent} envoyés, {bounced} en échec, {complained} signalements (30 jours)",
+      "resume": "Reprendre l’envoi",
+      "resumed": "Envoi repris"
     }
   },
   "mfaStep": {
@@ -860,7 +894,20 @@
     "planInUse": "Des organisations utilisent ce forfait : déplacez-les d’abord.",
     "mediaImageTooLarge": "Cette image est trop grande (30 Mo et 50 mégapixels au maximum).",
     "paymentUnavailable": "Le paiement en ligne n’est pas disponible pour le moment. Réessayez plus tard ou contactez LevelUp.",
-    "paymentInProgress": "Un paiement de ce montant est déjà en cours. Actualisez la page dans une minute."
+    "paymentInProgress": "Un paiement de ce montant est déjà en cours. Actualisez la page dans une minute.",
+    "senderDetailsRequired": "Ajoutez l’adresse postale de votre entreprise et une adresse de réponse dans Expéditeur avant d’envoyer.",
+    "campaignNotDraft": "Cette campagne est déjà programmée ou envoyée. Actualisez la page.",
+    "noRecipients": "Personne n’est encore inscrit : il n’y a aucun destinataire.",
+    "sendingPaused": "L’envoi est suspendu pour ce site. LevelUp va vous contacter.",
+    "dailyCapReached": "Ce site a atteint sa limite d’envoi quotidienne. Réessayez demain.",
+    "consentRequired": "Confirmez que chaque contact a accepté de recevoir vos e-mails.",
+    "invalidSchedule": "Choisissez une date dans au moins 10 minutes et dans les 90 jours.",
+    "subjectRequired": "Ajoutez un objet.",
+    "contentRequired": "Ajoutez un titre ou un message.",
+    "buttonIncomplete": "Un bouton a besoin d’un libellé et d’un lien.",
+    "invalidImage": "Choisissez une image de votre médiathèque.",
+    "emailSendFailed": "L’e-mail n’a pas pu être envoyé. Réessayez dans un instant.",
+    "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place."
   },
   "workspaces": {
     "title": "Organisations",
@@ -956,7 +1003,8 @@
       "of": "{used} / {limit}",
       "near": "Bientôt à la limite",
       "reached": "Limite atteinte",
-      "none": "Votre forfait n’a pas de limites."
+      "none": "Votre forfait n’a pas de limites.",
+      "emails_month": "E-mails ce mois-ci"
     },
     "usage": {
       "title": "Consommation du mois",
@@ -967,7 +1015,8 @@
       "assistant": "Requêtes à l’assistant",
       "team": "Membres de l’équipe",
       "pendingInvites": "{count, plural, =0 {Aucune invitation en attente} one {+ # invitation en attente} other {+ # invitations en attente}}",
-      "websites": "Sites web"
+      "websites": "Sites web",
+      "emails": "E-mails envoyés"
     },
     "plans": {
       "title": "Forfaits",
@@ -1065,7 +1114,8 @@
       "media_mb": "Votre forfait permet {limit} Mo de stockage des médias.",
       "websites": "Votre forfait permet {limit, plural, one {# site web} other {# sites web}}.",
       "upgrade": "Changez de forfait pour en faire plus.",
-      "action": "Voir les forfaits"
+      "action": "Voir les forfaits",
+      "emails_month": "Votre forfait permet {limit, plural, one {# e-mail} other {# e-mails}} par mois."
     }
   },
   "info": {
@@ -1301,6 +1351,11 @@
         "subscription": "Abonnement",
         "one_off": "Ponctuel"
       }
+    },
+    "campaign": {
+      "reason": "Vous recevez cet e-mail parce que vous vous êtes inscrit sur {site}.",
+      "unsubscribe": "Se désabonner",
+      "addressMissing": "Adresse postale manquante : ajoutez-la dans Expéditeur"
     }
   },
   "brandImage": {
@@ -1748,6 +1803,10 @@
       "projectRequests": {
         "title": "Demandes de projet",
         "description": "Demandes « Démarrer un projet » avec le tri par l’IA"
+      },
+      "emailCampaigns": {
+        "title": "Campagnes e-mail",
+        "description": "Écrivez aux clients inscrits sur votre site"
       }
     },
     "unavailable": {
@@ -3300,5 +3359,286 @@
       "polling": "Actualisation automatique"
     },
     "navBadge": "{count, plural, one {# message non lu} other {# messages non lus}}"
+  },
+  "unsubscribe": {
+    "metaTitle": "Désabonnement",
+    "title": "Se désabonner de ces e-mails ?",
+    "description": "{email} ne recevra plus d’e-mails de {site}.",
+    "confirm": "Se désabonner",
+    "doneTitle": "Vous êtes désabonné",
+    "doneDescription": "Vous ne recevrez plus d’e-mails de {site}. En cas d’erreur, réinscrivez-vous sur leur site.",
+    "invalidTitle": "Ce lien n’est pas valide",
+    "invalidDescription": "Le lien est peut-être incomplet ou n’est plus actif. Copiez le lien complet depuis l’e-mail, ou contactez directement l’entreprise.",
+    "testTitle": "Ceci est un e-mail de test",
+    "testDescription": "Dans les vrais e-mails, ce lien désabonne la personne en un clic.",
+    "footer": "E-mails envoyés avec LevelUp Ecosystem pour le compte de l’entreprise."
+  },
+  "emailCampaigns": {
+    "newCampaign": "Nouvelle campagne",
+    "alerts": {
+      "notConfiguredTitle": "L’envoi n’est pas encore disponible",
+      "notConfigured": "Vous pouvez déjà préparer vos campagnes et vos contacts. LevelUp met en place l’envoi pour votre site.",
+      "pausedTitle": "Envoi suspendu",
+      "paused": {
+        "bounces": "Trop d’e-mails n’ont pas pu être remis. L’envoi est suspendu pour protéger votre réputation ; LevelUp va revoir votre liste avec vous.",
+        "complaints": "Trop de personnes ont signalé vos e-mails comme spam. L’envoi est suspendu ; LevelUp va voir cela avec vous.",
+        "staff": "LevelUp a suspendu l’envoi pour ce site et va vous contacter."
+      },
+      "senderTitle": "Ajoutez vos informations d’expéditeur",
+      "sender": "Chaque e-mail doit indiquer l’adresse postale de votre entreprise (loi anti-spam). Ajoutez-la, avec l’adresse de réponse, avant le premier envoi.",
+      "senderAskAdmin": "Un propriétaire ou un administrateur doit ajouter l’adresse postale de l’entreprise et l’adresse de réponse avant tout envoi."
+    },
+    "stats": {
+      "subscribed": "Contacts inscrits",
+      "contactsTotal": "{count, plural, =0 {Aucun contact} one {# contact au total} other {# contacts au total}}",
+      "month": "E-mails ce mois-ci",
+      "ofLimit": "{used} / {limit}",
+      "unlimited": "Pas de limite mensuelle sur votre forfait",
+      "monthHint": "Inclus dans votre forfait, tests compris",
+      "campaignsSent": "Campagnes envoyées",
+      "drafts": "{count, plural, =0 {Aucun brouillon} one {# brouillon} other {# brouillons}}",
+      "unreachable": "Injoignables",
+      "unreachableHint": "Désabonnés, en échec ou signalés comme spam"
+    },
+    "tabs": {
+      "campaigns": "Campagnes",
+      "edit": "Modifier",
+      "create": "Créer",
+      "contacts": "Contacts"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "scheduled": "Programmée",
+      "sending": "Envoi en cours",
+      "sent": "Envoyée",
+      "failed": "Échec"
+    },
+    "contactStatus": {
+      "subscribed": "Inscrit",
+      "unsubscribed": "Désabonné",
+      "bounced": "En échec",
+      "complained": "Signalé comme spam"
+    },
+    "sender": {
+      "open": "Expéditeur",
+      "title": "Informations d’expéditeur",
+      "description": "Comment vos e-mails sont signés. LevelUp les envoie en votre nom ; les réponses arrivent à votre adresse.",
+      "fromName": "Nom de l’expéditeur",
+      "fromNameHint": "Affiché comme expéditeur dans la boîte de réception. Laissez vide pour « {name} ».",
+      "replyTo": "Adresse de réponse",
+      "replyToHint": "Là où arrivent les réponses de vos clients.",
+      "postalAddress": "Adresse postale de l’entreprise",
+      "postalAddressHint": "Imprimée en bas de chaque e-mail, comme l’exige la loi anti-spam (rue, ville, État ou province, code postal, pays).",
+      "brandColor": "Couleur de la marque",
+      "brandColorHint": "Utilisée pour les titres, les liens et le bouton.",
+      "addressRequired": "Saisissez l’adresse postale complète.",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saved": "Informations d’expéditeur enregistrées"
+    },
+    "list": {
+      "emptyTitle": "Aucune campagne",
+      "emptyDescription": "Écrivez votre premier e-mail aux clients inscrits sur votre site.",
+      "create": "Créer une campagne",
+      "subject": "Objet",
+      "status": "Statut",
+      "recipients": "Destinataires",
+      "sent": "Envoyés",
+      "delivered": "Remis",
+      "bounced": "En échec",
+      "unsubscribed": "Désabonnés",
+      "date": "Date",
+      "untitled": "Sans titre",
+      "progress": "{sent} sur {total} envoyés",
+      "scheduledFor": "Programmée pour",
+      "trackingOff": "Les nombres de remises et d’échecs s’affichent quand le suivi de remise est actif. Les ouvertures ne sont pas suivies.",
+      "failure": {
+        "quota": "Limite mensuelle d’e-mails atteinte",
+        "daily_cap": "Limite d’envoi quotidienne atteinte",
+        "paused": "L’envoi a été suspendu",
+        "sender_missing": "Adresse postale manquante",
+        "no_recipients": "Aucun contact inscrit",
+        "content_missing": "Objet ou message manquant",
+        "provider": "Les e-mails n’ont pas pu être remis"
+      }
+    },
+    "templates": {
+      "label": "Modèle",
+      "newsletter": {
+        "name": "Infolettre",
+        "description": "Actualités avec votre logo, une image et un bouton.",
+        "subject": "Les nouveautés du mois",
+        "previewText": "Nos dernières nouvelles, en deux minutes",
+        "heading": "Bonjour !",
+        "body": "Voici les nouveautés du mois.\n\n**Nouveau ce mois-ci :** écrivez votre actualité ici.\n\nMerci de faire partie de notre communauté.",
+        "button": "En savoir plus"
+      },
+      "announcement": {
+        "name": "Annonce",
+        "description": "Une bannière colorée pour une nouvelle importante.",
+        "subject": "Une information importante",
+        "previewText": "Quelque chose change : voici ce qu’il faut savoir",
+        "heading": "Grande nouvelle",
+        "body": "Nous avons une nouvelle à partager avec vous.\n\nExpliquez ce qui change, quand, et ce que cela signifie pour vos clients.",
+        "button": "En savoir plus"
+      },
+      "promotion": {
+        "name": "Promotion",
+        "description": "Une offre mise en avant et un appel à l’action fort.",
+        "subject": "Une offre spéciale pour vous",
+        "previewText": "Pour une durée limitée",
+        "heading": "15 % de réduction cette semaine",
+        "body": "Pour vous remercier, profitez d’une offre spéciale.\n\n**Valable jusqu’au :** ajoutez la date de fin.\n\nMentionnez cet e-mail lors de votre visite.",
+        "button": "Réserver"
+      },
+      "event": {
+        "name": "Événement",
+        "description": "Une invitation avec une grande image et un bouton de réservation.",
+        "subject": "Vous êtes invité",
+        "previewText": "Réservez la date",
+        "heading": "Rejoignez-nous",
+        "body": "**Quand :** jour et heure\n**Où :** adresse\n\nDites à vos invités à quoi s’attendre.",
+        "button": "Réserver ma place"
+      },
+      "letter": {
+        "name": "Lettre simple",
+        "description": "Un mot personnel sans image, comme une lettre.",
+        "subject": "Un mot de notre part",
+        "previewText": "Quelques mots de l’équipe",
+        "heading": "",
+        "body": "Bonjour,\n\nÉcrivez votre message ici.\n\nBien cordialement,\nL’équipe",
+        "button": "Répondre"
+      },
+      "thank_you": {
+        "name": "Remerciement",
+        "description": "Un message de remerciement chaleureux et centré.",
+        "subject": "Merci !",
+        "previewText": "Nous vous sommes reconnaissants",
+        "heading": "Merci",
+        "body": "Merci pour votre confiance et votre soutien.\n\nNous avons hâte de vous revoir.",
+        "button": "Nous rendre visite"
+      }
+    },
+    "editor": {
+      "preview": "Aperçu",
+      "previewDevice": "Taille de l’aperçu",
+      "desktop": "Ordinateur",
+      "mobile": "Mobile",
+      "buttonUrlInvalid": "Saisissez un lien qui commence par https://",
+      "buttonIncomplete": "Un bouton a besoin d’un libellé et d’un lien.",
+      "contentRequired": "Ajoutez un titre ou un message.",
+      "saved": "Brouillon enregistré",
+      "testSent": "Test envoyé à {email}",
+      "sending": "{count, plural, one {Envoi à # contact} other {Envoi à # contacts}}",
+      "scheduled": "Campagne programmée",
+      "senderMissingTitle": "Informations d’expéditeur requises",
+      "senderMissing": "Vous pouvez déjà écrire et prévisualiser. L’adresse postale et l’adresse de réponse sont nécessaires avant un test ou un envoi.",
+      "openSender": "Ajouter l’expéditeur",
+      "templateTitle": "Modèle",
+      "templateDescription": "Chaque modèle utilise votre logo, votre couleur et le nom de votre entreprise.",
+      "contentTitle": "Contenu",
+      "contentDescription": "Du texte seulement : nous nous occupons de la mise en page.",
+      "locale": "Langue de l’e-mail",
+      "localeHint": "Langue du pied de page et de la page de désabonnement.",
+      "locales": {
+        "en": "Anglais",
+        "fr": "Français"
+      },
+      "subject": "Objet",
+      "previewText": "Texte d’aperçu",
+      "previewTextHint": "Affiché à côté de l’objet dans la plupart des messageries.",
+      "heading": "Titre",
+      "body": "Message",
+      "bodyHint": "Laissez une ligne vide entre les paragraphes. **gras** pour le gras, [texte](https://lien) pour un lien.",
+      "buttonLabel": "Libellé du bouton",
+      "buttonUrl": "Lien du bouton",
+      "image": "Image",
+      "imageHint": "Facultative, depuis votre médiathèque.",
+      "save": "Enregistrer le brouillon",
+      "sendTest": "M’envoyer un test",
+      "schedule": "Programmer",
+      "sendNow": "Envoyer maintenant",
+      "editorsDraft": "Les propriétaires et administrateurs envoient la campagne.",
+      "confirmTitle": "Envoyer cette campagne maintenant ?",
+      "confirmDescription": "{count, plural, one {Elle partira à # contact inscrit} other {Elle partira à # contacts inscrits}} de la part de {business}. Impossible d’annuler ensuite.",
+      "cancel": "Annuler",
+      "confirmSend": "{count, plural, one {Envoyer à # contact} other {Envoyer à # contacts}}",
+      "scheduleTitle": "Programmer la campagne",
+      "scheduleDescription": "{count, plural, one {Elle partira au # contact inscrit à ce moment-là} other {Elle partira aux contacts inscrits à ce moment-là (# aujourd’hui)}}.",
+      "scheduleAt": "Date et heure",
+      "scheduleHint": "Dans au moins 10 minutes et dans les 90 jours. Votre heure locale.",
+      "scheduleConfirm": "Programmer"
+    },
+    "details": {
+      "recipients": "Destinataires",
+      "sent": "Envoyés",
+      "delivered": "Remis",
+      "bounced": "En échec",
+      "unsubscribed": "Désabonnés",
+      "failed": "Non envoyés",
+      "scheduledFor": "Programmée pour le {date}",
+      "startedAt": "Envoyée le {date}",
+      "noOpens": "Les ouvertures ne sont pas suivies : nous n’affichons que ce que nous pouvons mesurer.",
+      "unschedule": "Annuler la programmation",
+      "backToDraft": "Revenir au brouillon"
+    },
+    "media": {
+      "change": "Changer l’image",
+      "choose": "Choisir une image",
+      "remove": "Retirer",
+      "title": "Médiathèque",
+      "description": "Choisissez une image téléversée dans la page Médias de votre site.",
+      "empty": "Aucune image. Téléversez-en dans la page Médias.",
+      "more": "Afficher plus"
+    },
+    "contacts": {
+      "search": "Rechercher par e-mail ou nom",
+      "statusFilter": "Filtrer par statut",
+      "allStatuses": "Tous les statuts",
+      "statusOption": {
+        "subscribed": "Inscrits",
+        "unsubscribed": "Désabonnés",
+        "bounced": "En échec",
+        "complained": "Signalés comme spam"
+      },
+      "import": "Importer un CSV",
+      "export": "Exporter en CSV",
+      "exported": "{count, plural, one {# contact exporté} other {# contacts exportés}}",
+      "unsubscribed": "Contact désabonné",
+      "sourcesHint": "Les contacts viennent du formulaire d’inscription à l’infolettre de votre site et des imports pour lesquels vous avez confirmé l’accord de chacun. Seuls les contacts inscrits reçoivent les campagnes.",
+      "noMatch": "Aucun contact ne correspond",
+      "emptyTitle": "Aucun contact",
+      "emptyDescription": "Les personnes qui s’inscrivent à votre infolettre sur votre site apparaissent ici.",
+      "email": "E-mail",
+      "name": "Nom",
+      "source": "Origine",
+      "status": "Statut",
+      "consent": "Date du consentement",
+      "unsubscribe": "Désabonner",
+      "sourceOption": {
+        "newsletter": "Formulaire d’infolettre",
+        "import": "Import"
+      },
+      "maskedHint": "Les adresses sont partiellement masquées pour les lecteurs.",
+      "unsubscribeTitle": "Désabonner ce contact ?",
+      "unsubscribeDescription": "{email} ne recevra plus de campagnes. Seule cette personne pourra se réinscrire, depuis votre site.",
+      "cancel": "Annuler"
+    },
+    "import": {
+      "title": "Importer des contacts",
+      "description": "Un fichier CSV avec une colonne e-mail (et éventuellement une colonne nom). Les contacts existants ne sont pas modifiés.",
+      "file": "Fichier CSV",
+      "fileHint": "Jusqu’à 5 000 contacts et 2 Mo par fichier.",
+      "tooLarge": "Ce fichier dépasse 2 Mo.",
+      "noRows": "Aucune adresse e-mail trouvée dans ce fichier.",
+      "tooMany": "Importez au plus {max} contacts à la fois.",
+      "ready": "{count, plural, one {# contact prêt à importer} other {# contacts prêts à importer}}",
+      "skipped": "Ignorés : {invalid} invalides, {duplicates} en double.",
+      "statement": "Je confirme que chaque contact de ce fichier a accepté de recevoir des e-mails marketing de mon entreprise.",
+      "statementHint": "Obligatoire. Votre confirmation est enregistrée avec la date et votre nom. N’importez jamais de listes achetées ou collectées sans accord.",
+      "cancel": "Annuler",
+      "confirm": "{count, plural, =0 {Importer} one {Importer # contact} other {Importer # contacts}}",
+      "done": "{added, plural, one {# contact ajouté} other {# contacts ajoutés}}, {existing} déjà dans votre liste"
+    }
   }
 }

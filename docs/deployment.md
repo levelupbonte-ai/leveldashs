@@ -28,6 +28,10 @@ Ensure these are set in your deployment platform:
   steps in [billing.md](./billing.md#turning-on-online-payments) and
   [billing.md → Turning on Square](./billing.md#turning-on-square)
 
+- Client email campaigns, server-only: `RESEND_API_KEY` (same key as the account e-mails), optional
+  `CAMPAIGN_EMAIL_FROM_ADDRESS`, and for scheduled sending and delivery tracking `LEVELUP_EMAIL_KEY`,
+  `CRON_SECRET`, `RESEND_WEBHOOK_SECRET`. Steps in [email-campaigns.md](./email-campaigns.md#setup)
+
 Sentry source maps are uploaded automatically in CI.
 
 Only the publishable key is needed: the app never uses the Supabase secret / service-role key, and every query runs as the signed-in user through RLS.

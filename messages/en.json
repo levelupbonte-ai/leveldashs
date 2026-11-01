@@ -109,7 +109,8 @@
       "capabilities": "Everything on my site",
       "analytics": "Analytics",
       "payments": "Payments",
-      "projectRequests": "Project requests"
+      "projectRequests": "Project requests",
+      "emailCampaigns": "Email campaigns"
     }
   },
   "admin": {
@@ -751,6 +752,39 @@
         "empty": "This item has no stored page to preview.",
         "frameTitle": "Preview of {title}"
       }
+    },
+    "emailSending": {
+      "title": "Client email campaigns",
+      "description": "Campaigns that clients send to their own subscribers, from LevelUp’s sending domain.",
+      "sendingOn": "Sending on",
+      "sendingOff": "Sending off (RESEND_API_KEY)",
+      "workerOn": "Worker on",
+      "workerOff": "Worker off (CRON_SECRET, LEVELUP_EMAIL_KEY)",
+      "trackingOn": "Delivery events: last {date}",
+      "trackingOff": "No delivery events yet",
+      "keyTitle": "Email worker key",
+      "keyHint": "Lets the background worker and the delivery webhook act in the database. Stored as a hash; shown once.",
+      "keyNone": "No key yet.",
+      "keyActive": "Active key ending in {hint}, created {date}.",
+      "keyUsed": "Last used {date}.",
+      "generate": "Generate a key",
+      "regenerate": "Replace the key",
+      "generateConfirm": "The new key replaces the current one at once. Scheduled campaigns and delivery tracking stop until LEVELUP_EMAIL_KEY is updated on the server. Continue?",
+      "keyShownOnce": "Copy this key now: it is shown only once. Put it in the server environment variable LEVELUP_EMAIL_KEY (never NEXT_PUBLIC_).",
+      "keyTitleNew": "New email worker key",
+      "copy": "Copy",
+      "copied": "Key copied",
+      "done": "Done",
+      "pausedTitle": "Paused websites",
+      "pausedNone": "No website is paused.",
+      "reason": {
+        "bounces": "Too many bounces",
+        "complaints": "Too many spam complaints",
+        "staff": "Paused by LevelUp"
+      },
+      "rates": "{sent} sent, {bounced} bounced, {complained} complaints (30 days)",
+      "resume": "Resume sending",
+      "resumed": "Sending resumed"
     }
   },
   "mfaStep": {
@@ -860,7 +894,20 @@
     "planInUse": "Organizations are on this plan: move them first.",
     "mediaImageTooLarge": "This image is too large (30 MB and 50 megapixels max).",
     "paymentUnavailable": "Online payment isn’t available right now. Try again later or contact LevelUp.",
-    "paymentInProgress": "A payment for this charge is already being processed. Refresh the page in a minute."
+    "paymentInProgress": "A payment for this charge is already being processed. Refresh the page in a minute.",
+    "senderDetailsRequired": "Add your business postal address and a reply-to email in Sender details before sending.",
+    "campaignNotDraft": "This campaign was already scheduled or sent. Refresh the page.",
+    "noRecipients": "Nobody is subscribed yet: there is no one to send this campaign to.",
+    "sendingPaused": "Sending is paused for this website. LevelUp will contact you.",
+    "dailyCapReached": "This website reached its daily sending limit. Try again tomorrow.",
+    "consentRequired": "Confirm that every contact agreed to receive your emails.",
+    "invalidSchedule": "Choose a date at least 10 minutes from now and within 90 days.",
+    "subjectRequired": "Add a subject.",
+    "contentRequired": "Add a heading or a message.",
+    "buttonIncomplete": "A button needs both a label and a link.",
+    "invalidImage": "Choose an image from your media library.",
+    "emailSendFailed": "The email could not be sent. Try again in a moment.",
+    "emailNotConfigured": "Sending emails is not available yet. LevelUp is setting it up."
   },
   "workspaces": {
     "title": "Organizations",
@@ -956,7 +1003,8 @@
       "of": "{used} / {limit}",
       "near": "Almost at your limit",
       "reached": "Limit reached",
-      "none": "Your plan has no limits."
+      "none": "Your plan has no limits.",
+      "emails_month": "Emails this month"
     },
     "usage": {
       "title": "Usage this month",
@@ -967,7 +1015,8 @@
       "assistant": "Assistant requests",
       "team": "Team members",
       "pendingInvites": "{count, plural, =0 {No pending invitations} one {+ # pending invitation} other {+ # pending invitations}}",
-      "websites": "Websites"
+      "websites": "Websites",
+      "emails": "Emails sent"
     },
     "plans": {
       "title": "Plans",
@@ -1065,7 +1114,8 @@
       "media_mb": "Your plan allows {limit} MB of media storage.",
       "websites": "Your plan allows {limit, plural, one {# website} other {# websites}}.",
       "upgrade": "Upgrade to do more.",
-      "action": "See plans"
+      "action": "See plans",
+      "emails_month": "Your plan allows {limit, plural, one {# email} other {# emails}} per month."
     }
   },
   "info": {
@@ -1301,6 +1351,11 @@
         "subscription": "Subscription",
         "one_off": "One-off"
       }
+    },
+    "campaign": {
+      "reason": "You’re receiving this email because you subscribed on {site}.",
+      "unsubscribe": "Unsubscribe",
+      "addressMissing": "Postal address missing: add it in Sender details"
     }
   },
   "brandImage": {
@@ -1748,6 +1803,10 @@
       "projectRequests": {
         "title": "Project requests",
         "description": "“Start a project” requests with the AI triage"
+      },
+      "emailCampaigns": {
+        "title": "Email campaigns",
+        "description": "Email the customers who subscribed on your website"
       }
     },
     "unavailable": {
@@ -3300,5 +3359,286 @@
       "polling": "Refreshing automatically"
     },
     "navBadge": "{count, plural, one {# unread message} other {# unread messages}}"
+  },
+  "unsubscribe": {
+    "metaTitle": "Unsubscribe",
+    "title": "Unsubscribe from these emails?",
+    "description": "{email} will no longer receive emails from {site}.",
+    "confirm": "Unsubscribe",
+    "doneTitle": "You’re unsubscribed",
+    "doneDescription": "You will no longer receive emails from {site}. If this was a mistake, sign up again on their website.",
+    "invalidTitle": "This link isn’t valid",
+    "invalidDescription": "The link may be incomplete or no longer active. Copy the full link from the email, or contact the business directly.",
+    "testTitle": "This is a test email",
+    "testDescription": "In real emails, this link unsubscribes the person in one click.",
+    "footer": "Emails sent with LevelUp Ecosystem on behalf of the business."
+  },
+  "emailCampaigns": {
+    "newCampaign": "New campaign",
+    "alerts": {
+      "notConfiguredTitle": "Sending isn’t available yet",
+      "notConfigured": "You can prepare campaigns and contacts now. LevelUp is setting up sending for your website.",
+      "pausedTitle": "Sending is paused",
+      "paused": {
+        "bounces": "Too many emails could not be delivered. Sending is paused to protect your reputation; LevelUp will review your list with you.",
+        "complaints": "Too many people marked your emails as spam. Sending is paused; LevelUp will review it with you.",
+        "staff": "LevelUp paused sending for this website and will contact you."
+      },
+      "senderTitle": "Add your sender details",
+      "sender": "Every email must show your business postal address (anti-spam law). Add it, with the address customers reply to, before the first send.",
+      "senderAskAdmin": "An owner or admin must add the business postal address and reply-to email before anything can be sent."
+    },
+    "stats": {
+      "subscribed": "Subscribed contacts",
+      "contactsTotal": "{count, plural, =0 {No contacts yet} one {# contact in total} other {# contacts in total}}",
+      "month": "Emails this month",
+      "ofLimit": "{used} / {limit}",
+      "unlimited": "No monthly limit on your plan",
+      "monthHint": "Included in your plan, tests included",
+      "campaignsSent": "Campaigns sent",
+      "drafts": "{count, plural, =0 {No drafts} one {# draft} other {# drafts}}",
+      "unreachable": "Not reachable",
+      "unreachableHint": "Unsubscribed, bounced or marked as spam"
+    },
+    "tabs": {
+      "campaigns": "Campaigns",
+      "edit": "Edit",
+      "create": "Create",
+      "contacts": "Contacts"
+    },
+    "status": {
+      "draft": "Draft",
+      "scheduled": "Scheduled",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed"
+    },
+    "contactStatus": {
+      "subscribed": "Subscribed",
+      "unsubscribed": "Unsubscribed",
+      "bounced": "Bounced",
+      "complained": "Marked as spam"
+    },
+    "sender": {
+      "open": "Sender details",
+      "title": "Sender details",
+      "description": "How your emails are signed. They are sent by LevelUp on your behalf; replies go to your address.",
+      "fromName": "Sender name",
+      "fromNameHint": "Shown as the sender in the inbox. Leave empty to use “{name}”.",
+      "replyTo": "Reply-to email",
+      "replyToHint": "Where customers’ replies arrive.",
+      "postalAddress": "Business postal address",
+      "postalAddressHint": "Printed at the bottom of every email, as anti-spam law requires (street, city, state or province, postal code, country).",
+      "brandColor": "Brand colour",
+      "brandColorHint": "Used for the headings, links and button.",
+      "addressRequired": "Enter the full postal address.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Sender details saved"
+    },
+    "list": {
+      "emptyTitle": "No campaigns yet",
+      "emptyDescription": "Write your first email to the customers who subscribed on your website.",
+      "create": "Create a campaign",
+      "subject": "Subject",
+      "status": "Status",
+      "recipients": "Recipients",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "bounced": "Bounced",
+      "unsubscribed": "Unsubscribed",
+      "date": "Date",
+      "untitled": "Untitled",
+      "progress": "{sent} of {total} sent",
+      "scheduledFor": "Scheduled for",
+      "trackingOff": "Delivery and bounce numbers appear once delivery tracking is active. Opens are not tracked.",
+      "failure": {
+        "quota": "Monthly email limit reached",
+        "daily_cap": "Daily sending limit reached",
+        "paused": "Sending was paused",
+        "sender_missing": "Postal address missing",
+        "no_recipients": "No subscribed contacts",
+        "content_missing": "Subject or message missing",
+        "provider": "The emails could not be delivered"
+      }
+    },
+    "templates": {
+      "label": "Template",
+      "newsletter": {
+        "name": "Newsletter",
+        "description": "News and updates with your logo, an image and a button.",
+        "subject": "What’s new this month",
+        "previewText": "Our latest news, in two minutes",
+        "heading": "Hello!",
+        "body": "Here is what’s new this month.\n\n**New this month:** write your news here.\n\nThank you for being part of our community.",
+        "button": "Read more"
+      },
+      "announcement": {
+        "name": "Announcement",
+        "description": "A coloured banner for important news.",
+        "subject": "An important update",
+        "previewText": "Something has changed: here is what you need to know",
+        "heading": "Big news",
+        "body": "We have something to share with you.\n\nExplain what changes, when, and what it means for your customers.",
+        "button": "Learn more"
+      },
+      "promotion": {
+        "name": "Promotion",
+        "description": "A highlighted offer and a strong call to action.",
+        "subject": "A special offer for you",
+        "previewText": "For a limited time only",
+        "heading": "15% off this week",
+        "body": "As a thank you, enjoy a special offer.\n\n**Valid until:** add the end date.\n\nMention this email when you visit.",
+        "button": "Book now"
+      },
+      "event": {
+        "name": "Event",
+        "description": "An invitation with a large image and an RSVP button.",
+        "subject": "You’re invited",
+        "previewText": "Save the date",
+        "heading": "Join us",
+        "body": "**When:** day and time\n**Where:** address\n\nTell your guests what to expect.",
+        "button": "Reserve my spot"
+      },
+      "letter": {
+        "name": "Simple letter",
+        "description": "A personal note without images, like a letter.",
+        "subject": "A note from us",
+        "previewText": "A few words from the team",
+        "heading": "",
+        "body": "Hello,\n\nWrite your message here.\n\nWarm regards,\nThe team",
+        "button": "Reply"
+      },
+      "thank_you": {
+        "name": "Thank you",
+        "description": "A warm, centred thank-you message.",
+        "subject": "Thank you!",
+        "previewText": "We appreciate you",
+        "heading": "Thank you",
+        "body": "Thank you for your trust and your support.\n\nWe can’t wait to see you again.",
+        "button": "Visit us"
+      }
+    },
+    "editor": {
+      "preview": "Preview",
+      "previewDevice": "Preview size",
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "buttonUrlInvalid": "Enter a link that starts with https://",
+      "buttonIncomplete": "A button needs both a label and a link.",
+      "contentRequired": "Add a heading or a message.",
+      "saved": "Draft saved",
+      "testSent": "Test sent to {email}",
+      "sending": "{count, plural, one {Sending to # contact} other {Sending to # contacts}}",
+      "scheduled": "Campaign scheduled",
+      "senderMissingTitle": "Sender details needed",
+      "senderMissing": "You can write and preview now. Your postal address and reply-to email are needed before testing or sending.",
+      "openSender": "Add sender details",
+      "templateTitle": "Template",
+      "templateDescription": "Each template uses your logo, colour and business name.",
+      "contentTitle": "Content",
+      "contentDescription": "Plain text only: we take care of the design.",
+      "locale": "Email language",
+      "localeHint": "Language of the footer and the unsubscribe page.",
+      "locales": {
+        "en": "English",
+        "fr": "French"
+      },
+      "subject": "Subject",
+      "previewText": "Preview text",
+      "previewTextHint": "Shown next to the subject in most inboxes.",
+      "heading": "Heading",
+      "body": "Message",
+      "bodyHint": "Leave an empty line between paragraphs. **bold** for bold, [text](https://link) for a link.",
+      "buttonLabel": "Button label",
+      "buttonUrl": "Button link",
+      "image": "Image",
+      "imageHint": "Optional, from your media library.",
+      "save": "Save draft",
+      "sendTest": "Send test to myself",
+      "schedule": "Schedule",
+      "sendNow": "Send now",
+      "editorsDraft": "Owners and admins send the campaign.",
+      "confirmTitle": "Send this campaign now?",
+      "confirmDescription": "{count, plural, one {It will go to # subscribed contact} other {It will go to # subscribed contacts}} from {business}. You can’t undo this.",
+      "cancel": "Cancel",
+      "confirmSend": "{count, plural, one {Send to # contact} other {Send to # contacts}}",
+      "scheduleTitle": "Schedule the campaign",
+      "scheduleDescription": "{count, plural, one {It will go to the # contact subscribed at that time} other {It will go to the contacts subscribed at that time (# today)}}.",
+      "scheduleAt": "Date and time",
+      "scheduleHint": "At least 10 minutes from now, within 90 days. Your local time.",
+      "scheduleConfirm": "Schedule"
+    },
+    "details": {
+      "recipients": "Recipients",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "bounced": "Bounced",
+      "unsubscribed": "Unsubscribed",
+      "failed": "Not sent",
+      "scheduledFor": "Scheduled for {date}",
+      "startedAt": "Sent {date}",
+      "noOpens": "Opens are not tracked: we only show numbers we can measure.",
+      "unschedule": "Cancel the schedule",
+      "backToDraft": "Back to draft"
+    },
+    "media": {
+      "change": "Change image",
+      "choose": "Choose an image",
+      "remove": "Remove",
+      "title": "Media library",
+      "description": "Choose an image uploaded on your website’s Media page.",
+      "empty": "No images yet. Upload some on the Media page.",
+      "more": "Load more"
+    },
+    "contacts": {
+      "search": "Search by email or name",
+      "statusFilter": "Filter by status",
+      "allStatuses": "All statuses",
+      "statusOption": {
+        "subscribed": "Subscribed",
+        "unsubscribed": "Unsubscribed",
+        "bounced": "Bounced",
+        "complained": "Marked as spam"
+      },
+      "import": "Import CSV",
+      "export": "Export CSV",
+      "exported": "{count, plural, one {# contact exported} other {# contacts exported}}",
+      "unsubscribed": "Contact unsubscribed",
+      "sourcesHint": "Contacts come from your website’s newsletter sign-up form and from imports where you confirmed everyone agreed. Only subscribed contacts receive campaigns.",
+      "noMatch": "No contacts match",
+      "emptyTitle": "No contacts yet",
+      "emptyDescription": "People who sign up for your newsletter on your website appear here.",
+      "email": "Email",
+      "name": "Name",
+      "source": "Source",
+      "status": "Status",
+      "consent": "Consent date",
+      "unsubscribe": "Unsubscribe",
+      "sourceOption": {
+        "newsletter": "Newsletter form",
+        "import": "Import"
+      },
+      "maskedHint": "Addresses are partly hidden for viewers.",
+      "unsubscribeTitle": "Unsubscribe this contact?",
+      "unsubscribeDescription": "{email} will no longer receive campaigns. Only they can subscribe again, from your website.",
+      "cancel": "Cancel"
+    },
+    "import": {
+      "title": "Import contacts",
+      "description": "A CSV file with an email column (and optionally a name column). Existing contacts are not changed.",
+      "file": "CSV file",
+      "fileHint": "Up to 5,000 contacts and 2 MB per file.",
+      "tooLarge": "This file is larger than 2 MB.",
+      "noRows": "No email addresses found in this file.",
+      "tooMany": "Import at most {max} contacts at a time.",
+      "ready": "{count, plural, one {# contact ready to import} other {# contacts ready to import}}",
+      "skipped": "Skipped: {invalid} invalid, {duplicates} duplicates.",
+      "statement": "I confirm that every contact in this file agreed to receive marketing emails from my business.",
+      "statementHint": "Required. Your confirmation is recorded with the date and your name. Never import bought or scraped lists.",
+      "cancel": "Cancel",
+      "confirm": "{count, plural, =0 {Import} one {Import # contact} other {Import # contacts}}",
+      "done": "{added, plural, one {# contact added} other {# contacts added}}, {existing} already in your list"
+    }
   }
 }

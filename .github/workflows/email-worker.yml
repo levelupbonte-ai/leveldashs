@@ -1,0 +1,46 @@
+# Background sender for client email campaigns: starts scheduled campaigns that
+# are due and sends pending batches (docs/email-campaigns.md). Inactive until the
+# CRON_SECRET repository secret is set (the job then does nothing).
+#
+# Repository secrets (Settings -> Secrets and variables -> Actions):
+#   CRON_SECRET   the same value as the CRON_SECRET environment variable on Vercel
+# Repository variable (optional):
+#   EMAIL_WORKER_URL  defaults to https://dashboard.levelup-ecosystem.com/api/email/worker
+#
+# GitHub runs scheduled workflows on a best-effort basis (often every 5-15 minutes).
+# On a Vercel Pro plan, a Vercel Cron job on /api/email/worker can be used instead.
+name: Email campaigns worker
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: email-worker
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    name: Send due campaigns
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Call the worker
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          EMAIL_WORKER_URL: ${{ vars.EMAIL_WORKER_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET is not set: nothing to do."
+            exit 0
+          fi
+          url="${EMAIL_WORKER_URL:-https://dashboard.levelup-ecosystem.com/api/email/worker}"
+          status=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 90 -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" "$url")
+          echo "worker answered $status"
+          # 404: the worker is not configured on the server yet (not an error).
+          if [ "$status" != "200" ] && [ "$status" != "404" ]; then exit 1; fi

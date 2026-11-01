@@ -149,6 +149,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
         assistant_requests_month: optionalCount,
         media_mb: optionalCount,
         websites: optionalCount,
+        emails_month: optionalCount,
         features: z.array(z.string()),
         sortOrder: z.number({ error: tv('invalid') }).int({ message: tv('invalid') }),
         active: z.boolean(),
@@ -166,6 +167,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
     assistant_requests_month?: number;
     media_mb?: number;
     websites?: number;
+    emails_month?: number;
     features: string[];
     sortOrder: number;
     active: boolean;
@@ -179,6 +181,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
     assistant_requests_month: limit('assistant_requests_month'),
     media_mb: limit('media_mb'),
     websites: limit('websites'),
+    emails_month: limit('emails_month'),
     features: plan.features,
     sortOrder: plan.sort_order,
     active: plan.active,

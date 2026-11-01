@@ -94,6 +94,13 @@ limits and usage only, never prices, charges or discounts (`billing_summary`, se
 created in LevelStudio) is in the same staff menu; the page calls `notFound()` for anyone
 else and every database call checks platform admin + aal2.
 
+## Email campaigns
+
+*My site → Email campaigns* has `requireWebsite` only: every member sees it. Viewers get
+masked contacts, editors write drafts and send tests to themselves, owners and admins
+send, schedule, import and export. The database checks each role
+(see [email-campaigns.md](./email-campaigns.md)).
+
 ## Contract gate
 
 While `session.access.state` is not `active` (required contract to sign, blocking setup

@@ -42,7 +42,7 @@ const content: CampaignContent = {
   buttonUrl: 'https://finalstop.org/book',
   imageUrl: null
 };
-const URL_ = 'https://dashboard.levelup-ecosystem.com/unsubscribe/tok?c=1';
+const UNSUB_URL = 'https://dashboard.levelup-ecosystem.com/unsubscribe/tok?c=1';
 
 describe('campaign rendering escapes everything', () => {
   const evil = '<script>alert(1)</script><img src=x onerror=alert(2)>"\'&';
@@ -58,7 +58,7 @@ describe('campaign rendering escapes everything', () => {
       },
       { ...brand, businessName: evil, postalAddress: evil },
       { ...labels, reason: evil },
-      { unsubscribeUrl: URL_ }
+      { unsubscribeUrl: UNSUB_URL }
     );
     assert.ok(!html.includes('<script>'));
     assert.ok(!html.includes('<img src=x'));
@@ -72,7 +72,7 @@ describe('campaign rendering escapes everything', () => {
       { ...content, body: '[click](javascript:alert(1)) [ok](https://example.com/a?b=1&c=2)' },
       brand,
       labels,
-      { unsubscribeUrl: URL_ }
+      { unsubscribeUrl: UNSUB_URL }
     );
     assert.ok(!html.includes('javascript:'));
     assert.ok(html.includes('href="https://example.com/a?b=1&amp;c=2"'));
@@ -82,7 +82,7 @@ describe('campaign rendering escapes everything', () => {
   test('a javascript: or data: button is dropped', () => {
     for (const buttonUrl of ['javascript:alert(1)', 'data:text/html,<b>x</b>', '//evil.example']) {
       const { html } = renderCampaign({ ...content, buttonUrl }, brand, labels, {
-        unsubscribeUrl: URL_
+        unsubscribeUrl: UNSUB_URL
       });
       assert.ok(!html.includes('Book now'), buttonUrl);
     }
@@ -93,14 +93,14 @@ describe('campaign rendering escapes everything', () => {
       { ...content, imageUrl: 'https://x.example/a.png" onload="alert(1)' },
       { ...brand, logoUrl: 'https://x.example/l.png"><script>' },
       labels,
-      { unsubscribeUrl: URL_ }
+      { unsubscribeUrl: UNSUB_URL }
     );
     assert.ok(!html.includes('onload="alert'));
     assert.ok(!html.includes('"><script>'));
   });
 
   test('bold and paragraphs, nothing else', () => {
-    const { html } = renderCampaign(content, brand, labels, { unsubscribeUrl: URL_ });
+    const { html } = renderCampaign(content, brand, labels, { unsubscribeUrl: UNSUB_URL });
     assert.ok(html.includes('<strong>Bold</strong>'));
     assert.ok(html.includes('First line<br>second line'));
     assert.equal(
@@ -114,12 +114,12 @@ describe('footer and compliance', () => {
   test('every template has the address, the reason and the unsubscribe link', () => {
     for (const template of CAMPAIGN_TEMPLATES) {
       const { html, text } = renderCampaign({ ...content, template }, brand, labels, {
-        unsubscribeUrl: URL_
+        unsubscribeUrl: UNSUB_URL
       });
       assert.ok(html.includes('1234 Market Street<br>San Diego, CA 92101'), template);
       assert.ok(html.includes('subscribed on Final Stop'), template);
-      assert.ok(html.includes(`href="${URL_.replace('&', '&amp;')}"`), template);
-      assert.ok(text.includes(`Unsubscribe: ${URL_}`), template);
+      assert.ok(html.includes(`href="${UNSUB_URL.replace('&', '&amp;')}"`), template);
+      assert.ok(text.includes(`Unsubscribe: ${UNSUB_URL}`), template);
       assert.ok(text.includes('San Diego, CA 92101'), template);
     }
   });
@@ -128,7 +128,7 @@ describe('footer and compliance', () => {
     assert.throws(
       () =>
         renderCampaign(content, { ...brand, postalAddress: '  ' }, labels, {
-          unsubscribeUrl: URL_
+          unsubscribeUrl: UNSUB_URL
         }),
       (e) => e instanceof CampaignRenderError && e.code === 'postal_address_required'
     );
