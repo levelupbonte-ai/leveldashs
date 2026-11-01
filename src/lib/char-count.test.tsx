@@ -73,3 +73,25 @@ describe('CharCounter', () => {
     assert.match(render(5, 60, 'fr'), /5 caractères utilisés sur 60/);
   });
 });
+
+describe('messages', () => {
+  it('every message is valid ICU (no stray braces)', async () => {
+    const { IntlMessageFormat } = await import('intl-messageformat');
+    for (const [locale, messages] of [
+      ['en', en],
+      ['fr', fr]
+    ] as const) {
+      const walk = (node: unknown, path: string) => {
+        if (typeof node === 'string') {
+          assert.doesNotThrow(
+            () => new IntlMessageFormat(node, locale, undefined, { ignoreTag: true }),
+            `${locale}:${path}`
+          );
+        } else if (node && typeof node === 'object') {
+          for (const [k, v] of Object.entries(node)) walk(v, path ? `${path}.${k}` : k);
+        }
+      };
+      walk(messages, '');
+    }
+  });
+});

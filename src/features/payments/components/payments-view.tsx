@@ -80,12 +80,15 @@ function ProviderBadge({
   method: PaymentMethod | null;
 }) {
   const t = useTranslations('insights.payments');
+  const name = t(`providers.${provider}`);
+  // "PayPal · PayPal" or "Bank transfer · Bank transfer" says nothing more.
+  const showMethod = method && t(`methods.${method}`) !== name;
   return (
     <span className='inline-flex max-w-full flex-col items-start gap-0.5'>
       <Badge variant='outline' className='font-normal whitespace-nowrap'>
-        {t(`providers.${provider}`)}
+        {name}
       </Badge>
-      {method && (
+      {showMethod && (
         <span className='text-muted-foreground text-xs whitespace-nowrap'>
           {t(`methods.${method}`)}
         </span>

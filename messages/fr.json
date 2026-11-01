@@ -2298,8 +2298,8 @@
           "status": "paid, pending, failed, refunded, expired ou cancelled.",
           "amount": "Entier dans l’unité mineure de la devise : 2500 = 25,00 USD, 15000 = 15 000 XOF.",
           "currency": "Code ISO 4217 (USD, XOF, NGN…), majuscules ou minuscules.",
-          "customer": "{ \"email\", \"name\" } ou null : e-mail valide, nom de 120 caractères au maximum, sans HTML.",
-          "offer": "{ \"id\", \"name\" } ou null : l’identifiant de votre produit (lettres, chiffres, _ . : -), nom de 200 caractères au maximum.",
+          "customer": "Un objet avec email et name, ou null : e-mail valide, nom de 120 caractères au maximum, sans HTML, aucune autre clé.",
+          "offer": "Un objet avec id et name, ou null : l’identifiant de votre produit (lettres, chiffres, _ . : -), nom de 200 caractères au maximum.",
           "livemode": "true ou false (facultatif). Une clé réelle refuse un paiement marqué false ; une clé de test enregistre des paiements de test.",
           "occurred_at": "Date ISO 8601 avec fuseau horaire.",
           "metadata": "Objet JSON de 8 Ko au maximum, ou null."

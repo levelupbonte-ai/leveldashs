@@ -2298,8 +2298,8 @@
           "status": "paid, pending, failed, refunded, expired or cancelled.",
           "amount": "Integer in the currency's minor unit: 2500 = 25.00 USD, 15000 = 15 000 XOF.",
           "currency": "ISO 4217 code (USD, XOF, NGN…), any case.",
-          "customer": "{ \"email\", \"name\" } or null: valid email, name up to 120 characters, no HTML.",
-          "offer": "{ \"id\", \"name\" } or null: your product id (letters, digits, _ . : -), name up to 200 characters.",
+          "customer": "An object with email and name, or null: valid email, name up to 120 characters, no HTML, no other key.",
+          "offer": "An object with id and name, or null: your product id (letters, digits, _ . : -), name up to 200 characters.",
           "livemode": "true or false (optional). A live key refuses a payment marked false; a test key records test payments.",
           "occurred_at": "ISO 8601 date with a time zone.",
           "metadata": "JSON object up to 8 KB, or null."
