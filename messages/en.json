@@ -119,7 +119,8 @@
       "contracts": "Contracts",
       "billing": "Billing",
       "plans": "Plans",
-      "discounts": "Discounts & codes"
+      "discounts": "Discounts & codes",
+      "studio": "LevelStudio"
     },
     "page": {
       "title": "All clients",
@@ -665,6 +666,90 @@
           "stripe": "Stripe",
           "square": "Square"
         }
+      }
+    },
+    "studio": {
+      "title": "LevelStudio",
+      "description": "Templates and sites created in LevelStudio. Staff only; every view is recorded in the audit log.",
+      "tabs": {
+        "templates": "Templates",
+        "sites": "Sites created"
+      },
+      "templates": {
+        "title": "Template catalog",
+        "description": "Starter and style templates shown in LevelStudio, and the templates people imported.",
+        "filterLabel": "Template type",
+        "all": "All ({count})",
+        "kinds": {
+          "starter": "Starter",
+          "style": "Style",
+          "import": "Import"
+        },
+        "kindFilter": {
+          "starter": "Starters ({count})",
+          "style": "Styles ({count})",
+          "import": "Imports ({count})"
+        },
+        "published": "Published",
+        "unpublished": "Hidden",
+        "publishLabel": "Show {name} in LevelStudio",
+        "publishedToast": "{name} is published in LevelStudio",
+        "unpublishedToast": "{name} is hidden from LevelStudio",
+        "importPrivate": "Private to its owner",
+        "owner": "Owner: {email}",
+        "ownerVisitor": "Owner: visitor without an account",
+        "uses": "{count, plural, =0 {No sites yet} one {# site} other {# sites}}",
+        "preview": "Preview",
+        "noPreview": "No stored page",
+        "palette": "Palette",
+        "updated": "Updated {date}",
+        "emptyTitle": "No templates yet",
+        "emptyDescription": "Templates appear here once LevelStudio has synced its catalog."
+      },
+      "sites": {
+        "title": "Sites created",
+        "description": "{all, plural, one {# site} other {# sites}} generated in LevelStudio, {shared} with a share link.",
+        "search": "Search sites",
+        "searchPlaceholder": "Title or creator email…",
+        "statusLabel": "Status",
+        "statusAll": "All statuses",
+        "status": {
+          "draft": "Draft",
+          "shared": "Shared"
+        },
+        "columns": {
+          "title": "Site",
+          "creator": "Creator",
+          "status": "Status",
+          "versions": "Versions",
+          "created": "Created",
+          "updated": "Last update",
+          "actions": "Actions"
+        },
+        "fromTemplate": "From {name}",
+        "generating": "Generating",
+        "archived": "Archived",
+        "visitor": "Visitor without an account",
+        "showEmail": "Show email",
+        "showEmailLabel": "Show the full email of the creator of {title}",
+        "preview": "Preview",
+        "previewLabel": "Preview {title}",
+        "noPreview": "Nothing generated yet",
+        "open": "Open in LevelStudio",
+        "openLabel": "Open {title} in LevelStudio (new tab)",
+        "noLink": "Not shared",
+        "emptyTitle": "No sites yet",
+        "emptyDescription": "Sites generated in LevelStudio will appear here.",
+        "noResults": "No site matches this search."
+      },
+      "preview": {
+        "title": "Preview of {title}",
+        "description": "Read-only. The page runs in an isolated sandbox, without access to the dashboard or the network.",
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "viewport": "Preview width",
+        "empty": "This item has no stored page to preview.",
+        "frameTitle": "Preview of {title}"
       }
     }
   },

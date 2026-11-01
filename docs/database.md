@@ -57,6 +57,7 @@ the schema from application code or by hand in the dashboard.
 | `20261031100000` | site_payments_providers (provider-neutral payments: provider allow-list `private.site_payment_providers()`, `method` column, `cancelled` status, unique keys per website + provider + payment / event id, aliases for the former Stripe field names, provider / method filters on `site_payments_list` / `site_payments_export`, providers / methods in `site_payments_summary`; see [site-api.md](./site-api.md)) | **Applied** (`site_payments_providers`); suites `site_payments.sql` 53/53, `payments_providers.sql` 52/52 |
 | `20261031110000` | seo_text_limits (`website_settings_seo_len_check`: SEO title 70, description 320, business name 120, verification code 100, image 2048, 20 keywords; NOT VALID then validated, every existing row fits; the form stops at 60 / 160; see [forms.md](./forms.md)) | **Applied** (`seo_text_limits`); suite `text_limits.sql` 6/6 |
 | `20261031120000` | billing_square (Square payment links: `private.billing_square_orders`, `billing_checkout_record_square`, `billing_ingest_stripe_event` accepts `provider: square`; provider / event type / outcome constraints widened; see [billing.md](./billing.md#square-payment-links)) | **Applied** (`billing_square`; suite `billing_square.sql` 28/28) |
+| `20261031120100` | studio_admin (LevelStudio in the staff area: `admin_studio_templates`, `admin_studio_template_preview`, `admin_studio_set_template_published`, `admin_studio_projects`, `admin_studio_project_preview`, `admin_studio_creator_email`; platform admin + aal2, audited `studio.*`; `private.studio_template_publication` + trigger so LevelStudio's template sync keeps a staff unpublish) | **Applied** (`studio_admin`; suite `studio_admin.sql` 22/22) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -117,6 +118,15 @@ insert into platform_admins (user_id) select id from auth.users where email = 'y
 | `team_members`, `services`, `gallery_items`, `reviews`, `faq_items`, `announcements` | site content | read published | viewer read, editor write |
 | `appointments`, `waitlist_entries`, `form_submissions` (any form type `^[a-z][a-z0-9_]{1,39}$`) | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
 | `studio_templates`, `studio_projects`, `studio_usage` | LevelStudio | published starter/style templates | owner reads own; writes via LevelStudio server |
+
+LevelUp staff see LevelStudio's catalog and the sites people generate on *LevelUp admin →
+LevelStudio* (`/dashboard/exclusive/studio`) through the `admin_studio_*` functions only
+(platform admin on aal2; no table access is granted to staff). Lists return no HTML and
+mask creator e-mails (`private.hq_mask_email`); the full e-mail is a separate, audited call.
+Every list and preview writes `studio.viewed` to `hq_audit_log` (search text is not logged).
+Previews render the stored HTML in an iframe sandboxed with `allow-scripts` only (never
+`allow-same-origin`) plus a CSP that blocks network calls (`src/features/studio-admin/lib/preview.ts`).
+Nothing is edited from there except a template's published flag.
 
 Public RPCs (callable with the publishable key): `get_public_website`,
 `submit_form`, `book_appointment`, `join_waitlist`, `get_public_waitlist`,

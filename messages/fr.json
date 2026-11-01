@@ -119,7 +119,8 @@
       "contracts": "Contrats",
       "billing": "Facturation",
       "plans": "Forfaits",
-      "discounts": "Remises et codes"
+      "discounts": "Remises et codes",
+      "studio": "LevelStudio"
     },
     "page": {
       "title": "Tous les clients",
@@ -665,6 +666,90 @@
           "stripe": "Stripe",
           "square": "Square"
         }
+      }
+    },
+    "studio": {
+      "title": "LevelStudio",
+      "description": "Modèles et sites créés dans LevelStudio. Réservé à l’équipe ; chaque consultation est inscrite au journal d’audit.",
+      "tabs": {
+        "templates": "Modèles",
+        "sites": "Sites créés"
+      },
+      "templates": {
+        "title": "Catalogue de modèles",
+        "description": "Modèles de départ et de style proposés dans LevelStudio, et modèles importés par les utilisateurs.",
+        "filterLabel": "Type de modèle",
+        "all": "Tous ({count})",
+        "kinds": {
+          "starter": "Départ",
+          "style": "Style",
+          "import": "Import"
+        },
+        "kindFilter": {
+          "starter": "Départs ({count})",
+          "style": "Styles ({count})",
+          "import": "Imports ({count})"
+        },
+        "published": "Publié",
+        "unpublished": "Masqué",
+        "publishLabel": "Afficher {name} dans LevelStudio",
+        "publishedToast": "{name} est publié dans LevelStudio",
+        "unpublishedToast": "{name} est masqué dans LevelStudio",
+        "importPrivate": "Privé, visible par son propriétaire",
+        "owner": "Propriétaire : {email}",
+        "ownerVisitor": "Propriétaire : visiteur sans compte",
+        "uses": "{count, plural, =0 {Aucun site} one {# site} other {# sites}}",
+        "preview": "Aperçu",
+        "noPreview": "Aucune page enregistrée",
+        "palette": "Palette",
+        "updated": "Mis à jour le {date}",
+        "emptyTitle": "Aucun modèle",
+        "emptyDescription": "Les modèles apparaissent ici dès que LevelStudio a synchronisé son catalogue."
+      },
+      "sites": {
+        "title": "Sites créés",
+        "description": "{all, plural, one {# site généré} other {# sites générés}} dans LevelStudio, dont {shared} avec un lien de partage.",
+        "search": "Rechercher un site",
+        "searchPlaceholder": "Titre ou courriel du créateur…",
+        "statusLabel": "Statut",
+        "statusAll": "Tous les statuts",
+        "status": {
+          "draft": "Brouillon",
+          "shared": "Partagé"
+        },
+        "columns": {
+          "title": "Site",
+          "creator": "Créateur",
+          "status": "Statut",
+          "versions": "Versions",
+          "created": "Créé le",
+          "updated": "Dernière modification",
+          "actions": "Actions"
+        },
+        "fromTemplate": "Depuis {name}",
+        "generating": "En génération",
+        "archived": "Archivé",
+        "visitor": "Visiteur sans compte",
+        "showEmail": "Afficher le courriel",
+        "showEmailLabel": "Afficher le courriel complet du créateur de {title}",
+        "preview": "Aperçu",
+        "previewLabel": "Aperçu de {title}",
+        "noPreview": "Rien de généré pour l’instant",
+        "open": "Ouvrir dans LevelStudio",
+        "openLabel": "Ouvrir {title} dans LevelStudio (nouvel onglet)",
+        "noLink": "Non partagé",
+        "emptyTitle": "Aucun site",
+        "emptyDescription": "Les sites générés dans LevelStudio apparaîtront ici.",
+        "noResults": "Aucun site ne correspond à cette recherche."
+      },
+      "preview": {
+        "title": "Aperçu de {title}",
+        "description": "Lecture seule. La page s’exécute dans un bac à sable isolé, sans accès au tableau de bord ni au réseau.",
+        "desktop": "Ordinateur",
+        "mobile": "Mobile",
+        "viewport": "Largeur de l’aperçu",
+        "empty": "Cet élément n’a aucune page enregistrée à afficher.",
+        "frameTitle": "Aperçu de {title}"
       }
     }
   },
