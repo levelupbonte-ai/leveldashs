@@ -84,7 +84,7 @@ function IssuerForm({ issuer }: { issuer: BillingIssuer }) {
         email: z
           .string()
           .trim()
-          .max(254)
+          .max(254, { message: tv('maxLength', { max: 254 }) })
           .refine((v) => v === '' || z.email().safeParse(v).success, { message: tv('email') }),
         taxId: z
           .string()

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Textarea } from '@/components/ui/textarea';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
@@ -242,15 +243,19 @@ function RequestCard({ request: r }: { request: ProjectRequest }) {
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <Textarea
-          aria-label={t('notes')}
-          placeholder={t('notesPlaceholder')}
-          value={notes}
-          maxLength={4000}
-          onChange={(e) => setNotes(e.target.value)}
-          className='min-h-9 flex-1 text-sm'
-          rows={1}
-        />
+        <div className='flex min-w-0 flex-1 flex-col gap-1'>
+          <Textarea
+            aria-label={t('notes')}
+            placeholder={t('notesPlaceholder')}
+            value={notes}
+            maxLength={4000}
+            aria-describedby={`request-notes-count-${r.id}`}
+            onChange={(e) => setNotes(e.target.value)}
+            className='min-h-9 text-sm'
+            rows={1}
+          />
+          <CharCounter id={`request-notes-count-${r.id}`} count={notes.length} max={4000} />
+        </div>
         <Button
           size='sm'
           variant='outline'

@@ -80,6 +80,7 @@ export default function ForgotPasswordForm() {
               label={t('emailLabel')}
               type='email'
               autoComplete='email'
+              maxLength={254}
               placeholder={t('emailPlaceholder')}
             />
           )}

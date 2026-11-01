@@ -55,6 +55,7 @@ the schema from application code or by hand in the dashboard.
 | `20261026130100` | media_storage_limit (`private.org_storage` reads `org_storage_usage`; `media_check_upload`, `private.assert_media_quota`, `private.media_quota_open` in the `media_objects_insert` policy, `media_before_insert` checks `media_mb`) | **Pending** (same). Apply after `billing_invoices`, name `media_storage_limit` |
 | `20261026130200` | billing_online_payments (`private.billing_webhook_keys`, `private.billing_checkouts`, `billing_payment_events`, `admin_create_billing_webhook_key` / `admin_revoke_…` / `admin_billing_webhook_key_status`, `billing_checkout_prepare`, `billing_checkout_record`, `billing_ingest_stripe_event` (anon, billing webhook key)) | **Pending** (same). Apply last, name `billing_online_payments` |
 | `20261031100000` | site_payments_providers (provider-neutral payments: provider allow-list `private.site_payment_providers()`, `method` column, `cancelled` status, unique keys per website + provider + payment / event id, aliases for the former Stripe field names, provider / method filters on `site_payments_list` / `site_payments_export`, providers / methods in `site_payments_summary`; see [site-api.md](./site-api.md)) | **Applied** (`site_payments_providers`); suites `site_payments.sql` 53/53, `payments_providers.sql` 52/52 |
+| `20261031110000` | seo_text_limits (`website_settings_seo_len_check`: SEO title 70, description 320, business name 120, verification code 100, image 2048, 20 keywords; NOT VALID then validated, every existing row fits; the form stops at 60 / 160; see [forms.md](./forms.md)) | **Applied** (`seo_text_limits`); suite `text_limits.sql` 6/6 |
 | `20261031120000` | billing_square (Square payment links: `private.billing_square_orders`, `billing_checkout_record_square`, `billing_ingest_stripe_event` accepts `provider: square`; provider / event type / outcome constraints widened; see [billing.md](./billing.md#square-payment-links)) | **Applied** (`billing_square`; suite `billing_square.sql` 28/28) |
 
 Versions applied through the Supabase MCP were recorded with their apply
@@ -135,7 +136,7 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 | `site_traffic_daily`, `site_pageviews_daily` | daily views / unique visitors per path, referrer host, language | viewer read | `track_pageview` (LevelUp tag) |
 
 Contracts and rules: [site-api.md](./site-api.md). Tests:
-`supabase/tests/site_payments.sql`, `payments_providers.sql`, `site_analytics.sql`, `site_insights.sql`,
+`supabase/tests/site_payments.sql`, `payments_providers.sql`, `text_limits.sql`, `site_analytics.sql`, `site_insights.sql`,
 `levelup_sources.sql`, `media_storage.sql`.
 
 Applied through the MCP (names above). After any change, run the four suites

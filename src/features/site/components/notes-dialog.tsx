@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Textarea } from '@/components/ui/textarea';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -44,13 +45,18 @@ export function NotesDialog({
           rows={5}
           maxLength={4000}
           value={value}
+          aria-label={title}
           aria-invalid={!!error}
+          aria-describedby='staff-notes-count'
           onChange={(e) => {
             setValue(e.target.value);
             setError(null);
           }}
         />
-        {error && <p className='text-destructive text-xs'>{error}</p>}
+        <div className='flex items-start gap-3'>
+          {error && <p className='text-destructive text-xs'>{error}</p>}
+          <CharCounter id='staff-notes-count' count={value.length} max={4000} />
+        </div>
         <DialogFooter>
           <Button variant='outline' onClick={() => onOpenChange(false)}>
             {t('cancel')}

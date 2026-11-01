@@ -2887,7 +2887,9 @@
     "tagsPlaceholder": "Type, then press Enter…",
     "addTag": "Add to {label}",
     "removeTag": "Remove {tag}",
-    "add": "Add"
+    "add": "Add",
+    "charCount": "{count} of {max} characters used",
+    "itemCount": "{count} of {max} items"
   },
   "notFound": {
     "title": "Page not found",
@@ -3164,7 +3166,6 @@
       "replyingTo": "Replying to {name}",
       "editing": "Editing your message",
       "cancel": "Cancel",
-      "remaining": "{count, plural, one {# character left} other {# characters left}}",
       "readOnlyViewer": "Viewers can read visitor messages. Ask an editor to reply.",
       "readOnlyFormer": "{name} is no longer in the organization. This conversation is read-only."
     },

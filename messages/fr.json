@@ -2887,7 +2887,9 @@
     "tagsPlaceholder": "Tapez puis Entrée…",
     "addTag": "Ajouter à {label}",
     "removeTag": "Retirer {tag}",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "charCount": "{count} caractères utilisés sur {max}",
+    "itemCount": "{count} éléments sur {max}"
   },
   "notFound": {
     "title": "Page introuvable",
@@ -3164,7 +3166,6 @@
       "replyingTo": "Réponse à {name}",
       "editing": "Modification de votre message",
       "cancel": "Annuler",
-      "remaining": "{count, plural, one {# caractère restant} other {# caractères restants}}",
       "readOnlyViewer": "Les lecteurs peuvent lire les messages des visiteurs. Demandez à un éditeur de répondre.",
       "readOnlyFormer": "{name} ne fait plus partie de l’organisation. Cette conversation est en lecture seule."
     },

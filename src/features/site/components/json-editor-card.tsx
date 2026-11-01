@@ -53,6 +53,7 @@ export function JsonEditorCard({
         <Textarea
           className='min-h-40 font-mono text-xs'
           spellCheck={false}
+          maxLength={60000}
           value={text}
           disabled={disabled}
           aria-invalid={!!error}

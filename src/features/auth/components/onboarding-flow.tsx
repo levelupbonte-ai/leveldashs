@@ -182,24 +182,31 @@ export default function OnboardingFlow({
           <accessForm.AppField
             name='businessName'
             children={(field) => (
-              <field.TextField label={t('business')} autoComplete='organization' />
+              <field.TextField label={t('business')} autoComplete='organization' maxLength={120} />
             )}
           />
           <accessForm.AppField
             name='website'
             children={(field) => (
-              <field.TextField label={t('website')} placeholder='https://' autoComplete='url' />
+              <field.TextField
+                label={t('website')}
+                inputMode='url'
+                placeholder='https://'
+                autoComplete='url'
+                maxLength={200}
+                showCount={false}
+              />
             )}
           />
           <accessForm.AppField
             name='phone'
             children={(field) => (
-              <field.TextField label={t('phone')} type='tel' autoComplete='tel' />
+              <field.TextField label={t('phone')} type='tel' autoComplete='tel' maxLength={40} />
             )}
           />
           <accessForm.AppField
             name='message'
-            children={(field) => <field.TextareaField label={t('project')} />}
+            children={(field) => <field.TextareaField label={t('project')} maxLength={1000} />}
           />
         </FieldGroup>
         {/* Honeypot: off-screen and hidden from assistive tech; people leave it
@@ -260,7 +267,9 @@ export default function OnboardingFlow({
       <FieldGroup>
         <profileForm.AppField
           name='fullName'
-          children={(field) => <field.TextField label={t('fullName')} autoComplete='name' />}
+          children={(field) => (
+            <field.TextField label={t('fullName')} autoComplete='name' maxLength={120} />
+          )}
         />
         {needsLegalAcceptance && (
           <profileForm.AppField

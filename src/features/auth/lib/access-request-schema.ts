@@ -16,7 +16,10 @@ export function accessRequestSchema(m: AccessRequestMessages = {}) {
   const f = createFields(m);
   return z.object({
     businessName: f.text(120).refine((v) => v.length >= 2, { message: m.business }),
-    website: f.url({ allowBareDomain: true }),
+    // access_requests.website is capped at 200 characters.
+    website: f
+      .url({ allowBareDomain: true })
+      .max(200, m.tooLong ? { message: m.tooLong(200) } : undefined),
     phone: f.phone(),
     message: f.text(1000, { multiline: true }),
     // Honeypot: hidden from people, filled by bots (see the onboarding form).

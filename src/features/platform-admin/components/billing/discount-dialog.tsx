@@ -120,7 +120,7 @@ function DiscountForm({
             .string()
             .trim()
             .min(1, { message: tv('required') })
-            .max(60),
+            .max(60, { message: tv('maxLength', { max: 60 }) }),
           kind: z.enum(['percent', 'fixed']),
           value: z.number({ error: tv('required') }).positive({ message: tv('invalid') }),
           currency: z.string().trim(),
@@ -251,6 +251,7 @@ function DiscountForm({
                   label={t('code')}
                   description={t('codeHint')}
                   maxLength={32}
+                  showCount={false}
                   autoComplete='off'
                   className='font-mono uppercase placeholder:normal-case'
                 />
@@ -308,7 +309,12 @@ function DiscountForm({
                 <form.AppField
                   name='currency'
                   children={(field) => (
-                    <field.TextField label={t('currency')} maxLength={3} className='uppercase' />
+                    <field.TextField
+                      label={t('currency')}
+                      maxLength={3}
+                      showCount={false}
+                      className='uppercase'
+                    />
                   )}
                 />
               ) : null

@@ -197,6 +197,7 @@ export function SiteAccessPanel({
                   <field.TextField
                     label={t('ownerEmailLabel')}
                     type='email'
+                    maxLength={254}
                     placeholder='owner@example.com'
                     description={
                       access.owner_claim
@@ -286,6 +287,7 @@ export function SiteAccessPanel({
                 <field.TextField
                   label={t('bindEmail')}
                   type='email'
+                  maxLength={254}
                   placeholder={t('anyAccount')}
                 />
               )}

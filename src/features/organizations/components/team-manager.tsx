@@ -228,7 +228,9 @@ export function TeamManager() {
               <FieldGroup>
                 <form.AppField
                   name='email'
-                  children={(field) => <field.TextField label={t('email')} type='email' />}
+                  children={(field) => (
+                    <field.TextField label={t('email')} type='email' maxLength={254} />
+                  )}
                 />
                 <form.AppField
                   name='role'

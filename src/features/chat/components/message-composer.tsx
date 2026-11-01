@@ -4,10 +4,10 @@ import { useEffect, useMemo, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Textarea } from '@/components/ui/textarea';
 import { useAppForm } from '@/lib/form';
 import { useFieldMessages } from '@/lib/validation/use-fields';
-import { cn } from '@/lib/utils';
 import type { ChatMessage } from '../api/types';
 import { MESSAGE_MAX, messageSchema } from '../lib/message-text';
 
@@ -155,14 +155,14 @@ export function MessageComposer({
                       {errorText}
                     </p>
                   ) : length > MESSAGE_MAX - 400 ? (
-                    <p
-                      className={cn(
-                        'px-1.5 text-xs',
-                        length > MESSAGE_MAX ? 'text-destructive' : 'text-muted-foreground'
-                      )}
-                    >
-                      {t('remaining', { count: Math.max(MESSAGE_MAX - length, 0) })}
-                    </p>
+                    // Shared counter: amber near the limit, red past it.
+                    <div className='flex px-1.5'>
+                      <CharCounter
+                        id={`chat-composer-count-${conversationId}`}
+                        count={length}
+                        max={MESSAGE_MAX}
+                      />
+                    </div>
                   ) : null}
                 </div>
                 <Button

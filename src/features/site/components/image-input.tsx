@@ -38,7 +38,9 @@ export function ImageInput({
       <div className='flex gap-2'>
         <Input
           id={id}
+          inputMode='url'
           value={value}
+          maxLength={2048}
           placeholder='https://…'
           aria-invalid={invalid}
           disabled={disabled || uploading}

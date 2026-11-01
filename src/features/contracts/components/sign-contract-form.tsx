@@ -119,7 +119,12 @@ export function SignContractForm({
             <form.AppField
               name='fullName'
               children={(field) => (
-                <field.TextField label={t('fullName')} autoComplete='name' required />
+                <field.TextField
+                  label={t('fullName')}
+                  autoComplete='name'
+                  required
+                  maxLength={120}
+                />
               )}
             />
             <form.AppField
@@ -130,6 +135,7 @@ export function SignContractForm({
                   placeholder={t('signerTitlePlaceholder')}
                   autoComplete='organization-title'
                   required
+                  maxLength={120}
                 />
               )}
             />

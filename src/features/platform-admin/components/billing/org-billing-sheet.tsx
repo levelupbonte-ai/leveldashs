@@ -234,7 +234,12 @@ function BillingSettingsForm({ detail }: { detail: OrgBillingDetail }) {
             <form.AppField
               name='currency'
               children={(field) => (
-                <field.TextField label={t('currency')} maxLength={3} className='uppercase' />
+                <field.TextField
+                  label={t('currency')}
+                  maxLength={3}
+                  showCount={false}
+                  className='uppercase'
+                />
               )}
             />
           </div>

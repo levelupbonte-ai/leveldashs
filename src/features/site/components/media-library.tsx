@@ -42,6 +42,7 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Textarea } from '@/components/ui/textarea';
 import { PlanLimitNotice } from '@/features/billing/components/plan-limit-notice';
 import { PlanLimitError, type PlanLimitInfo } from '@/lib/plan-limit';
@@ -455,9 +456,13 @@ function MediaDetailsBody({
               value={alt}
               disabled={!scope.canEdit}
               placeholder={t('details.altPlaceholder')}
+              aria-describedby='media-alt-count'
               onChange={(e) => setAlt(e.target.value)}
             />
-            <p className='text-muted-foreground text-xs'>{t('details.altHint')}</p>
+            <div className='flex items-start gap-3'>
+              <p className='text-muted-foreground text-xs'>{t('details.altHint')}</p>
+              <CharCounter id='media-alt-count' count={alt.length} max={500} />
+            </div>
           </div>
         )}
       </div>

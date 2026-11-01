@@ -64,7 +64,7 @@ function fieldSchema(field: FieldDef, m: SchemaMessages) {
     case 'switch':
       return z.boolean();
     case 'tags':
-      return f.tags(30, field.max ?? 80);
+      return f.tags(field.maxItems ?? 30, field.max ?? 80);
     case 'images':
       return z.array(https.url({ httpsOnly: true, required: true })).max(12);
     case 'image':
@@ -134,7 +134,9 @@ export function sanitizeRow(
         break;
       case 'tags':
       case 'images': {
-        if (!Array.isArray(v) || v.length > 30) return null;
+        if (!Array.isArray(v) || v.length > (field.kind === 'tags' ? (field.maxItems ?? 30) : 12)) {
+          return null;
+        }
         const items: string[] = [];
         for (const item of v) {
           if (typeof item !== 'string') return null;
