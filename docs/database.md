@@ -59,6 +59,7 @@ the schema from application code or by hand in the dashboard.
 | `20261031120000` | billing_square (Square payment links: `private.billing_square_orders`, `billing_checkout_record_square`, `billing_ingest_stripe_event` accepts `provider: square`; provider / event type / outcome constraints widened; see [billing.md](./billing.md#square-payment-links)) | **Applied** (`billing_square`; suite `billing_square.sql` 28/28) |
 | `20261031120100` | studio_admin (LevelStudio in the staff area: `admin_studio_templates`, `admin_studio_template_preview`, `admin_studio_set_template_published`, `admin_studio_projects`, `admin_studio_project_preview`, `admin_studio_creator_email`; platform admin + aal2, audited `studio.*`; `private.studio_template_publication` + trigger so LevelStudio's template sync keeps a staff unpublish) | **Applied** (`studio_admin`; suite `studio_admin.sql` 22/22) |
 | `20261031130000` | email_campaigns (`email_contacts`, `email_contact_imports`, `email_campaigns`, `email_campaign_recipients`, `email_test_sends`, `email_events`, `email_sender_profiles`; private site state, worker keys, webhook status; newsletter trigger + backfill; member, worker, webhook, unsubscribe and staff `email_*` functions; plan limit `emails_month`; see [email-campaigns.md](./email-campaigns.md)) | **Applied** (`email_campaigns`, 2026-11-01; suite `email_campaigns.sql` 83/83 on the live project, rolled back) |
+| `20261101120000` | client_portal (feature `client_portal`, enabled for Black Pater; `portal_customers` (created by a trigger on paid `site_payments`, or invited), `portal_items`, `portal_item_states`, `portal_messages`; private `portal_codes`, `portal_passwords`, `portal_sessions`, `portal_outbox`, `portal_download_tickets`; server-key scope `portal:access`; customer functions `portal_*` called by the website's server, owner functions `portal_admin_*` (editor+, audited in `site_audit_log`); private bucket `portal-documents`; see *Client portal* below) | **Applied** (`client_portal`); suite `client_portal.sql` 93/93 |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -209,6 +210,51 @@ Plan limit `emails_month` (campaign and test e-mails per UTC month; free 500, st
 
 Test: `supabase/tests/billing.sql` (67 checks). `team_invitations.sql` puts its test
 organization on an unlimited-seat plan so it keeps testing invitations only.
+
+## Client portal (client_portal)
+
+A private space on a client website for its paying customers (Black Pater's
+*Espace client*). Customers are **not** accounts of the shared sign-in: they are
+`portal_customers` rows (one per website + e-mail), created when a payment of that
+website becomes `paid` (trigger on `site_payments`, an *access* e-mail is queued) or
+when an editor invites them from the dashboard (*Client portal*).
+
+| Object | Holds | Read | Write |
+|---|---|---|---|
+| `portal_customers` | e-mail (lower case), every verified address (`payment_emails`), name, locale, source, invited offer, status | editors+ (RLS) | trigger, `portal_admin_invite`, `portal_admin_set_customer_status`, `portal_email_change_confirm` |
+| `portal_items` | updates, trips (dates, meeting point, steps), documents, checklists; audience one customer / an offer / everyone | editors+ | `portal_admin_publish`, `portal_admin_archive_item` (no delete) |
+| `portal_item_states`, `portal_messages` | read state and ticked checklist items per customer; the message thread | editors+ | customer functions, `portal_admin_reply` |
+| `private.portal_codes`, `portal_passwords`, `portal_sessions` | sign-in codes (sha256 of id + code), bcrypt passwords, session tokens (sha256) | nobody (private schema) | SECURITY DEFINER functions only |
+| `private.portal_outbox` | e-mails the website must send (access, update, message, new sign-in) | nobody | queued by the functions above, drained by the website (`portal_outbox_claim` / `_complete`) |
+
+**Customer functions** take the website's server key (`p_key`, scope `portal:access`,
+shown as *Client portal* in Developers → Server keys) and, once signed in, the
+customer's session token. Only the website's server calls them; the browser never
+sees the key.
+
+- `portal_request_code` → `{ send:false }` for an address without access (the visitor
+  always sees the same message) or `{ send:true, code, email, locale }`; 6 digits, 10
+  minutes, single use, a newer code replaces the older one, 5 wrong tries kill it;
+  5 codes per address, 20 per client (hashed IP) and 300 per website per hour.
+- `portal_verify_code`, `portal_password_sign_in` → `{ ok:false, reason:'invalid' }` for
+  every failure (unknown address, wrong code or password); 10 tries per address and
+  30 per client per hour; sessions last 7 days, each sign-in queues a *new sign-in*
+  e-mail (device, time).
+- `portal_set_password` (fresh code, ≥ 10 characters, bcrypt cost 12, signs out the
+  other devices), `portal_email_change_start` / `_confirm` (codes to the old **and** the
+  new address), `portal_sign_out(all)`.
+- `portal_home` (customer, bookings from `site_payments`, visible items with read state,
+  messages), `portal_mark_read`, `portal_set_checklist`, `portal_send_message`
+  (4000 characters, 10/hour, 30/day), `portal_document_ticket`, `portal_payment_reference`.
+
+**Documents**: bucket `portal-documents` (private, 10 MB, PDF / JPEG / PNG / WebP),
+`org/<org>/site/<website>/<uuid>.<ext>`; editors+ upload and read. Customers never read
+Storage: `portal_document_ticket` opens a 60-second ticket for one object, then the
+website's server asks Storage for a 60-second signed URL with the publishable key; the
+anon policy matches only the `object.sign` operation of a ticketed object (no listing,
+no download).
+
+Test: `supabase/tests/client_portal.sql` (93 checks).
 
 ## Showcase CMS (showcase_cms)
 
