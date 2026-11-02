@@ -60,6 +60,7 @@ the schema from application code or by hand in the dashboard.
 | `20261031120100` | studio_admin (LevelStudio in the staff area: `admin_studio_templates`, `admin_studio_template_preview`, `admin_studio_set_template_published`, `admin_studio_projects`, `admin_studio_project_preview`, `admin_studio_creator_email`; platform admin + aal2, audited `studio.*`; `private.studio_template_publication` + trigger so LevelStudio's template sync keeps a staff unpublish) | **Applied** (`studio_admin`; suite `studio_admin.sql` 22/22) |
 | `20261031130000` | email_campaigns (`email_contacts`, `email_contact_imports`, `email_campaigns`, `email_campaign_recipients`, `email_test_sends`, `email_events`, `email_sender_profiles`; private site state, worker keys, webhook status; newsletter trigger + backfill; member, worker, webhook, unsubscribe and staff `email_*` functions; plan limit `emails_month`; see [email-campaigns.md](./email-campaigns.md)) | **Applied** (`email_campaigns`, 2026-11-01; suite `email_campaigns.sql` 83/83 on the live project, rolled back) |
 | `20261101120000` | client_portal (feature `client_portal`, enabled for Black Pater; `portal_customers` (created by a trigger on paid `site_payments`, or invited), `portal_items`, `portal_item_states`, `portal_messages`; private `portal_codes`, `portal_passwords`, `portal_sessions`, `portal_outbox`, `portal_download_tickets`; server-key scope `portal:access`; customer functions `portal_*` called by the website's server, owner functions `portal_admin_*` (editor+, audited in `site_audit_log`); private bucket `portal-documents`; see *Client portal* below) | **Applied** (`client_portal`); suite `client_portal.sql` 93/93 |
+| `20261101130000` | client_portal_offers (`portal_admin_overview` lists the offers of `website_features.config.offers` before payments exist; Black Pater's Solo / Duo / Famille) | **Applied** (`client_portal_offers`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -253,6 +254,16 @@ Storage: `portal_document_ticket` opens a 60-second ticket for one object, then 
 website's server asks Storage for a 60-second signed URL with the publishable key; the
 anon policy matches only the `object.sign` operation of a ticketed object (no listing,
 no download).
+
+**Dashboard**: *My site → Client portal* (`/dashboard/site/client-portal`, editors and
+up, feature `client_portal`): customers with their payments and offer, revoke / give
+back access, invite by e-mail, publish (update, trip, document, checklist) to one
+customer / an offer group / everyone, message threads with replies. After a change
+that queues e-mails the browser calls `POST /api/portal/notify`, which signs a
+"send now" call to the website's `notify_url` (feature config) with
+`PORTAL_NOTIFY_SECRET` (HMAC-SHA256 of `<timestamp>.<body>`, header
+`X-Portal-Signature: t=…,v1=…`). The dashboard never sends portal e-mails: the client
+website sends them with its own e-mail provider key.
 
 Test: `supabase/tests/client_portal.sql` (93 checks).
 

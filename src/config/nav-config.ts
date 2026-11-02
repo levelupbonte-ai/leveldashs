@@ -60,6 +60,14 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true, feature: 'payments', data: 'payments' }
       },
       {
+        title: 'clientPortal',
+        url: '/dashboard/site/client-portal',
+        icon: 'lock',
+        isActive: false,
+        items: [],
+        access: { requireWebsite: true, role: 'editor', feature: 'client_portal' }
+      },
+      {
         title: 'appointments',
         url: '/dashboard/site/appointments',
         icon: 'calendar',
