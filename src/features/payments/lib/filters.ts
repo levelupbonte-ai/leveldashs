@@ -6,7 +6,13 @@ import {
   parseAsStringLiteral
 } from 'nuqs/server';
 import { rangeParser } from '@/features/insights/lib/range';
-import { PAYMENT_SORTS, PAYMENT_STATUSES, type PaymentFilters } from '../api/types';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_PROVIDERS,
+  PAYMENT_SORTS,
+  PAYMENT_STATUSES,
+  type PaymentFilters
+} from '../api/types';
 
 /**
  * URL state of the payments page, shared by the server cache
@@ -19,6 +25,8 @@ export const paymentParams = {
   perPage: parseAsInteger.withDefault(20),
   q: parseAsString.withDefault(''),
   status: parseAsArrayOf(parseAsStringLiteral(PAYMENT_STATUSES)).withDefault([]),
+  provider: parseAsArrayOf(parseAsStringLiteral(PAYMENT_PROVIDERS)).withDefault([]),
+  method: parseAsArrayOf(parseAsStringLiteral(PAYMENT_METHODS)).withDefault([]),
   sort: parseAsStringLiteral(PAYMENT_SORTS).withDefault('occurred_at'),
   asc: parseAsBoolean.withDefault(false),
   test: parseAsBoolean.withDefault(false)
@@ -29,6 +37,8 @@ export interface PaymentParams {
   perPage: number;
   q: string;
   status: PaymentFilters['status'];
+  provider: PaymentFilters['provider'];
+  method: PaymentFilters['method'];
   sort: PaymentFilters['sort'];
   asc: boolean;
   test: boolean;
@@ -40,6 +50,8 @@ export function toPaymentFilters(params: PaymentParams): PaymentFilters {
     perPage: [10, 20, 50, 100].includes(params.perPage) ? params.perPage : 20,
     search: params.q.trim().slice(0, 100) || null,
     status: params.status,
+    provider: params.provider,
+    method: params.method,
     sort: params.sort,
     desc: !params.asc,
     live: !params.test

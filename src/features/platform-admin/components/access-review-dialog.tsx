@@ -490,6 +490,7 @@ export function ReviewForm({
                   className='font-mono'
                   placeholder='ws_…'
                   autoComplete='off'
+                  maxLength={40}
                   spellCheck={false}
                   value={field.state.value}
                   onChange={(e) => {
@@ -553,6 +554,7 @@ export function ReviewForm({
                         className='font-mono'
                         placeholder={selected.id}
                         autoComplete='off'
+                        maxLength={40}
                         spellCheck={false}
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
@@ -582,7 +584,7 @@ export function ReviewForm({
           )}
           <form.AppField
             name='organizationName'
-            children={(field) => <field.TextField label={t('organizationName')} />}
+            children={(field) => <field.TextField label={t('organizationName')} maxLength={120} />}
           />
           <form.AppField
             name='createSite'
@@ -592,12 +594,17 @@ export function ReviewForm({
             <div className='grid gap-4 sm:grid-cols-2'>
               <form.AppField
                 name='websiteName'
-                children={(field) => <field.TextField label={t('siteName')} />}
+                children={(field) => <field.TextField label={t('siteName')} maxLength={120} />}
               />
               <form.AppField
                 name='websiteDomain'
                 children={(field) => (
-                  <field.TextField label={t('domain')} placeholder='example.com' />
+                  <field.TextField
+                    label={t('domain')}
+                    placeholder='example.com'
+                    maxLength={253}
+                    showCount={false}
+                  />
                 )}
               />
             </div>

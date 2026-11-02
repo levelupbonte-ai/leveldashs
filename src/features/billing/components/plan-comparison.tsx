@@ -180,9 +180,19 @@ function UpgradeDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations('billing.plans');
+  const tv = useTranslations('validation');
   const errorMessage = useErrorMessage();
   const queryClient = useQueryClient();
-  const schema = useMemo(() => z.object({ message: z.string().trim().max(1000) }), []);
+  const schema = useMemo(
+    () =>
+      z.object({
+        message: z
+          .string()
+          .trim()
+          .max(1000, { message: tv('maxLength', { max: 1000 }) })
+      }),
+    [tv]
+  );
   const request = useMutation({
     mutationFn: (vars: { planKey: string; message: string }) =>
       requestPlanUpgrade(organizationId, vars.planKey, vars.message),

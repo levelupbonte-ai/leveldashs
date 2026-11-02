@@ -90,7 +90,16 @@ LevelUp staff) see it in the sidebar, the user menu and Cmd+K. Editors and viewe
 still open the page (limit notices link to it): the database returns them the plan,
 limits and usage only, never prices, charges or discounts (`billing_summary`, see
 [database.md](./database.md)). Staff billing screens are in the server-built staff menu:
-*Billing*, *Plans*, *Discounts & codes* under `/dashboard/exclusive/billing`.
+*Billing*, *Plans*, *Discounts & codes* under `/dashboard/exclusive/billing`. *LevelStudio* (`/dashboard/exclusive/studio`: templates and sites
+created in LevelStudio) is in the same staff menu; the page calls `notFound()` for anyone
+else and every database call checks platform admin + aal2.
+
+## Email campaigns
+
+*My site → Email campaigns* has `requireWebsite` only: every member sees it. Viewers get
+masked contacts, editors write drafts and send tests to themselves, owners and admins
+send, schedule, import and export. The database checks each role
+(see [email-campaigns.md](./email-campaigns.md)).
 
 ## Contract gate
 

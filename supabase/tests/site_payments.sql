@@ -90,8 +90,8 @@ BEGIN
   EXCEPTION WHEN SQLSTATE '22023' THEN r := r || 'PASS missing amount rejected'::text; END;
   BEGIN PERFORM public.site_ingest_payment(key_live, ev || '{"status": "succeeded"}'); r := r || 'FAIL unknown status accepted'::text;
   EXCEPTION WHEN SQLSTATE '22023' THEN r := r || 'PASS unknown status rejected'::text; END;
-  BEGIN PERFORM public.site_ingest_payment(key_live, ev || '{"currency": "USD"}'); r := r || 'FAIL uppercase currency accepted'::text;
-  EXCEPTION WHEN SQLSTATE '22023' THEN r := r || 'PASS uppercase currency rejected'::text; END;
+  BEGIN PERFORM public.site_ingest_payment(key_live, ev || '{"currency": "US$"}'); r := r || 'FAIL malformed currency accepted'::text;
+  EXCEPTION WHEN SQLSTATE '22023' THEN r := r || 'PASS malformed currency rejected'::text; END;
   BEGIN PERFORM public.site_ingest_payment(key_live, ev || '{"customer_email": "not-an-email"}'); r := r || 'FAIL bad email accepted'::text;
   EXCEPTION WHEN SQLSTATE '22023' THEN r := r || 'PASS bad email rejected'::text; END;
   BEGIN PERFORM public.site_ingest_payment(key_live, ev || '{"customer_name": "<img src=x onerror=alert(1)>"}'); r := r || 'FAIL HTML name accepted'::text;

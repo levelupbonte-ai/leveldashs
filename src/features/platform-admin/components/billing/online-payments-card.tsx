@@ -22,11 +22,13 @@ import { adminInsightKeys, webhookKeyQueryOptions } from '../../api/queries';
 import { ConfirmDialog } from './confirm-dialog';
 
 /**
- * Staff: whether online payment is on (server environment, never the keys) and
- * the billing webhook key the Stripe webhook uses to record payments. The key is
- * shown once, right after it is generated.
+ * Staff: whether online payment is on and through which provider (server
+ * environment, never the keys), and the billing webhook key the provider webhooks
+ * use to record payments. The key is shown once, right after it is generated.
+ * Clients never see the provider's name.
  */
-export function OnlinePaymentsCard({ enabled }: { enabled: boolean }) {
+export function OnlinePaymentsCard({ provider }: { provider: 'stripe' | 'square' | null }) {
+  const enabled = provider !== null;
   const { data: key } = useSuspenseQuery(webhookKeyQueryOptions(createClient()));
   const t = useTranslations('admin.billing.online');
   const format = useFormatter();
@@ -57,6 +59,9 @@ export function OnlinePaymentsCard({ enabled }: { enabled: boolean }) {
       </CardHeader>
       <CardContent className='space-y-4 text-sm'>
         <p className='text-muted-foreground'>{enabled ? t('onHint') : t('offHint')}</p>
+        {provider && (
+          <p className='font-medium'>{t('provider', { name: t(`providers.${provider}`) })}</p>
+        )}
         <div className='flex flex-col gap-3 rounded-lg border p-3 sm:flex-row sm:items-center'>
           <div className='bg-muted flex size-9 shrink-0 items-center justify-center rounded-full'>
             <Icons.key className='text-muted-foreground size-4' aria-hidden />

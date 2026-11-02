@@ -22,6 +22,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingButton } from '@/components/ui/loading-button';
@@ -125,11 +126,15 @@ function ContractFormFields({
         projectName: f.text(120),
         packageName: f.text(120),
         scope: f.text(4000, { multiline: true }),
-        buildPrice: z.string().refine((v) => v === '' || /^\d+(\.\d{1,2})?$/.test(v), t('amount')),
+        buildPrice: z
+          .string()
+          .max(12, t('amount'))
+          .refine((v) => v === '' || /^\d+(\.\d{1,2})?$/.test(v), t('amount')),
         paymentSchedule: f.text(500),
         monthlyPlan: f.text(120),
         monthlyPrice: z
           .string()
+          .max(12, t('amount'))
           .refine((v) => v === '' || /^\d+(\.\d{1,2})?$/.test(v), t('amount')),
         startDate: f.date(),
         notes: f.text(1000, { multiline: true })
@@ -255,16 +260,22 @@ function ContractFormFields({
           <FieldGroup className='grid gap-4 md:grid-cols-2'>
             <form.AppField
               name='projectName'
-              children={(field) => <field.TextField label={t('projectName')} />}
+              children={(field) => <field.TextField label={t('projectName')} maxLength={120} />}
             />
             <form.AppField
               name='packageName'
-              children={(field) => <field.TextField label={t('packageName')} />}
+              children={(field) => <field.TextField label={t('packageName')} maxLength={120} />}
             />
             <form.AppField
               name='buildPrice'
               children={(field) => (
-                <field.TextField label={t('buildPrice')} inputMode='decimal' placeholder='2400' />
+                <field.TextField
+                  label={t('buildPrice')}
+                  inputMode='decimal'
+                  placeholder='2400'
+                  maxLength={12}
+                  showCount={false}
+                />
               )}
             />
             <form.AppField
@@ -273,17 +284,24 @@ function ContractFormFields({
                 <field.TextField
                   label={t('paymentSchedule')}
                   placeholder={t('paymentSchedulePlaceholder')}
+                  maxLength={500}
                 />
               )}
             />
             <form.AppField
               name='monthlyPlan'
-              children={(field) => <field.TextField label={t('monthlyPlan')} />}
+              children={(field) => <field.TextField label={t('monthlyPlan')} maxLength={120} />}
             />
             <form.AppField
               name='monthlyPrice'
               children={(field) => (
-                <field.TextField label={t('monthlyPrice')} inputMode='decimal' placeholder='79' />
+                <field.TextField
+                  label={t('monthlyPrice')}
+                  inputMode='decimal'
+                  placeholder='79'
+                  maxLength={12}
+                  showCount={false}
+                />
               )}
             />
             <form.AppField
@@ -294,12 +312,19 @@ function ContractFormFields({
           <form.AppField
             name='scope'
             children={(field) => (
-              <field.TextareaField label={t('scope')} description={t('scopeHint')} rows={4} />
+              <field.TextareaField
+                label={t('scope')}
+                description={t('scopeHint')}
+                rows={4}
+                maxLength={4000}
+              />
             )}
           />
           <form.AppField
             name='notes'
-            children={(field) => <field.TextareaField label={t('notes')} rows={2} />}
+            children={(field) => (
+              <field.TextareaField label={t('notes')} rows={2} maxLength={1000} />
+            )}
           />
           {needsMfa && <MfaStepNotice />}
           <div className='flex flex-wrap gap-2'>
@@ -384,8 +409,12 @@ function VoidDialog({ row, onClose }: { row: AdminContractRow | null; onClose: (
             id='void-reason'
             value={reason}
             maxLength={500}
+            aria-describedby='void-reason-count'
             onChange={(e) => setReason(e.target.value)}
           />
+          <div className='flex'>
+            <CharCounter id='void-reason-count' count={reason.length} max={500} />
+          </div>
         </div>
         {needsMfa && <MfaStepNotice />}
         <DialogFooter>
@@ -749,18 +778,25 @@ function TemplatesCard() {
                     label={t('version')}
                     description={t('versionHint')}
                     inputMode='numeric'
+                    maxLength={4}
+                    showCount={false}
                   />
                 )}
               />
               <form.AppField
                 name='title'
-                children={(field) => <field.TextField label={t('templateTitle')} />}
+                children={(field) => <field.TextField label={t('templateTitle')} maxLength={200} />}
               />
             </FieldGroup>
             <form.AppField
               name='body'
               children={(field) => (
-                <field.TextareaField label={t('body')} description={t('bodyHint')} rows={10} />
+                <field.TextareaField
+                  label={t('body')}
+                  description={t('bodyHint')}
+                  rows={10}
+                  maxLength={200000}
+                />
               )}
             />
             {needsMfa && <MfaStepNotice />}

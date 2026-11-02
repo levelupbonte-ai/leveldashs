@@ -153,7 +153,9 @@ export default function ProfileViewPage({
             <FieldGroup>
               <nameForm.AppField
                 name='fullName'
-                children={(field) => <field.TextField label={t('fullName')} autoComplete='name' />}
+                children={(field) => (
+                  <field.TextField label={t('fullName')} autoComplete='name' maxLength={120} />
+                )}
               />
             </FieldGroup>
             <nameForm.Subscribe

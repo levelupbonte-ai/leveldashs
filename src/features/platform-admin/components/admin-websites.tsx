@@ -46,6 +46,7 @@ export function AdminWebsites() {
       <Input
         placeholder={t('search')}
         value={q}
+        maxLength={100}
         onChange={(e) => setQ(e.target.value)}
         className='max-w-sm'
       />

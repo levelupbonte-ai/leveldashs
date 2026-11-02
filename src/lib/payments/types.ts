@@ -1,7 +1,8 @@
 /**
  * Payment provider abstraction for LevelUp's own invoices (not the clients'
  * websites: those report payments with site keys, see docs/site-api.md).
- * One implementation today: Stripe Checkout (`./stripe.ts`, server-only).
+ * Two implementations, both server-only: Stripe Checkout (`./stripe.ts`) and Square
+ * payment links (`./square.ts`). Which one is used is chosen by `./config.ts`.
  */
 
 export interface CheckoutRequest {
@@ -26,8 +27,10 @@ export interface CheckoutSession {
   id: string;
   url: string | null;
   status: CheckoutStatus;
-  /** metadata.charge_id set when the session was created. */
+  /** The charge the session was created for (Stripe metadata, Square payment note). */
   chargeId: string | null;
+  /** Square: the order the payment link created (how the webhook finds the charge). */
+  orderId?: string | null;
 }
 
 export interface PaymentProvider {
@@ -37,7 +40,7 @@ export interface PaymentProvider {
   expireCheckout(id: string): Promise<CheckoutSession>;
 }
 
-/** What the webhook passes to public.billing_ingest_stripe_event. */
+/** What the Stripe webhook passes to public.billing_ingest_stripe_event. */
 export interface BillingPaymentEvent {
   event_id: string;
   type:
@@ -52,6 +55,26 @@ export interface BillingPaymentEvent {
   currency: string | null;
   payment_status: string | null;
   payment_intent: string | null;
+  livemode: boolean;
+}
+
+/**
+ * What the Square webhook passes to the same function (`provider: 'square'`). The
+ * charge is found through the order the payment link created; the charge id read
+ * from the payment note is a cross-check.
+ */
+export interface SquarePaymentEvent {
+  provider: 'square';
+  event_id: string;
+  type: 'payment.created' | 'payment.updated';
+  payment_id: string;
+  order_id: string;
+  charge_id: string;
+  /** amount_money: minor units (cents), tips excluded. */
+  amount: number | null;
+  currency: string | null;
+  /** APPROVED | PENDING | COMPLETED | CANCELED | FAILED */
+  payment_status: string | null;
   livemode: boolean;
 }
 

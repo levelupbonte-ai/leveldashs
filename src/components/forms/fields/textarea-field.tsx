@@ -1,22 +1,30 @@
 'use client';
 
 import * as React from 'react';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { useFieldContext, useFieldInvalid, type BaseFieldProps } from '@/lib/form-context';
 
+/** Multi-line text. With `maxLength`, shows a character counter ("42 / 160"). */
 export function TextareaField({
   label,
   description,
   required,
-  showCount,
+  showCount = true,
   ...textareaProps
 }: BaseFieldProps & {
-  /** Show a character counter (uses `maxLength` as the denominator). */
+  /** Show the character counter when `maxLength` is set (default true). */
   showCount?: boolean;
 } & Omit<React.ComponentProps<typeof Textarea>, 'value' | 'onChange' | 'onBlur'>) {
   const field = useFieldContext<string>();
   const isInvalid = useFieldInvalid();
+  const max = textareaProps.maxLength;
+  const counted = showCount && !!max;
+  const counterId = `${field.name}-count`;
+  const describedBy =
+    [isInvalid && `${field.name}-error`, counted && counterId].filter(Boolean).join(' ') ||
+    undefined;
 
   return (
     <Field data-invalid={isInvalid}>
@@ -27,19 +35,21 @@ export function TextareaField({
       <Textarea
         id={field.name}
         name={field.name}
-        value={field.state.value}
+        value={field.state.value ?? ''}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
         aria-invalid={isInvalid}
-        aria-describedby={isInvalid ? `${field.name}-error` : undefined}
+        aria-describedby={describedBy}
         {...textareaProps}
       />
-      {showCount && textareaProps.maxLength && (
-        <div className='text-muted-foreground text-right text-sm'>
-          {field.state.value?.length || 0} / {textareaProps.maxLength}
+      {counted ? (
+        <div className='flex items-start gap-3'>
+          {description && <FieldDescription className='min-w-0'>{description}</FieldDescription>}
+          <CharCounter id={counterId} count={(field.state.value ?? '').length} max={max} />
         </div>
+      ) : (
+        description && <FieldDescription>{description}</FieldDescription>
       )}
-      {description && <FieldDescription>{description}</FieldDescription>}
       {isInvalid && <FieldError id={`${field.name}-error`} errors={field.state.meta.errors} />}
     </Field>
   );

@@ -131,8 +131,11 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
           .string()
           .trim()
           .min(1, { message: tv('required') })
-          .max(60),
-        description: z.string().trim().max(500),
+          .max(60, { message: tv('maxLength', { max: 60 }) }),
+        description: z
+          .string()
+          .trim()
+          .max(500, { message: tv('maxLength', { max: 500 }) }),
         price: z
           .number({ error: tv('invalid') })
           .min(0, { message: tv('invalid') })
@@ -146,6 +149,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
         assistant_requests_month: optionalCount,
         media_mb: optionalCount,
         websites: optionalCount,
+        emails_month: optionalCount,
         features: z.array(z.string()),
         sortOrder: z.number({ error: tv('invalid') }).int({ message: tv('invalid') }),
         active: z.boolean(),
@@ -163,6 +167,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
     assistant_requests_month?: number;
     media_mb?: number;
     websites?: number;
+    emails_month?: number;
     features: string[];
     sortOrder: number;
     active: boolean;
@@ -176,6 +181,7 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
     assistant_requests_month: limit('assistant_requests_month'),
     media_mb: limit('media_mb'),
     websites: limit('websites'),
+    emails_month: limit('emails_month'),
     features: plan.features,
     sortOrder: plan.sort_order,
     active: plan.active,
@@ -254,7 +260,12 @@ function PlanForm({ plan, onDone }: { plan: PlanRow; onDone: () => void }) {
             <form.AppField
               name='currency'
               children={(field) => (
-                <field.TextField label={t('currency')} maxLength={3} className='uppercase' />
+                <field.TextField
+                  label={t('currency')}
+                  maxLength={3}
+                  showCount={false}
+                  className='uppercase'
+                />
               )}
             />
           </div>

@@ -3,7 +3,8 @@ export const LIMIT_KEYS = [
   'team_members',
   'assistant_requests_month',
   'media_mb',
-  'websites'
+  'websites',
+  'emails_month'
 ] as const;
 export type LimitKey = (typeof LIMIT_KEYS)[number];
 
@@ -130,6 +131,8 @@ export interface BillingUsage {
   media_files: number;
   chat_messages_month: number;
   assistant_requests_month: number;
+  /** Campaign e-mails queued or sent plus test e-mails this month (null before the migration). */
+  emails_month?: number;
   team_members: number;
   pending_invitations: number;
   websites: number;

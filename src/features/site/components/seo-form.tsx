@@ -49,6 +49,9 @@ function toValues(seo: SeoSettings) {
   };
 }
 
+const SEO_TITLE_MAX = 60;
+const SEO_DESCRIPTION_MAX = 160;
+
 export function SeoForm() {
   const scope = useSiteScope();
   const { data: seo } = useSuspenseQuery(seoQueryOptions(createClient(), scope.websiteId));
@@ -59,8 +62,10 @@ export function SeoForm() {
     () =>
       z.object({
         enabled: z.boolean(),
-        title: f.text(70),
-        description: f.text(320, { multiline: true }),
+        // What search engines show (title ~60, description ~160 characters);
+        // the database accepts up to 70 / 320 (website_settings_seo_len_check).
+        title: f.text(SEO_TITLE_MAX),
+        description: f.text(SEO_DESCRIPTION_MAX, { multiline: true }),
         keywords: f.tags(20, 60),
         image: f.url({ httpsOnly: true }),
         business_name: f.text(120),
@@ -131,7 +136,7 @@ export function SeoForm() {
                 children={(field) => (
                   <field.TextField
                     label={t('metaTitle')}
-                    maxLength={70}
+                    maxLength={SEO_TITLE_MAX}
                     placeholder={t('metaTitlePlaceholder')}
                     description={t('metaTitleHint')}
                   />
@@ -143,8 +148,7 @@ export function SeoForm() {
                   <field.TextareaField
                     label={t('metaDescription')}
                     rows={3}
-                    maxLength={320}
-                    showCount
+                    maxLength={SEO_DESCRIPTION_MAX}
                     description={t('metaDescriptionHint')}
                   />
                 )}
@@ -152,7 +156,12 @@ export function SeoForm() {
               <form.AppField
                 name='keywords'
                 children={(field) => (
-                  <field.TagsField label={t('keywords')} placeholder={t('keywordsPlaceholder')} />
+                  <field.TagsField
+                    label={t('keywords')}
+                    placeholder={t('keywordsPlaceholder')}
+                    maxLength={60}
+                    maxItems={20}
+                  />
                 )}
               />
               <form.AppField
@@ -160,6 +169,9 @@ export function SeoForm() {
                 children={(field) => (
                   <field.TextField
                     label={t('image')}
+                    inputMode='url'
+                    maxLength={2048}
+                    showCount={false}
                     placeholder='https://…'
                     description={t('imageHint')}
                   />
@@ -180,6 +192,8 @@ export function SeoForm() {
                 children={(field) => (
                   <field.TextField
                     label={t('verification')}
+                    maxLength={100}
+                    showCount={false}
                     placeholder='abc123…'
                     description={t('verificationHint')}
                   />

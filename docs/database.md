@@ -54,6 +54,11 @@ the schema from application code or by hand in the dashboard.
 | `20261026130000` | billing_invoices (`billing_issuers` (empty, staff-edited), `private.invoice_counters`, invoice number / issue date / payment method / reference / provider columns on `billing_charges`, numbering triggers, `admin_record_charge_payment`, `billing_charge_document`, `admin_get_billing_issuer`, `admin_save_billing_issuer`; `billing_summary` adds `documents_ready`; see [billing.md](./billing.md)) | **Pending**: the `apply_migration` call of 2026-10-26 waited for a confirmation that never came. Apply it in the SQL editor (or `apply_migration`, name `billing_invoices`). Dry-run on a local replica: suite `invoices.sql` 77/77 |
 | `20261026130100` | media_storage_limit (`private.org_storage` reads `org_storage_usage`; `media_check_upload`, `private.assert_media_quota`, `private.media_quota_open` in the `media_objects_insert` policy, `media_before_insert` checks `media_mb`) | **Pending** (same). Apply after `billing_invoices`, name `media_storage_limit` |
 | `20261026130200` | billing_online_payments (`private.billing_webhook_keys`, `private.billing_checkouts`, `billing_payment_events`, `admin_create_billing_webhook_key` / `admin_revoke_…` / `admin_billing_webhook_key_status`, `billing_checkout_prepare`, `billing_checkout_record`, `billing_ingest_stripe_event` (anon, billing webhook key)) | **Pending** (same). Apply last, name `billing_online_payments` |
+| `20261031100000` | site_payments_providers (provider-neutral payments: provider allow-list `private.site_payment_providers()`, `method` column, `cancelled` status, unique keys per website + provider + payment / event id, aliases for the former Stripe field names, provider / method filters on `site_payments_list` / `site_payments_export`, providers / methods in `site_payments_summary`; see [site-api.md](./site-api.md)) | **Applied** (`site_payments_providers`); suites `site_payments.sql` 53/53, `payments_providers.sql` 52/52 |
+| `20261031110000` | seo_text_limits (`website_settings_seo_len_check`: SEO title 70, description 320, business name 120, verification code 100, image 2048, 20 keywords; NOT VALID then validated, every existing row fits; the form stops at 60 / 160; see [forms.md](./forms.md)) | **Applied** (`seo_text_limits`); suite `text_limits.sql` 6/6 |
+| `20261031120000` | billing_square (Square payment links: `private.billing_square_orders`, `billing_checkout_record_square`, `billing_ingest_stripe_event` accepts `provider: square`; provider / event type / outcome constraints widened; see [billing.md](./billing.md#square-payment-links)) | **Applied** (`billing_square`; suite `billing_square.sql` 28/28) |
+| `20261031120100` | studio_admin (LevelStudio in the staff area: `admin_studio_templates`, `admin_studio_template_preview`, `admin_studio_set_template_published`, `admin_studio_projects`, `admin_studio_project_preview`, `admin_studio_creator_email`; platform admin + aal2, audited `studio.*`; `private.studio_template_publication` + trigger so LevelStudio's template sync keeps a staff unpublish) | **Applied** (`studio_admin`; suite `studio_admin.sql` 22/22) |
+| `20261031130000` | email_campaigns (`email_contacts`, `email_contact_imports`, `email_campaigns`, `email_campaign_recipients`, `email_test_sends`, `email_events`, `email_sender_profiles`; private site state, worker keys, webhook status; newsletter trigger + backfill; member, worker, webhook, unsubscribe and staff `email_*` functions; plan limit `emails_month`; see [email-campaigns.md](./email-campaigns.md)) | **Applied** (`email_campaigns`, 2026-11-01; suite `email_campaigns.sql` 83/83 on the live project, rolled back) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
@@ -115,6 +120,15 @@ insert into platform_admins (user_id) select id from auth.users where email = 'y
 | `appointments`, `waitlist_entries`, `form_submissions` (any form type `^[a-z][a-z0-9_]{1,39}$`) | customer interactions | **no direct access** — RPCs only | viewer read, editor updates status/notes, admin deletes |
 | `studio_templates`, `studio_projects`, `studio_usage` | LevelStudio | published starter/style templates | owner reads own; writes via LevelStudio server |
 
+LevelUp staff see LevelStudio's catalog and the sites people generate on *LevelUp admin →
+LevelStudio* (`/dashboard/exclusive/studio`) through the `admin_studio_*` functions only
+(platform admin on aal2; no table access is granted to staff). Lists return no HTML and
+mask creator e-mails (`private.hq_mask_email`); the full e-mail is a separate, audited call.
+Every list and preview writes `studio.viewed` to `hq_audit_log` (search text is not logged).
+Previews render the stored HTML in an iframe sandboxed with `allow-scripts` only (never
+`allow-same-origin`) plus a CSP that blocks network calls (`src/features/studio-admin/lib/preview.ts`).
+Nothing is edited from there except a template's published flag.
+
 Public RPCs (callable with the publishable key): `get_public_website`,
 `submit_form`, `book_appointment`, `join_waitlist`, `get_public_waitlist`,
 `get_ticket_status`. They check that the website is live and the feature is
@@ -129,11 +143,11 @@ instead of row ids. Errors use PostgREST status codes (`PT403`, `PT404`,
 |---|---|---|---|
 | `site_api_keys` | server keys of a website (hash, prefix, last 4, scopes, last use, revoked) | owners / admins read (no hash column) | `site_create_api_key`, `site_revoke_api_key` (audited) |
 | `site_audit_log` | key creation / revocation, payment exports, project request updates | owners / admins read | SECURITY DEFINER functions only (append-only) |
-| `site_payments`, `site_payment_events` | payments reported by the website server, every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
+| `site_payments`, `site_payment_events` | payments reported by the website server (any allow-listed provider), every event received | viewer read without customer columns; customer details via `site_payments_list` (masked for viewers) | `site_ingest_payment` (server key) |
 | `site_traffic_daily`, `site_pageviews_daily` | daily views / unique visitors per path, referrer host, language | viewer read | `track_pageview` (LevelUp tag) |
 
 Contracts and rules: [site-api.md](./site-api.md). Tests:
-`supabase/tests/site_payments.sql`, `site_analytics.sql`, `site_insights.sql`,
+`supabase/tests/site_payments.sql`, `payments_providers.sql`, `text_limits.sql`, `site_analytics.sql`, `site_insights.sql`,
 `levelup_sources.sql`, `media_storage.sql`.
 
 Applied through the MCP (names above). After any change, run the four suites
@@ -190,6 +204,8 @@ Rules:
 - **Audit.** Every staff change and every client redemption or request writes
   `hq_audit_log` (`billing.*`); discounts are logged on their organization (or with no
   target type for a promo code), plans with the plan key as target id.
+
+Plan limit `emails_month` (campaign and test e-mails per UTC month; free 500, starter 2,500, pro 10,000, business 50,000) is enforced by the email campaign functions, see [email-campaigns.md](./email-campaigns.md).
 
 Test: `supabase/tests/billing.sql` (67 checks). `team_invitations.sql` puts its test
 organization on an unlimited-seat plan so it keeps testing invitations only.

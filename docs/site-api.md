@@ -4,16 +4,17 @@ How a client website sends LevelUp what happens on it, so its dashboard shows
 real data: payments (with a per-site **server key**) and visitor analytics
 (through the LevelUp tag, no key). Database side: migrations
 `20261024120000_site_api_keys`, `20261024120100_site_payments`,
-`20261024120200_site_analytics` (see [database.md](./database.md)).
+`20261024120200_site_analytics`, `20261031100000_site_payments_providers` (see
+[database.md](./database.md)).
 
 ## Server keys
 
 | | |
 |---|---|
-| Format | `lu_live_<48 hex>` (real payments) or `lu_test_<48 hex>` (Stripe test mode) |
+| Format | `lu_live_<48 hex>` (real payments) or `lu_test_<48 hex>` (the provider's test / sandbox mode) |
 | Created by | owners and admins of the organization, dashboard → **Developers → Server keys** (MFA when enrolled) |
 | Stored | only `sha256(key)`, the prefix and the last 4 characters (`site_api_keys`); the full key is shown **once** |
-| Scopes | `payments:write` (payments), `events:write` (reserved for future events) |
+| Scopes | `payments:write` (shown as “Report payments”), `events:write` (reserved for future events) |
 | Limits | 10 active keys per website; 300 calls per key per 10 minutes (`PT429`) |
 | Revoked | immediately refused (`PT401`); creation and revocation are written to `site_audit_log` |
 
@@ -25,15 +26,20 @@ The dashboard's **Developers** page (`/dashboard/site/developers`) shows the sit
 environment, tag status and allowed domains, then tabs: Quick start, Forms & JavaScript,
 Server keys (owners / admins: table, create shown once with an “I've stored it safely”
 confirmation, revoke with confirmation), Payments (the exact endpoint, labelled
-“LevelUp API endpoint”, the public key, the contract and a webhook example) and Activity
+“LevelUp API endpoint”, the public key, the supported providers, the contract and its
+former names, the minor-unit table, and copyable server examples for Stripe, PayPal,
+Flutterwave, Paystack, CinetPay and any other provider) and Activity
 (owners / admins: `site_audit_log` + the latest `site_payment_events`). Client-facing
 text never names the hosting or database providers; the samples use
 `LEVELUP_API_URL` / `LEVELUP_PUBLIC_KEY` / `LEVELUP_SITE_KEY`.
 
 ## Payments: `site_ingest_payment`
 
-Call it from the website's **server** (typically its Stripe webhook, after the
-Stripe signature is verified) for every payment state change.
+Provider-neutral: the website's **server** reports every payment state change,
+whatever collects the money (a card checkout, an African aggregator, mobile
+money, PayPal, a bank transfer, cash on delivery). Typically from the provider's
+webhook / notification handler after verifying its signature, or from the
+site's own order system.
 
 ```http
 POST {SUPABASE_URL}/rest/v1/rpc/site_ingest_payment
@@ -47,21 +53,40 @@ Content-Type: application/json
 is the same public key the websites already use. The key in `p_key` is what
 authenticates the call and picks the website: the event cannot name a website.
 
+### Providers
+
+`provider` is one of these lowercase slugs (`private.site_payment_providers()`,
+the `site_payments_provider_check` constraint and `PAYMENT_PROVIDERS` in
+`src/lib/validation/site-events.ts` hold the same list):
+
+| Kind | Slugs |
+|---|---|
+| Cards / global checkouts | `stripe`, `paypal`, `square`, `mollie`, `lemonsqueezy`, `paddle`, `adyen`, `braintree`, `razorpay` |
+| African aggregators | `flutterwave`, `paystack`, `cinetpay`, `fedapay`, `kkiapay`, `pesapal`, `hubtel` |
+| Mobile money (direct or through an aggregator) | `wave`, `mtn_momo`, `orange_money`, `mpesa`, `airtel_money`, `moov_money` |
+| Offline | `bank_transfer`, `cash_on_delivery` |
+| Anything else | `other` (put the name in `metadata`) |
+
+Any other value (an unknown name, `Stripe`, `PAYPAL`, empty) is refused with `22023`.
+Adding a provider = a migration that extends the function and both CHECK
+constraints, plus the TypeScript list and the `insights.payments.providers.*`
+labels.
+
 ### Event contract
 
 ```json
 {
-  "provider": "stripe",
-  "provider_event_id": "evt_…",
-  "provider_session_id": "cs_…",
-  "provider_payment_intent": "pi_…",
+  "provider": "paystack",
+  "provider_event_id": "charge.success:4099260516",
+  "provider_payment_id": "T458123456789",
+  "provider_reference": "4099260516",
+  "method": "card",
   "status": "paid",
-  "amount": 260,
-  "currency": "usd",
-  "offer_id": "accompagnement-voyage",
-  "offer_name": "Accompagnement voyage",
-  "customer_email": "jane@example.com",
-  "customer_name": "Jane Doe",
+  "amount": 2500000,
+  "currency": "NGN",
+  "customer": { "email": "ama@example.com", "name": "Ama Owusu" },
+  "offer": { "id": "starter-box", "name": "Starter box" },
+  "livemode": true,
   "occurred_at": "2026-10-20T14:00:00Z",
   "metadata": {}
 }
@@ -69,39 +94,75 @@ authenticates the call and picks the website: the event cannot name a website.
 
 | Field | Rule |
 |---|---|
-| `provider` | `"stripe"` |
-| `provider_event_id` | `evt_[A-Za-z0-9_]{1,250}`, required; the same event twice is ignored (`duplicate: true`) |
-| `provider_session_id` | `cs_[A-Za-z0-9_]{1,250}`, required; **one payment per session** (upsert key with the website) |
-| `provider_payment_intent` | `pi_…` or `null` |
-| `status` | `paid` \| `pending` \| `failed` \| `refunded` \| `expired` |
-| `amount` | integer, minor units (cents; 260 = 2.60 USD), 0 to 10^11 |
-| `currency` | ISO 4217, lowercase (`usd`, `eur`, `cad`) |
-| `offer_id` | `[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}` or `null` |
-| `offer_name` | text, 200 characters, no HTML, or `null` |
-| `customer_email` | valid email or `null` (stored lowercase) |
-| `customer_name` | text, 120 characters, no HTML, or `null` |
+| `provider` | required, an allow-listed slug (above) |
+| `provider_event_id` | required, `[A-Za-z0-9][A-Za-z0-9_.:@/+=\|#-]{0,254}`; the same event twice (per website + provider) is ignored (`duplicate: true`). No event id at the provider: send `<payment id>:<status>` |
+| `provider_payment_id` | required, same characters; the provider's payment / session / transaction id; **one payment per website + provider + id** |
+| `provider_reference` | a second id (payment intent, `tx_ref`, operator id) or `null` |
+| `method` | `card` \| `mobile_money` \| `bank_transfer` \| `paypal` \| `cash` \| `other` or `null`. Defaults: `paypal` → `paypal`, `cash_on_delivery` → `cash`, `bank_transfer` → `bank_transfer`, the mobile money slugs → `mobile_money` |
+| `status` | `paid` \| `pending` \| `failed` \| `refunded` \| `expired` \| `cancelled` |
+| `amount` | integer in the currency's **minor unit** (see below), 0 to 10^11 |
+| `currency` | ISO 4217, any case (`XOF`, `usd`), stored lowercase |
+| `customer` | `{ "email", "name" }` or `null`: valid email (stored lowercase), name 120 characters, no HTML; no other key |
+| `offer` | `{ "id", "name" }` or `null`: id `[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}`, name 200 characters, no HTML |
+| `livemode` | `true` / `false` / absent. A live key refuses an event marked `false`; a test key always records a test payment |
 | `occurred_at` | ISO 8601 **with time zone**, between 2015 and now + 1 day |
 | `metadata` | JSON object up to 8 KB (cleaned like form data), or `null` |
 
-Any other field, a wrong type (e.g. `"amount": "260"` or `2.6`) or a value out of
-range is refused with `22023` and a message naming the field. A `cs_test_` session
-sent with a live key is refused; a test key records payments flagged as test
-(hidden by default in the dashboard, "Show test payments").
+Stripe keeps its stricter formats: `provider_event_id` `evt_…`,
+`provider_payment_id` `cs_…` / `pi_…` / `ch_…` / `in_…` / `py_…`, reference
+`pi_…` / `ch_…` / `py_…`, and a `cs_test_` session sent with a live key is refused.
+
+**Former names (still accepted).** Integrations written for the Stripe-only
+first version keep working unchanged:
+
+| Field | Accepted alias |
+|---|---|
+| `provider_payment_id` | `provider_session_id`, `provider_transaction_id` |
+| `provider_reference` | `provider_payment_intent` |
+| `customer` | `customer_email`, `customer_name` |
+| `offer` | `offer_id`, `offer_name` |
+
+A field and its alias in the same event are refused (ambiguous). Any other
+field, a wrong type (e.g. `"amount": "260"` or `2.6`) or a value out of range is
+refused with `22023` and a message naming the field.
+
+### Amounts in minor units
+
+`amount` is always an integer in the currency's ISO 4217 minor unit, whatever
+the provider. Zero-decimal currencies have no minor unit: the amount is the
+number of units.
+
+| Exponent | Currencies | Example |
+|---|---|---|
+| 2 (most) | USD, EUR, CAD, GBP, NGN, GHS, KES, ZAR, MAD, … | 25.00 USD → `2500` |
+| 0 | BIF, CLP, DJF, GNF, ISK, JPY, KMF, KRW, PYG, RWF, UGX, UYI, VND, VUV, **XAF**, **XOF**, XPF | 15 000 XOF → `15000`, 1 200 JPY → `1200` |
+| 3 | BHD, IQD, JOD, KWD, LYD, OMR, TND | 1.234 KWD → `1234` |
+| 4 | CLF, UYW | |
+
+What the providers send: Stripe and Paystack already use minor units
+(Paystack: kobo, pesewas, cents); PayPal (`"10.00"`), Flutterwave and CinetPay
+send major units, so convert with `Math.round(value * 10 ** exponent)` (the
+`toMinor` helper of the Developers page). For a currency a provider treats
+differently from ISO 4217, check the provider's documentation. The dashboard
+uses the same table (`src/features/payments/lib/money.ts`:
+`ZERO_DECIMAL_CURRENCIES`, `THREE_DECIMAL_CURRENCIES`, `fractionDigits`,
+`minorToMajor`, `formatMoney`), so 15000 XOF shows as “F CFA 15,000”, never
+“F CFA 150.00”.
 
 ### Status changes
 
 | From | Accepted next statuses |
 |---|---|
 | (new) | any |
-| `pending` | `paid`, `failed`, `expired` |
-| `failed` | `paid`, `expired` |
+| `pending` | `paid`, `failed`, `expired`, `cancelled` |
+| `failed` | `paid`, `expired`, `cancelled` |
 | `paid` | `refunded` |
-| `refunded`, `expired` | none (final) |
+| `refunded`, `expired`, `cancelled` | none (final) |
 
-A payment never goes back from `paid` to `pending`/`failed`: a late or
-out-of-order event answers `200 {"ok":true,"applied":false}` (so webhooks do
-not retry) and only fills details that were missing. Every event is kept in
-`site_payment_events` (history in the detail drawer).
+A payment never goes back from `paid` to `pending` / `failed` / `cancelled`: a
+late or out-of-order event answers `200 {"ok":true,"applied":false}` (so
+webhooks do not retry) and only fills details that were missing. Every event is
+kept in `site_payment_events` (history in the detail drawer).
 
 ### Responses
 
@@ -114,64 +175,47 @@ not retry) and only fills details that were missing. Every event is kept in
 | 400 | `22023` | invalid event (message names the field) |
 | 429 | `PT429` | more than 300 calls in 10 minutes for this key |
 
-### Example (Next.js route handler, Stripe webhook)
+### Server examples
 
-```ts
-// app/api/stripe/webhook/route.ts (server only)
-const event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!);
-if (event.type.startsWith('checkout.session.')) {
-  const session = event.data.object as Stripe.Checkout.Session;
-  const status =
-    event.type === 'checkout.session.completed' && session.payment_status === 'paid' ? 'paid'
-    : event.type === 'checkout.session.async_payment_succeeded' ? 'paid'
-    : event.type === 'checkout.session.async_payment_failed' ? 'failed'
-    : event.type === 'checkout.session.expired' ? 'expired'
-    : 'pending';
-  await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/rpc/site_ingest_payment`, {
-    method: 'POST',
-    headers: {
-      apikey: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      p_key: process.env.LEVELUP_SITE_KEY,
-      p_event: {
-        provider: 'stripe',
-        provider_event_id: event.id,
-        provider_session_id: session.id,
-        provider_payment_intent: typeof session.payment_intent === 'string' ? session.payment_intent : null,
-        status,
-        amount: session.amount_total ?? 0,
-        currency: session.currency ?? 'usd',
-        offer_id: session.metadata?.offer_id ?? null,
-        offer_name: session.metadata?.offer_name ?? null,
-        customer_email: session.customer_details?.email ?? null,
-        customer_name: session.customer_details?.name ?? null,
-        occurred_at: new Date(event.created * 1000).toISOString(),
-        metadata: {}
-      }
-    })
-  });
-}
-// charge.refunded: send the same provider_session_id with status "refunded".
-```
+The Developers page → Payments tab has copyable samples
+(`src/features/site/components/developers/payment-snippets.ts`), all Next.js
+route handlers that import one helper, `lib/levelup.ts` (`toMinor` +
+`reportPayment`):
 
-A failed call should be logged and retried by the webhook (return a 5xx to
-Stripe); a `200` with `applied:false` is not an error.
+| Provider | Verifies the delivery with | Maps |
+|---|---|---|
+| Stripe | `stripe.webhooks.constructEvent` (`stripe-signature`) | `checkout.session.*` → status; `charge.refunded` → the session found by payment intent, `refunded` |
+| PayPal | `POST /v1/notifications/verify-webhook-signature` | `PAYMENT.CAPTURE.COMPLETED / PENDING / DENIED / REFUNDED`; capture id as payment id (refund: its `up` link); `"10.00"` → minor units |
+| Flutterwave | `verif-hash` header = the dashboard secret hash, then `GET /v3/transactions/{id}/verify` | `charge.completed`; `successful` / `failed` / other → `paid` / `failed` / `pending`; `payment_type` → method; major → minor units |
+| Paystack | `x-paystack-signature` = HMAC SHA-512 of the raw body | `charge.success`; `reference` as payment id, `channel` → method, `domain` → `livemode`; amounts already in the subunit |
+| CinetPay | the notification only triggers `POST https://api-checkout.cinetpay.com/v2/payment/check` | `ACCEPTED` / `REFUSED` / other → `paid` / `failed` / `pending`; XOF / XAF unchanged |
+| Any provider | the site's own logic | an example for cash on delivery |
 
-The dashboard's TypeScript copy of the contract (same rules) is
-`src/lib/validation/site-events.ts` (`paymentEventSchema`), tested in
-`site-events.test.ts`.
+Where a payload differs between API versions (Flutterwave v4, Paystack
+refunds), the samples say to check the provider's webhook payload instead of
+guessing a field. A failed call should make the handler answer 5xx so the
+provider retries; a `200` with `applied:false` is not an error.
+
+The dashboard's TypeScript copy of the contract (same rules, aliases included)
+is `src/lib/validation/site-events.ts` (`paymentEventSchema`), tested in
+`site-events.test.ts`; the database suites are `supabase/tests/site_payments.sql`
+(the former Stripe contract) and `payments_providers.sql` (every slug, unknown
+slugs, zero-decimal currencies, aliases, idempotency across providers,
+isolation, bad / revoked / wrong-scope keys).
 
 ### Who sees what
 
 - Members of the organization (viewer and above) see the **Payments** page
   (feature `payments`, or as soon as a payment exists): KPIs per currency,
-  revenue chart, top offers, table, detail drawer.
+  revenue chart, top offers, table with a provider badge (and method), provider
+  and method filters (only the ones in use), detail drawer. Labels are
+  provider-neutral (“Payment ID”, “Reference”).
 - Customer email / name and `metadata` are only returned to editors and above;
   viewers get `j***@e***.com` / `J. D.` (`site_payments_list`,
   `site_payment_detail`). The table itself never exposes those columns.
-- CSV export: owners / admins (`site_payments_export`, MFA, audited, 5000 rows).
+- CSV export: owners / admins (`site_payments_export`, MFA, audited, 5000 rows; same
+  status / provider / method filters; columns include `provider`, `method`,
+  `provider_payment_id`, `provider_reference`).
 
 ## Visitor analytics: `track_pageview`
 

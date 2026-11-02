@@ -55,6 +55,7 @@ export function BillingOrgs() {
         <Input
           placeholder={t('search')}
           value={q}
+          maxLength={100}
           onChange={(e) => setQ(e.target.value)}
           className='max-w-sm'
           aria-label={t('search')}

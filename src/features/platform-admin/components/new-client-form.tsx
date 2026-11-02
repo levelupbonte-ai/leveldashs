@@ -27,7 +27,7 @@ export function NewClientForm() {
         organizationName: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') }),
         websiteName: f.text(120).refine((v) => v.length >= 2, { message: tv('nameRequired') }),
         primaryDomain: f
-          .text(260)
+          .text(253)
           .refine((v) => v === '' || /^(https?:\/\/)?[a-z0-9.-]+\.[a-z]{2,}\/?$/i.test(v), {
             message: t('invalidDomain')
           }),
@@ -98,29 +98,49 @@ export function NewClientForm() {
             <form.AppField
               name='organizationName'
               children={(field) => (
-                <field.TextField label={t('business')} placeholder={t('businessPlaceholder')} />
+                <field.TextField
+                  label={t('business')}
+                  placeholder={t('businessPlaceholder')}
+                  maxLength={120}
+                />
               )}
             />
             <form.AppField
               name='websiteName'
               children={(field) => (
-                <field.TextField label={t('websiteName')} placeholder={t('businessPlaceholder')} />
+                <field.TextField
+                  label={t('websiteName')}
+                  placeholder={t('businessPlaceholder')}
+                  maxLength={120}
+                />
               )}
             />
             <form.AppField
               name='primaryDomain'
               children={(field) => (
-                <field.TextField label={t('domain')} placeholder='salon-elegance.com' />
+                <field.TextField
+                  label={t('domain')}
+                  placeholder='salon-elegance.com'
+                  maxLength={253}
+                  showCount={false}
+                />
               )}
             />
             <form.AppField
               name='siteType'
-              children={(field) => <field.TextField label={t('siteType')} placeholder='salon' />}
+              children={(field) => (
+                <field.TextField label={t('siteType')} placeholder='salon' maxLength={48} />
+              )}
             />
             <form.AppField
               name='ownerEmail'
               children={(field) => (
-                <field.TextField label={t('ownerEmail')} type='email' placeholder='client@…' />
+                <field.TextField
+                  label={t('ownerEmail')}
+                  type='email'
+                  placeholder='client@…'
+                  maxLength={254}
+                />
               )}
             />
           </FieldGroup>

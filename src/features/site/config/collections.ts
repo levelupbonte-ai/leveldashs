@@ -21,7 +21,10 @@ export interface FieldDef {
   name: string;
   kind: FieldKind;
   required?: boolean;
+  /** Maximum characters (text, textarea; each tag of a `tags` field). Never above the column's CHECK. */
   max?: number;
+  /** Maximum number of tags (default 30). Never above the column's CHECK. */
+  maxItems?: number;
   /** Has a help text (`site.collections.<key>.hints.<name>`). */
   hint?: boolean;
   /** Select values; `label` is shown as is (otherwise `site.status.<value>`). */
@@ -305,11 +308,11 @@ export const COLLECTIONS = {
       { name: 'category_en', kind: 'text', max: 120, group: 'english' },
       { name: 'tagline_en', kind: 'text', max: 200 },
       { name: 'description_en', kind: 'textarea', max: 2000 },
-      { name: 'features_en', kind: 'tags', max: 200, hint: true },
+      { name: 'features_en', kind: 'tags', max: 200, maxItems: 12, hint: true },
       { name: 'category_fr', kind: 'text', max: 120, group: 'french' },
       { name: 'tagline_fr', kind: 'text', max: 200 },
       { name: 'description_fr', kind: 'textarea', max: 2000 },
-      { name: 'features_fr', kind: 'tags', max: 200, hint: true },
+      { name: 'features_fr', kind: 'tags', max: 200, maxItems: 12, hint: true },
       { name: 'desktop_image', kind: 'image', required: true, hint: true, group: 'images' },
       { name: 'mobile_image', kind: 'image', hint: true },
       showcaseStatus,
@@ -341,8 +344,8 @@ export const COLLECTIONS = {
       { name: 'location_en', kind: 'text', max: 160 },
       { name: 'project_status_en', kind: 'text', max: 80, hint: true },
       { name: 'scope_en', kind: 'text', max: 300 },
-      { name: 'what_we_built_en', kind: 'tags', max: 200 },
-      { name: 'tags_en', kind: 'tags', max: 200, hint: true },
+      { name: 'what_we_built_en', kind: 'tags', max: 200, maxItems: 20 },
+      { name: 'tags_en', kind: 'tags', max: 200, maxItems: 12, hint: true },
       { name: 'steps_en', kind: 'textarea', max: 4000, hint: true },
       { name: 'label_fr', kind: 'text', max: 160, group: 'french' },
       { name: 'summary_fr', kind: 'textarea', max: 2000 },
@@ -350,8 +353,8 @@ export const COLLECTIONS = {
       { name: 'location_fr', kind: 'text', max: 160 },
       { name: 'project_status_fr', kind: 'text', max: 80 },
       { name: 'scope_fr', kind: 'text', max: 300 },
-      { name: 'what_we_built_fr', kind: 'tags', max: 200 },
-      { name: 'tags_fr', kind: 'tags', max: 200 },
+      { name: 'what_we_built_fr', kind: 'tags', max: 200, maxItems: 20 },
+      { name: 'tags_fr', kind: 'tags', max: 200, maxItems: 12 },
       { name: 'steps_fr', kind: 'textarea', max: 4000 },
       { name: 'card_title', kind: 'text', max: 200, hint: true, group: 'card' },
       { name: 'card_badge_en', kind: 'text', max: 200 },
@@ -368,8 +371,8 @@ export const COLLECTIONS = {
       { name: 'image_alt_fr', kind: 'text', max: 300 },
       { name: 'mobile_alt_en', kind: 'text', max: 300 },
       { name: 'mobile_alt_fr', kind: 'text', max: 300 },
-      { name: 'gallery_captions_en', kind: 'tags', max: 200, hint: true },
-      { name: 'gallery_captions_fr', kind: 'tags', max: 200 },
+      { name: 'gallery_captions_en', kind: 'tags', max: 200, maxItems: 12, hint: true },
+      { name: 'gallery_captions_fr', kind: 'tags', max: 200, maxItems: 12 },
       showcaseStatus,
       { name: 'featured_on_home', kind: 'switch', defaultValue: false, hint: true },
       ...showcaseDisplay

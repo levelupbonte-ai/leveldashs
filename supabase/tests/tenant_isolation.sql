@@ -214,7 +214,10 @@ BEGIN
     AND p.proname NOT IN ('book_appointment', 'create_project_handoff', 'get_organization_invitation',
       'get_public_waitlist', 'get_public_website', 'get_site_bundle', 'get_ticket_status', 'hq_sign_in_attempt',
       'join_waitlist', 'record_project_qualification', 'send_site_message', 'site_ingest_payment', 'submit_form',
-      'submit_project_request', 'tag_ping', 'track_pageview');
+      'submit_project_request', 'tag_ping', 'track_pageview',
+      -- e-mail campaigns: unsubscribe links (token) and the worker / webhook (worker key)
+      'email_unsubscribe', 'email_unsubscribe_info', 'email_worker_due', 'email_worker_claim',
+      'email_worker_record', 'email_ingest_event');
   results := results || (CASE WHEN v_text IS NULL THEN 'PASS' ELSE 'FAIL' END || ' catalog: anon EXECUTE only on the public RPC allow-list ' || coalesce(v_text, ''));
 
   SELECT string_agg(p.proname, ',') INTO v_text FROM pg_proc p JOIN pg_namespace s ON s.oid = p.pronamespace

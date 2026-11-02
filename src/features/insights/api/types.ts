@@ -1,3 +1,5 @@
+import type { PaymentMethod, PaymentProvider } from '@/lib/validation/site-events';
+
 /** Time ranges offered on the overview, analytics and payments pages. */
 export const RANGE_DAYS = [7, 30, 90] as const;
 export type RangeDays = (typeof RANGE_DAYS)[number];
@@ -68,6 +70,9 @@ export interface PaymentsSummary {
   failed_count: number;
   total_count: number;
   test_count: number;
+  /** Providers / methods used by the payments of this mode (filters). */
+  providers?: { provider: PaymentProvider; count: number }[];
+  methods?: { method: PaymentMethod; count: number }[];
   series: { day: string; currency: string; amount: number; count: number }[];
   offers: { offer: string; currency: string; amount: number; count: number }[];
 }

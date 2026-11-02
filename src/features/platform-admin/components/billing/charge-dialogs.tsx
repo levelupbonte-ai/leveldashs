@@ -107,8 +107,11 @@ function ChargeForm({
             .string()
             .trim()
             .min(1, { message: tv('required') })
-            .max(120),
-          description: z.string().trim().max(1000),
+            .max(120, { message: tv('maxLength', { max: 120 }) }),
+          description: z
+            .string()
+            .trim()
+            .max(1000, { message: tv('maxLength', { max: 1000 }) }),
           amount: z
             .number({ error: tv('invalid') })
             .positive({ message: tv('invalid') })
@@ -213,7 +216,12 @@ function ChargeForm({
           <form.AppField
             name='label'
             children={(field) => (
-              <field.TextField label={t('label')} required placeholder={t('labelPlaceholder')} />
+              <field.TextField
+                label={t('label')}
+                required
+                placeholder={t('labelPlaceholder')}
+                maxLength={120}
+              />
             )}
           />
           <form.AppField
@@ -247,7 +255,12 @@ function ChargeForm({
               <form.AppField
                 name='currency'
                 children={(field) => (
-                  <field.TextField label={t('currency')} maxLength={3} className='uppercase' />
+                  <field.TextField
+                    label={t('currency')}
+                    maxLength={3}
+                    showCount={false}
+                    className='uppercase'
+                  />
                 )}
               />
             )}

@@ -21,8 +21,16 @@ Ensure these are set in your deployment platform:
 - All `NEXT_PUBLIC_*` variables for client-side access
 - `SENTRY_*` variables if using error tracking
 - Online payment of LevelUp invoices, **off by default**, server-only (never `NEXT_PUBLIC_`):
-  `LEVELUP_ONLINE_PAYMENTS=on`, `LEVELUP_STRIPE_SECRET_KEY`, `LEVELUP_STRIPE_WEBHOOK_SECRET`,
-  `LEVELUP_BILLING_KEY` — all four or nothing; steps in [billing.md](./billing.md#turning-on-online-payments)
+  `LEVELUP_ONLINE_PAYMENTS=on`, `LEVELUP_BILLING_KEY`, optional `LEVELUP_PAYMENT_PROVIDER=stripe|square`,
+  and one provider's keys: Stripe `LEVELUP_STRIPE_SECRET_KEY`, `LEVELUP_STRIPE_WEBHOOK_SECRET`, or Square
+  `LEVELUP_SQUARE_ACCESS_TOKEN`, `LEVELUP_SQUARE_LOCATION_ID`, `LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY`,
+  `LEVELUP_SQUARE_ENV=sandbox|production` (optional `LEVELUP_SQUARE_WEBHOOK_URL`). Mark them *Sensitive*;
+  steps in [billing.md](./billing.md#turning-on-online-payments) and
+  [billing.md → Turning on Square](./billing.md#turning-on-square)
+
+- Client email campaigns, server-only: `RESEND_API_KEY` (same key as the account e-mails), optional
+  `CAMPAIGN_EMAIL_FROM_ADDRESS`, and for scheduled sending and delivery tracking `LEVELUP_EMAIL_KEY`,
+  `CRON_SECRET`, `RESEND_WEBHOOK_SECRET`. Steps in [email-campaigns.md](./email-campaigns.md#setup)
 
 Sentry source maps are uploaded automatically in CI.
 

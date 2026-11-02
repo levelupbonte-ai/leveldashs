@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { PAYMENT_PROVIDERS } from '@/lib/validation/site-events';
 import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from '@/lib/supabase/env';
 import { cn } from '@/lib/utils';
 import type { WebsiteIntegration } from '../../api/types';
@@ -15,14 +17,13 @@ import {
   CONTENT_SNIPPET,
   CURL_SNIPPET,
   envSnippet,
-  EVENT_SNIPPET,
   FORM_SNIPPET,
   JS_API_SNIPPET,
   nextScriptSnippet,
   tagOptionsSnippet,
-  tagSnippet,
-  WEBHOOK_SNIPPET
+  tagSnippet
 } from './snippets';
+import { EVENT_SNIPPET, HELPER_SNIPPET, PROVIDER_EXAMPLES } from './payment-snippets';
 
 const code = (chunks: React.ReactNode) => (
   <code className='bg-muted rounded px-1 py-0.5 font-mono text-[0.85em]'>{chunks}</code>
@@ -192,8 +193,9 @@ export function JavaScriptGuide() {
 }
 
 const SUMMARY = [
+  'provider',
   'provider_event_id',
-  'provider_session_id',
+  'provider_payment_id',
   'status',
   'amount',
   'currency',
@@ -202,17 +204,23 @@ const SUMMARY = [
 const CONTRACT = [
   ['provider', true],
   ['provider_event_id', true],
-  ['provider_session_id', true],
-  ['provider_payment_intent', false],
+  ['provider_payment_id', true],
+  ['provider_reference', false],
+  ['method', false],
   ['status', true],
   ['amount', true],
   ['currency', true],
-  ['offer_id', false],
-  ['offer_name', false],
-  ['customer_email', false],
-  ['customer_name', false],
+  ['customer', false],
+  ['offer', false],
+  ['livemode', false],
   ['occurred_at', true],
   ['metadata', false]
+] as const;
+const ALIASES = [
+  ['provider_payment_id', 'provider_session_id, provider_transaction_id'],
+  ['provider_reference', 'provider_payment_intent'],
+  ['customer', 'customer_email, customer_name'],
+  ['offer', 'offer_id, offer_name']
 ] as const;
 const RESPONSES = [
   ['200', 'recorded'],
@@ -222,10 +230,17 @@ const RESPONSES = [
   ['403', 'PT403'],
   ['429', 'PT429']
 ] as const;
+const MINOR_UNITS = [
+  { key: 'two', currencies: 'USD, EUR, CAD, NGN, GHS, KES, ZAR, MAD', example: '25.00 → 2500' },
+  { key: 'zero', currencies: 'XOF, XAF, JPY, KRW, RWF, UGX, GNF, …', example: '15000 → 15000' },
+  { key: 'three', currencies: 'KWD, BHD, JOD, OMR, TND, …', example: '1.234 → 1234' }
+] as const;
 
 export function PaymentsGuide() {
   const t = useTranslations('site.developers.payments');
+  const tp = useTranslations('insights.payments.providers');
   const [full, setFull] = useState(false);
+  const [example, setExample] = useState<string>(PROVIDER_EXAMPLES[0].key);
   return (
     <div className='space-y-6'>
       <Card>
@@ -262,6 +277,25 @@ export function PaymentsGuide() {
             />
             <p className='text-muted-foreground text-xs'>{t('envHint')}</p>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('providersTitle')}</CardTitle>
+          <CardDescription>{t.rich('providersDescription', { code })}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className='flex flex-wrap gap-1.5' aria-label={t('providersTitle')}>
+            {PAYMENT_PROVIDERS.map((p) => (
+              <li key={p}>
+                <Badge variant='outline' className='gap-1.5 font-normal'>
+                  {tp(p)}
+                  <code className='text-muted-foreground font-mono text-[10px]'>{p}</code>
+                </Badge>
+              </li>
+            ))}
+          </ul>
         </CardContent>
       </Card>
 
@@ -312,6 +346,17 @@ export function PaymentsGuide() {
                     </tbody>
                   </table>
                 </div>
+                <h3 className='mt-4 mb-2 text-xs font-medium'>{t('aliasesTitle')}</h3>
+                <p className='text-muted-foreground mb-2 text-xs'>{t('aliasesDescription')}</p>
+                <ul className='divide-y rounded-lg border text-xs'>
+                  {ALIASES.map(([field, aliases]) => (
+                    <li key={field} className='flex flex-wrap gap-x-2 px-3 py-2'>
+                      <code className='font-mono font-semibold'>{field}</code>
+                      <span className='text-muted-foreground'>←</span>
+                      <code className='text-muted-foreground font-mono'>{aliases}</code>
+                    </li>
+                  ))}
+                </ul>
                 <p className='text-muted-foreground mt-3 text-xs'>{t('strict')}</p>
               </CollapsibleContent>
             </Collapsible>
@@ -319,6 +364,26 @@ export function PaymentsGuide() {
         </Card>
 
         <div className='space-y-6'>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('amountsTitle')}</CardTitle>
+              <CardDescription>{t('amountsDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className='divide-y rounded-lg border text-sm'>
+                {MINOR_UNITS.map((row) => (
+                  <li key={row.key} className='grid gap-1 px-3 py-2 sm:grid-cols-[9rem_1fr_auto]'>
+                    <span className='font-medium'>{t(`decimals.${row.key}`)}</span>
+                    <span className='text-muted-foreground text-xs sm:text-sm'>
+                      {row.currencies}
+                    </span>
+                    <code className='font-mono text-xs whitespace-nowrap'>{row.example}</code>
+                  </li>
+                ))}
+              </ul>
+              <p className='text-muted-foreground mt-3 text-xs'>{t('amountsHint')}</p>
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader>
               <CardTitle>{t('responsesTitle')}</CardTitle>
@@ -355,10 +420,27 @@ export function PaymentsGuide() {
       <Card>
         <CardHeader>
           <CardTitle>{t('exampleTitle')}</CardTitle>
-          <CardDescription>{t('exampleDescription')}</CardDescription>
+          <CardDescription>{t.rich('exampleDescription', { code })}</CardDescription>
         </CardHeader>
-        <CardContent>
-          <CodeBlock code={WEBHOOK_SNIPPET} label='app/api/stripe/webhook/route.ts' />
+        <CardContent className='space-y-4'>
+          <CodeBlock code={HELPER_SNIPPET} label='lib/levelup.ts' />
+          <Tabs value={example} onValueChange={(value) => setExample(String(value))}>
+            <div className='-mx-1 overflow-x-auto px-1'>
+              <TabsList>
+                {PROVIDER_EXAMPLES.map((e) => (
+                  <TabsTrigger key={e.key} value={e.key} className='flex-none px-3'>
+                    {e.label ?? t('anyProvider')}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+            {PROVIDER_EXAMPLES.map((e) => (
+              <TabsContent key={e.key} value={e.key} className='space-y-2 pt-2'>
+                <p className='text-muted-foreground text-xs'>{t(`examples.${e.key}`)}</p>
+                <CodeBlock code={e.code} label={e.file} />
+              </TabsContent>
+            ))}
+          </Tabs>
         </CardContent>
       </Card>
     </div>

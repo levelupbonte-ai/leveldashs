@@ -450,7 +450,12 @@ export default function UserAuthForm({
             <form.AppField
               name='fullName'
               children={(field) => (
-                <field.TextField label={t('fullName')} autoComplete='name' disabled={pending} />
+                <field.TextField
+                  label={t('fullName')}
+                  autoComplete='name'
+                  disabled={pending}
+                  maxLength={120}
+                />
               )}
             />
           )}
@@ -461,6 +466,7 @@ export default function UserAuthForm({
                 label={t('email')}
                 type='email'
                 autoComplete={showPasskey ? 'username webauthn' : 'email'}
+                maxLength={254}
                 placeholder={t('emailPlaceholder')}
                 disabled={pending}
                 readOnly={!!lockedEmail}

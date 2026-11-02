@@ -210,6 +210,7 @@ export function CollectionManager({ collection }: { collection: CollectionKey })
         <Input
           placeholder={t('search')}
           value={search}
+          maxLength={100}
           onChange={(e) => setSearch(e.target.value)}
           className='sm:max-w-xs'
         />

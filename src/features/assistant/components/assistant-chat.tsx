@@ -8,6 +8,7 @@ import { Icons } from '@/components/icons';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CharCounter } from '@/components/forms/char-counter';
 import { Textarea } from '@/components/ui/textarea';
 import { getCollection } from '@/features/site/config/collections';
 import { siteKeys } from '@/features/site/api/queries';
@@ -23,6 +24,9 @@ import { PlanLimitError, parsePlanLimit, type PlanLimitInfo } from '@/lib/plan-l
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import type { AssistantMessage, AssistantProposal, AssistantReply } from '../types';
+
+/** Same cap as POST /api/assistant (one message). */
+const PROMPT_MAX = 4000;
 
 const SUGGESTIONS = ['week', 'service', 'seo', 'team'] as const;
 
@@ -151,7 +155,7 @@ export function AssistantChat() {
   });
 
   function send(text: string) {
-    const message = text.trim().slice(0, 4000);
+    const message = text.trim().slice(0, PROMPT_MAX);
     if (!message || ask.isPending) return;
     const history: Turn[] = [...turns, { role: 'user', text: message }];
     setTurns(history);
@@ -237,7 +241,8 @@ export function AssistantChat() {
           }}
           placeholder={t('placeholder')}
           className='max-h-40 min-h-11 resize-none border-0 shadow-none focus-visible:ring-0'
-          maxLength={4000}
+          maxLength={PROMPT_MAX}
+          aria-describedby={draft.length > PROMPT_MAX * 0.8 ? 'assistant-count' : undefined}
         />
         <Button
           type='submit'
@@ -248,6 +253,11 @@ export function AssistantChat() {
           <Icons.send className='size-4' aria-hidden />
         </Button>
       </form>
+      {draft.length > PROMPT_MAX * 0.8 && (
+        <div className='-mt-2 flex px-3'>
+          <CharCounter id='assistant-count' count={draft.length} max={PROMPT_MAX} />
+        </div>
+      )}
       {remaining !== null && (
         <p className='text-muted-foreground text-center text-xs'>
           {t('remaining', { count: remaining })}

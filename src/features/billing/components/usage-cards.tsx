@@ -11,7 +11,8 @@ const LIMIT_ICON: Record<LimitKey, ComponentType<{ className?: string }>> = {
   team_members: Icons.teams,
   assistant_requests_month: Icons.starMark,
   media_mb: Icons.storage,
-  websites: Icons.world
+  websites: Icons.world,
+  emails_month: Icons.mail
 };
 
 /** One meter per plan limit: "Team members 2 / 3", near-limit and at-limit states. */
@@ -140,6 +141,12 @@ export function UsagePanel({ usage }: { usage: BillingUsage }) {
       value: format.number(usage.assistant_requests_month)
     },
     {
+      key: 'emails',
+      icon: Icons.mail,
+      label: t('emails'),
+      value: format.number(usage.emails_month ?? 0)
+    },
+    {
       key: 'team',
       icon: Icons.teams,
       label: t('team'),
@@ -168,7 +175,7 @@ export function UsagePanel({ usage }: { usage: BillingUsage }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <dl className='grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5'>
+        <dl className='grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6'>
           {tiles.map(({ key, icon: Icon, label, value, hint }) => (
             <div key={key} className='bg-muted/30 min-w-0 rounded-lg border p-3'>
               <dt className='text-muted-foreground flex items-center gap-1.5 text-xs'>

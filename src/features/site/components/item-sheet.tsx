@@ -174,7 +174,14 @@ function ItemForm({
           <form.AppField
             key={f.name}
             name={f.name}
-            children={(field) => <field.TagsField {...common} placeholder={t('tagsPlaceholder')} />}
+            children={(field) => (
+              <field.TagsField
+                {...common}
+                placeholder={t('tagsPlaceholder')}
+                maxLength={f.max ?? 80}
+                maxItems={f.maxItems ?? 30}
+              />
+            )}
           />
         );
       case 'select':
@@ -254,7 +261,13 @@ function ItemForm({
           <form.AppField
             key={f.name}
             name={f.name}
-            children={(field) => <field.TextField {...common} maxLength={f.max} />}
+            children={(field) =>
+              f.kind === 'url' ? (
+                <field.TextField {...common} inputMode='url' maxLength={2048} showCount={false} />
+              ) : (
+                <field.TextField {...common} maxLength={f.max} />
+              )
+            }
           />
         );
     }

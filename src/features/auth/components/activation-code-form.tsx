@@ -48,7 +48,7 @@ export function ActivationCodeForm({
       z.object({
         code: z
           .string()
-          .max(64)
+          .max(64, { message: t('formatInvalid') })
           .refine((v) => normalizeActivationCode(v) !== null, { message: t('formatInvalid') })
       }),
     [t]
@@ -117,6 +117,8 @@ export function ActivationCodeForm({
               placeholder='LVL-XXXX-XXXX-XXXX'
               autoComplete='one-time-code'
               autoCapitalize='characters'
+              maxLength={64}
+              showCount={false}
               spellCheck={false}
               className='font-mono tracking-wider uppercase'
               description={t('formatHint')}

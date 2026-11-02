@@ -151,6 +151,16 @@ export const navGroups: NavGroup[] = [
         ]
       },
       {
+        title: 'emailCampaigns',
+        url: '/dashboard/site/email-campaigns',
+        icon: 'mail',
+        isActive: false,
+        items: [],
+        // Contacts are visible to every member (masked for viewers); editors draft,
+        // owners and admins send. The database enforces each role.
+        access: { requireWebsite: true }
+      },
+      {
         title: 'assistant',
         url: '/dashboard/site/assistant',
         icon: 'starMark',

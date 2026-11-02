@@ -49,6 +49,12 @@ export async function getAdminNavGroup(): Promise<NavGroup> {
             rawTitle: true,
             url: '/dashboard/exclusive/billing/discounts',
             icon: 'discount'
+          },
+          {
+            title: t('studio'),
+            rawTitle: true,
+            url: '/dashboard/exclusive/studio',
+            icon: 'template'
           }
         ]
       }

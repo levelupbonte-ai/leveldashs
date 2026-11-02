@@ -1,12 +1,18 @@
 import { AppError } from '@/lib/errors';
 
 /** Limit keys of the plans (same list as private.billing_limit_keys in the database). */
-export type PlanLimitKey = 'team_members' | 'assistant_requests_month' | 'media_mb' | 'websites';
+export type PlanLimitKey =
+  | 'team_members'
+  | 'assistant_requests_month'
+  | 'media_mb'
+  | 'websites'
+  | 'emails_month';
 const KEYS: readonly string[] = [
   'team_members',
   'assistant_requests_month',
   'media_mb',
-  'websites'
+  'websites',
+  'emails_month'
 ];
 
 export interface PlanLimitInfo {

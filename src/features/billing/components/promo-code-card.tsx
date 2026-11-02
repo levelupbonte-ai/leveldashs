@@ -79,6 +79,7 @@ export function PromoCodeCard({ organizationId }: { organizationId: string }) {
                   autoCapitalize='characters'
                   spellCheck={false}
                   maxLength={32}
+                  showCount={false}
                   className='font-mono uppercase placeholder:normal-case'
                 />
               )}

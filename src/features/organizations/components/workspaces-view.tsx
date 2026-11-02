@@ -111,7 +111,11 @@ export function WorkspacesView() {
               <form.AppField
                 name='name'
                 children={(field) => (
-                  <field.TextField label={t('name')} placeholder={t('namePlaceholder')} />
+                  <field.TextField
+                    label={t('name')}
+                    placeholder={t('namePlaceholder')}
+                    maxLength={120}
+                  />
                 )}
               />
             </FieldGroup>
