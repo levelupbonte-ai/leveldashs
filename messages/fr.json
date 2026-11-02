@@ -110,7 +110,8 @@
       "analytics": "Statistiques",
       "payments": "Paiements",
       "projectRequests": "Demandes de projet",
-      "emailCampaigns": "Campagnes e-mail"
+      "emailCampaigns": "Campagnes e-mail",
+      "clientPortal": "Espace client"
     }
   },
   "admin": {
@@ -1809,6 +1810,10 @@
       "emailCampaigns": {
         "title": "Campagnes e-mail",
         "description": "Écrivez aux clients inscrits sur votre site"
+      },
+      "clientPortal": {
+        "title": "Espace client",
+        "description": "L’espace privé de vos clients : actualités, détails du voyage, documents et messages"
       }
     },
     "unavailable": {
@@ -2778,7 +2783,8 @@
       "scopesLabel": "Autorisé",
       "scopes": {
         "payments:write": "Déclarer les paiements",
-        "events:write": "Déclarer les événements"
+        "events:write": "Déclarer les événements",
+        "portal:access": "Espace client"
       },
       "cancel": "Annuler",
       "createdTitle": "Copiez votre nouvelle clé",
@@ -3071,7 +3077,8 @@
     "payments": "Paiements",
     "capabilities": "Tout sur mon site",
     "project-requests": "Demandes de projet",
-    "email-campaigns": "Campagnes e-mail"
+    "email-campaigns": "Campagnes e-mail",
+    "client-portal": "Espace client"
   },
   "errorPage": {
     "eyebrow": "Erreur inattendue",
@@ -3642,6 +3649,122 @@
       "cancel": "Annuler",
       "confirm": "{count, plural, =0 {Importer} one {Importer # contact} other {Importer # contacts}}",
       "done": "{added, plural, one {# contact ajouté} other {# contacts ajoutés}}, {existing} déjà dans votre liste"
+    }
+  },
+  "clientPortal": {
+    "stats": {
+      "customers": "Clients avec accès",
+      "unread": "Réponses non lues",
+      "emails": "E-mails en attente d’envoi",
+      "failed": "{count, plural, one {# e-mail en échec} other {# e-mails en échec}}"
+    },
+    "actions": {
+      "publish": "Publier",
+      "invite": "Inviter dans l’espace"
+    },
+    "tabs": {
+      "customers": "Clients",
+      "published": "Publié"
+    },
+    "cancel": "Annuler",
+    "kinds": {
+      "update": "Actualité",
+      "trip": "Détails du voyage",
+      "document": "Document",
+      "checklist": "Liste à prévoir"
+    },
+    "audience": {
+      "all": "Tous les clients",
+      "offer": "Un groupe d’offre",
+      "customer": "Un client",
+      "offerNamed": "Offre : {offer}",
+      "customerNamed": "Pour {name}"
+    },
+    "customers": {
+      "emptyTitle": "Aucun client pour l’instant",
+      "emptyDescription": "Les clients apparaissent ici dès qu’un paiement est enregistré, ou quand vous invitez quelqu’un dans l’espace.",
+      "unread": "{count, plural, one {# nouveau} other {# nouveaux}}",
+      "status": {
+        "active": "Accès",
+        "revoked": "Sans accès"
+      },
+      "source": {
+        "payment": "A payé",
+        "invite": "Invité"
+      },
+      "payment": {
+        "paid": "payé",
+        "refunded": "remboursé",
+        "pending": "en attente"
+      },
+      "noPayment": "Aucun paiement enregistré",
+      "lastSignIn": "Dernière connexion {date}",
+      "neverSignedIn": "Ne s’est pas encore connecté",
+      "messages": "Messages",
+      "publish": "Lui publier",
+      "revoke": "Retirer l’accès",
+      "restore": "Rendre l’accès",
+      "revokeTitle": "Retirer l’accès à l’espace ?",
+      "revokeDescription": "{email} est déconnecté partout et ne peut plus se connecter. Ses paiements ne changent pas.",
+      "restoreTitle": "Rendre l’accès ?",
+      "restoreDescription": "{email} peut de nouveau se connecter à l’espace.",
+      "statusSaved": "Accès mis à jour"
+    },
+    "published": {
+      "emptyTitle": "Rien de publié pour l’instant",
+      "emptyDescription": "Publiez une actualité, les détails du voyage, un document ou une liste à prévoir : les clients les voient dans leur espace privé.",
+      "reads": "{count, plural, =0 {pas encore lu} one {lu par #} other {lu par #}}",
+      "open": "Ouvrir",
+      "archive": "Archiver",
+      "archived": "Archivé : les clients ne le voient plus"
+    },
+    "publish": {
+      "title": "Publier dans l’espace client",
+      "description": "Les clients le voient dans leur espace privé et reçoivent un e-mail si les notifications restent activées.",
+      "kind": "Type",
+      "audience": "Qui le voit",
+      "customer": "Client",
+      "offer": "Offre",
+      "titleLabel": "Titre",
+      "message": "Message",
+      "notes": "Notes (facultatif)",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "meetingPoint": "Point de rendez-vous",
+      "meetingTime": "Heure du rendez-vous",
+      "meetingTimePlaceholder": "ex. 9 h 00",
+      "steps": "Programme",
+      "stepsHint": "Une étape par ligne, ex. 2026-12-01 Arrivée — accueil à l’aéroport",
+      "checklist": "À prévoir",
+      "checklistHint": "Un élément par ligne",
+      "document": "Fichier",
+      "documentHint": "PDF, JPEG, PNG ou WebP, 10 Mo maximum. Seuls les clients choisis peuvent le télécharger, par un lien valable une minute.",
+      "notify": "Prévenir les clients par e-mail",
+      "notifyHint": "Le site envoie un court e-mail avec un lien vers l’espace (jamais le contenu lui-même).",
+      "cancel": "Annuler",
+      "submit": "Publier",
+      "published": "{count, plural, =0 {Publié} one {Publié, # e-mail en route} other {Publié, # e-mails en route}}"
+    },
+    "invite": {
+      "title": "Inviter dans l’espace",
+      "description": "Cette adresse obtient l’accès à l’espace privé. Le site envoie une invitation ; la personne se connecte avec un code à usage unique envoyé à cette adresse.",
+      "email": "E-mail",
+      "name": "Nom (facultatif)",
+      "offer": "Groupe d’offre",
+      "offerHint": "Elle voit aussi ce que vous publiez pour cette offre.",
+      "noOffer": "Aucun",
+      "language": "Langue de l’e-mail",
+      "cancel": "Annuler",
+      "submit": "Envoyer l’invitation",
+      "sent": "Invitation en route",
+      "resent": "Accès confirmé, invitation renvoyée"
+    },
+    "thread": {
+      "description": "Messages envoyés depuis l’espace privé. Votre réponse s’y affiche et le client reçoit un e-mail.",
+      "empty": "Aucun message pour l’instant.",
+      "you": "Vous",
+      "reply": "Répondre",
+      "send": "Envoyer"
     }
   }
 }

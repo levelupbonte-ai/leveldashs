@@ -110,7 +110,8 @@
       "analytics": "Analytics",
       "payments": "Payments",
       "projectRequests": "Project requests",
-      "emailCampaigns": "Email campaigns"
+      "emailCampaigns": "Email campaigns",
+      "clientPortal": "Client portal"
     }
   },
   "admin": {
@@ -1809,6 +1810,10 @@
       "emailCampaigns": {
         "title": "Email campaigns",
         "description": "Email the customers who subscribed on your website"
+      },
+      "clientPortal": {
+        "title": "Client portal",
+        "description": "Your customers' private space: updates, trip details, documents and messages"
       }
     },
     "unavailable": {
@@ -2778,7 +2783,8 @@
       "scopesLabel": "Allowed",
       "scopes": {
         "payments:write": "Report payments",
-        "events:write": "Report events"
+        "events:write": "Report events",
+        "portal:access": "Client portal"
       },
       "cancel": "Cancel",
       "createdTitle": "Copy your new key",
@@ -3071,7 +3077,8 @@
     "payments": "Payments",
     "capabilities": "Everything on my site",
     "project-requests": "Project requests",
-    "email-campaigns": "Email campaigns"
+    "email-campaigns": "Email campaigns",
+    "client-portal": "Client portal"
   },
   "errorPage": {
     "eyebrow": "Unexpected error",
@@ -3642,6 +3649,122 @@
       "cancel": "Cancel",
       "confirm": "{count, plural, =0 {Import} one {Import # contact} other {Import # contacts}}",
       "done": "{added, plural, one {# contact added} other {# contacts added}}, {existing} already in your list"
+    }
+  },
+  "clientPortal": {
+    "stats": {
+      "customers": "Customers with access",
+      "unread": "Unread replies",
+      "emails": "E-mails waiting to be sent",
+      "failed": "{count, plural, one {# e-mail failed} other {# e-mails failed}}"
+    },
+    "actions": {
+      "publish": "Publish",
+      "invite": "Invite to portal"
+    },
+    "tabs": {
+      "customers": "Customers",
+      "published": "Published"
+    },
+    "cancel": "Cancel",
+    "kinds": {
+      "update": "Update",
+      "trip": "Trip details",
+      "document": "Document",
+      "checklist": "Checklist"
+    },
+    "audience": {
+      "all": "Every customer",
+      "offer": "An offer group",
+      "customer": "One customer",
+      "offerNamed": "Offer: {offer}",
+      "customerNamed": "For {name}"
+    },
+    "customers": {
+      "emptyTitle": "No customer yet",
+      "emptyDescription": "Customers appear here as soon as a payment is recorded, or when you invite someone to the portal.",
+      "unread": "{count, plural, one {# new} other {# new}}",
+      "status": {
+        "active": "Access",
+        "revoked": "No access"
+      },
+      "source": {
+        "payment": "Paid",
+        "invite": "Invited"
+      },
+      "payment": {
+        "paid": "paid",
+        "refunded": "refunded",
+        "pending": "pending"
+      },
+      "noPayment": "No payment recorded",
+      "lastSignIn": "Last signed in {date}",
+      "neverSignedIn": "Has not signed in yet",
+      "messages": "Messages",
+      "publish": "Publish to them",
+      "revoke": "Remove access",
+      "restore": "Give access back",
+      "revokeTitle": "Remove portal access?",
+      "revokeDescription": "{email} is signed out everywhere and can no longer sign in. Their payments are not changed.",
+      "restoreTitle": "Give access back?",
+      "restoreDescription": "{email} can sign in to the portal again.",
+      "statusSaved": "Access updated"
+    },
+    "published": {
+      "emptyTitle": "Nothing published yet",
+      "emptyDescription": "Publish an update, the trip details, a document or a checklist: customers see it in their private space.",
+      "reads": "{count, plural, =0 {not read yet} one {read by #} other {read by #}}",
+      "open": "Open",
+      "archive": "Archive",
+      "archived": "Archived: customers no longer see it"
+    },
+    "publish": {
+      "title": "Publish to the portal",
+      "description": "Customers see it in their private space and get an e-mail if you keep notifications on.",
+      "kind": "Type",
+      "audience": "Who sees it",
+      "customer": "Customer",
+      "offer": "Offer",
+      "titleLabel": "Title",
+      "message": "Message",
+      "notes": "Notes (optional)",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "meetingPoint": "Meeting point",
+      "meetingTime": "Meeting time",
+      "meetingTimePlaceholder": "e.g. 9:00 am",
+      "steps": "Itinerary",
+      "stepsHint": "One step per line, e.g. 2026-12-01 Arrival — pick-up at the airport",
+      "checklist": "What to bring",
+      "checklistHint": "One item per line",
+      "document": "File",
+      "documentHint": "PDF, JPEG, PNG or WebP, 10 MB at most. Only the customers you choose can download it, through a link valid for one minute.",
+      "notify": "E-mail the customers",
+      "notifyHint": "The website sends a short e-mail with a link to the space (never the content itself).",
+      "cancel": "Cancel",
+      "submit": "Publish",
+      "published": "{count, plural, =0 {Published} one {Published, # e-mail on its way} other {Published, # e-mails on their way}}"
+    },
+    "invite": {
+      "title": "Invite to portal",
+      "description": "This address gets access to the private space. The website e-mails an invitation; the person signs in with a one-time code sent to that address.",
+      "email": "E-mail",
+      "name": "Name (optional)",
+      "offer": "Offer group",
+      "offerHint": "They also see what you publish to this offer.",
+      "noOffer": "None",
+      "language": "E-mail language",
+      "cancel": "Cancel",
+      "submit": "Send invitation",
+      "sent": "Invitation on its way",
+      "resent": "Access confirmed, invitation sent again"
+    },
+    "thread": {
+      "description": "Messages sent from the private space. Your reply is shown there and the customer gets an e-mail.",
+      "empty": "No message yet.",
+      "you": "You",
+      "reply": "Reply",
+      "send": "Send"
     }
   }
 }

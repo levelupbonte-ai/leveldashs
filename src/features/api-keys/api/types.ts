@@ -1,4 +1,4 @@
-export const KEY_SCOPES = ['payments:write', 'events:write'] as const;
+export const KEY_SCOPES = ['payments:write', 'events:write', 'portal:access'] as const;
 export type KeyScope = (typeof KEY_SCOPES)[number];
 export type KeyMode = 'live' | 'test';
 
