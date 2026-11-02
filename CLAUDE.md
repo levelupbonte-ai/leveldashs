@@ -4,6 +4,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 
 ## Key References
 
+- **[docs/handoff.md](./docs/handoff.md)** — READ FIRST: the whole ecosystem (repos, IDs, keys vs tag, security rules, owner workflow, open items, next steps)
 - **[AGENTS.md](./AGENTS.md)** — Full project overview, tech stack, structure, conventions, data fetching patterns, deployment
 - **[docs/forms.md](./docs/forms.md)** — Form system: TanStack Form + Zod, composable fields, validation, multi-step, sheet/dialog forms
 - **[docs/themes.md](./docs/themes.md)** — Theme system: OKLCH colors, adding themes, font config

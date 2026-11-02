@@ -1,0 +1,205 @@
+# Handoff: LevelUp Ecosystem (read this first)
+
+State of the whole ecosystem as of 2026-11-02, for the next person or agent.
+Owner: LevelUp (US based, French speaking). English is the official language
+of every product; French is a translation.
+
+**Security comes first.** When a choice trades safety for convenience, choose safety
+and explain why in plain words.
+
+## 1. Repositories (GitHub org `levelupbonte-ai`)
+
+| Repo | What | Domain | Stack |
+| --- | --- | --- | --- |
+| `leveldashs` (this repo) | Client dashboard | dashboard.levelup-ecosystem.com | Next.js 16, bun |
+| `app.levelup-ecosystem` | Showcase site, the LevelUp tag (`public/sdk/v1/levelup.js`), public API `/api/v1/*`, `/developers` | levelup-ecosystem.com | Next.js 15 |
+| `levelstudio` | AI site builder | (LevelStudio) | Vite, yarn |
+| `hq` | Internal admin (platform admins, aal2 only). **Not deployed yet** | — | Next.js 16 |
+| `blackpater` | Black Pater client site, Stripe checkout, client portal `/espace-client` | blackpater.com | Vite + React 19 + Vercel functions |
+| `Final-Stop-Barbershop-app` | Final Stop client site | finalstop.org | Vite + React, Express server |
+
+All of them share **one Supabase project**: `rncuhmvykrmtxfzqpitc`. Migrations
+live only in `leveldashs/supabase/migrations`; tests in `leveldashs/supabase/tests`.
+
+Websites (`public.websites.id`):
+- LevelUp: `ws_6e797257f5b32b86`
+- LevelStudio: `ws_871c0924a6afc646`
+- Final Stop: `ws_d5e600b7dc2ec9a9`
+- Black Pater: `ws_ab9493c5857ed460`, organization `ee201882-1e28-438c-a7f7-41ae6ac53d23`
+
+Vercel (team `team_6BzdQw0xheYTY4SuO8yGV7eY`, Hobby plan, so logs are kept 1 hour):
+
+| Project | ID |
+| --- | --- |
+| showcase | `prj_yLJ8cianUcKegyQRDoZ2dczA86TR` |
+| leveldashs | `prj_fNH3V3gYtbZJ4twQQynCM88pFa7K` |
+| blackpater | `prj_JFqGcAajmK6hD1jGc8YjPsspP7lf` |
+| final-stop | `prj_zdV5CWkm4Mh8YOJbCaY8zUbcas37` |
+| levelstudio | `prj_b6FjBw3ow1xeWy0dg6my5nGgjpBh` |
+
+## 2. Non-negotiable rules
+
+- Never put a secret in frontend code or in `NEXT_PUBLIC_*` / `VITE_*`. The
+  Supabase **publishable** key is the only key a browser ever sees.
+- No app ever uses the Supabase secret / service-role key. Every privileged
+  action is a `SECURITY DEFINER` function with `set search_path = ''` that checks
+  the caller itself (RLS, role, origin, key hash, rate limit via `private.hit_rate_limit`).
+- Secrets go into Vercel as **Sensitive** variables. Never ask the owner to paste a
+  secret in chat, and never print one.
+- `private.is_platform_admin()` requires an `aal2` (MFA) session.
+- Tenant isolation is tested (`supabase/tests/tenant_isolation.sql`, 753 checks, 0 failed).
+  Any new table needs RLS and a line in that test.
+- The client dashboard never shows internal details: AI providers, keys, costs,
+  database or hosting names.
+- No fake numbers, testimonials or claims; empty states when there is no data.
+- Do not touch the showcase intro animation: `src/components/preloader/*`,
+  `preloader.tsx`, the `lu-intro` cover in `layout.tsx`, `video/`.
+- If a Supabase MCP confirmation prompt times out, never work around it with
+  another tool or reworded SQL. Hand the SQL file to the owner, who runs it in the
+  Supabase SQL editor.
+- Respect bun's 7-day install cooldown (`bunfig.toml`).
+- Don't delete the Firebase project.
+
+## 3. Owner's workflow
+
+- Works on branch `claude/beautiful-turing-3j7y3z` in every repo.
+- "fusionne" / "mets en ligne" / "go" means: open the PR and merge it. Otherwise
+  push to the branch only.
+- After a merge, reset the branch: `git fetch origin main && git checkout -B claude/beautiful-turing-3j7y3z origin/main && git push --force-with-lease -u origin claude/beautiful-turing-3j7y3z`.
+- Show screenshots before merging visual changes, unless told to merge.
+- Talks casually in French; answer in French, plainly, with no jargon.
+
+## 4. How a website connects to LevelUp
+
+There are two separate pieces. Keep them separate in docs and UI.
+
+### The LevelUp tag (public, in the browser)
+
+```html
+<script src="https://levelup-ecosystem.com/sdk/v1/levelup.js" data-site="ws_…" defer></script>
+```
+
+Version 1.3.0. Details: `docs/ecosystem-api.md`. What it does:
+
+- **SEO** set from the dashboard: title, description, Open Graph, JSON-LD.
+- **Forms** with `data-lu-form` go to the dashboard inbox (`submit_form`).
+- **Content** with `data-lu`; booking and waitlist (`LevelUp.bookAppointment`, `joinWaitlist`).
+- **Page views**: `/api/v1/pageview` → `track_pageview`. No cookies, no stored IPs,
+  Do Not Track respected, can be turned off with `data-analytics="off"`.
+- **Install ping**: `tag_ping` sets `websites.tag_last_seen_at`, which drives
+  "LevelUp tag: Active / Not detected" on the Developers page. The database
+  stores at most one ping every 10 minutes.
+
+Writes are accepted **only from the site's `allowed_origins`**: exact origins,
+`www` and apex listed separately.
+
+### Server keys (secret, on the site's server)
+
+`lu_live_…` / `lu_test_…` keys are stored hashed, shown once, scoped and revocable.
+Details: `docs/site-api.md`.
+
+- Scope **payments**: `site_ingest_payment` takes payments from 25 providers
+  (Stripe, PayPal, Square, mobile money, …), amounts in ISO 4217 minor units.
+  Payments never go through the browser.
+- Scope **client portal**: the `portal_*` functions (Black Pater's `/espace-client`).
+
+### Our own sites
+
+Black Pater and Final Stop do not use the tag file. They call the same database
+functions from their own code:
+
+- Black Pater: `public/js/levelup.js` and `api/_lib/*`.
+- Final Stop: `src/lib/site/api.ts`.
+
+## 5. Billing, campaigns, portal (all live)
+
+- **Billing** (`docs/billing.md`):
+  - plans Free / Starter / Pro / Business with limits;
+  - invoices numbered `LU-<year>-<0001>`, discounts and promo codes;
+  - online payments are off by default (`LEVELUP_ONLINE_PAYMENTS`); Stripe and Square
+    providers exist. LevelUp's own Stripe account is blocked ("high risk").
+- **Email campaigns** (`docs/email-campaigns.md`):
+  - opted-in contacts only, CAN-SPAM footer;
+  - sent from `campaigns@levelup-ecosystem.com`.
+- **Black Pater client portal**:
+  - sign-in with a 6-digit e-mail code (hashed, 10 minutes, single use, 5 tries) or
+    an optional password (bcrypt, breached-password check), 7-day HttpOnly sessions;
+  - e-mails are sent by **Black Pater's server with Black Pater's own Resend key**;
+  - the dashboard only queues the e-mails, then pokes the site
+    (`/api/portal/outbox`, HMAC-signed with `PORTAL_NOTIFY_SECRET`, same value on
+    both projects). A daily Vercel cron retries.
+
+## 6. Open items
+
+### Owner actions still pending
+
+- leveldashs:
+  - `LEVELUP_EMAIL_KEY`, `CRON_SECRET` (also as a GitHub secret);
+  - `RESEND_WEBHOOK_SECRET`, for campaigns.
+- Google Search Console for levelup-ecosystem.com, blackpater.com and finalstop.org.
+- Billing:
+  - set the Starter / Pro / Business prices and the issuer details;
+  - assign plans to clients.
+- Re-run `supabase/tests/tenant_isolation.sql` and confirm 0 failed.
+- The tag on other sites: the owner said they pasted it on some sites but sees no
+  data. No new website is registered, so that is the likely cause. Ask which
+  domains, register each one with its exact origins, and give it its own `ws_` line.
+
+### On branches, not merged yet (2026-11-02)
+
+- **`blackpater`**:
+  - `tag_ping` from `public/js/levelup.js`, so the dashboard shows Black Pater as
+    connected;
+  - a `RouteErrorBoundary` around the routed page.
+- **`Final-Stop-Barbershop-app`**: `tag_ping` from `src/lib/site/api.ts`.
+- **`hq`**: local commits only (lot 2 and the Next.js upgrade `fd64241`); they were
+  never pushed.
+
+### Known bug: Black Pater blank page
+
+Sometimes a click leaves a blank page, with `TypeError: l is not a function` in
+React's passive-effect cleanup (`commitHookEffectListUnmount`). In other words, an
+effect's cleanup is not a function.
+
+- Every `useEffect` in `blackpater/src` was audited and looks correct.
+- It did not reproduce in automated click tests (English / French, light / dark,
+  mobile).
+- The boundary above keeps the site usable and logs the component stack. Ask the
+  owner for that console line to find the component.
+
+## 7. Next steps the owner asked for
+
+1. **HQ takes over all admin work.** HQ starts from this dashboard's architecture.
+   Move these into HQ, behind `requireHqSession()` and `hq_*` functions that write
+   the audit log:
+   - platform admin;
+   - Studio templates;
+   - plan prices and client plans;
+   - invoices;
+   - client portals;
+   - keys.
+
+   **Then** remove them from this dashboard, including the `isPlatformAdmin`
+   bypasses in the sidebar and billing. An admin account then sees the dashboard as
+   a normal member. Never remove a feature before its HQ version works.
+2. **Make connecting a developer's site painless.** Checklist:
+   - **Origins**: one-click "add www / apex"; show the exact origin the last
+     refused call came from. Store refusals without IPs, counted and rate-limited.
+   - **Developers page diagnostics**:
+     - last ping;
+     - last refused origin;
+     - CSP hint (`script-src levelup-ecosystem.com`,
+       `connect-src` for the API);
+     - a "test my install" button.
+   - **SPA support**: page views on `pushState` (done in 1.3.0); content and SEO
+     applied again after client-side navigation.
+   - **Staging / preview domains**: separate `lu_test_` keys and test origins.
+   - **Duplicate tags** on one page: no-op (guard global).
+   - **Versioning**: keep `/sdk/v1/` frozen and backward compatible; breaking
+     changes go to `/sdk/v2/`.
+3. **Server key improvements**, in this order:
+   1. outgoing **webhooks** (new form, booking, payment), HMAC-signed and retried;
+   2. a **per-key log**: last used, call count, errors;
+   3. **read scopes**, so a site's back end can read its own contacts, bookings
+      and payments;
+   4. key **expiry** and rotation without downtime, optional IP allowlist.
