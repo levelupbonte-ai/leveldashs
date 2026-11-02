@@ -17,7 +17,6 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { getAdminNavGroup } from '@/config/admin-nav';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('metadata.dashboard');
@@ -47,14 +46,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Persisting the sidebar state in the cookie.
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
-  // Staff entries are built here, never shipped in the client navigation config.
-  const adminNav = session.isPlatformAdmin ? await getAdminNavGroup() : null;
   const t = await getTranslations('common');
   return (
     <SessionProvider session={session}>
       <RecordLastMethod />
       <IdleTimeout />
-      <KBar adminNav={adminNav}>
+      <KBar>
         <SidebarProvider defaultOpen={defaultOpen}>
           <a
             href='#main-content'
@@ -62,7 +59,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           >
             {t('skipToContent')}
           </a>
-          <AppSidebar adminNav={adminNav} />
+          <AppSidebar />
           <SidebarInset id='main-content' tabIndex={-1} className='min-w-0 scroll-mt-16'>
             <Header />
             <SetupChecklist />
