@@ -3068,7 +3068,8 @@
     "analytics": "Analytics",
     "payments": "Payments",
     "capabilities": "Everything on my site",
-    "project-requests": "Project requests"
+    "project-requests": "Project requests",
+    "email-campaigns": "Email campaigns"
   },
   "errorPage": {
     "eyebrow": "Unexpected error",

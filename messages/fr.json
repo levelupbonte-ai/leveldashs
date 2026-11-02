@@ -3068,7 +3068,8 @@
     "analytics": "Statistiques",
     "payments": "Paiements",
     "capabilities": "Tout sur mon site",
-    "project-requests": "Demandes de projet"
+    "project-requests": "Demandes de projet",
+    "email-campaigns": "Campagnes e-mail"
   },
   "errorPage": {
     "eyebrow": "Erreur inattendue",

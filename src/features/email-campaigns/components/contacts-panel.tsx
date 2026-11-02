@@ -142,6 +142,10 @@ export function ContactsPanel({ overview }: { overview: EmailOverview }) {
             />
           )}
           <Select
+            items={[
+              { value: 'all', label: t('allStatuses') },
+              ...CONTACT_STATUSES.map((s) => ({ value: s, label: t(`statusOption.${s}`) }))
+            ]}
             value={params.status ?? 'all'}
             onValueChange={(v) =>
               setParams({ status: v === 'all' ? null : (v as ContactStatus), page: 1 })
