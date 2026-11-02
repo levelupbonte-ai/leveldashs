@@ -17,7 +17,11 @@ const APP_URL = 'https://dashboard.levelup-ecosystem.com';
 // project: its sign-in and invitation links must come back to HQ, where the
 // PKCE verifier lives. HQ_APP_URL (https origin) adds a custom HQ domain.
 const HQ_ORIGINS = new Set(
-  ['https://leveldashbord.vercel.app', process.env.HQ_APP_URL ?? '']
+  [
+    'https://hq.levelup-ecosystem.com',
+    'https://leveldashbord.vercel.app',
+    process.env.HQ_APP_URL ?? ''
+  ]
     .map((u) => {
       try {
         const url = new URL(u);
