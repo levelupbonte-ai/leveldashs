@@ -14,7 +14,8 @@ and explain why in plain words.
 | `leveldashs` (this repo) | Client dashboard | dashboard.levelup-ecosystem.com | Next.js 16, bun |
 | `app.levelup-ecosystem` | Showcase site, the LevelUp tag (`public/sdk/v1/levelup.js`), public API `/api/v1/*`, `/developers` | levelup-ecosystem.com | Next.js 15 |
 | `levelstudio` | AI site builder | (LevelStudio) | Vite, yarn |
-| `hq` | Internal admin (platform admins, aal2 only). **Not deployed yet** | — | Next.js 16 |
+| `leveldashbord` | **LevelUp HQ**, the internal admin, started from a copy of this dashboard. Plan: `docs/hq-plan.md` there. Not deployed yet | — | Next.js 16, bun |
+| `hq` | **Abandoned** old HQ. Do not use. | — | — |
 | `blackpater` | Black Pater client site, Stripe checkout, client portal `/espace-client` | blackpater.com | Vite + React 19 + Vercel functions |
 | `Final-Stop-Barbershop-app` | Final Stop client site | finalstop.org | Vite + React, Express server |
 
@@ -152,8 +153,6 @@ functions from their own code:
     connected;
   - a `RouteErrorBoundary` around the routed page.
 - **`Final-Stop-Barbershop-app`**: `tag_ping` from `src/lib/site/api.ts`.
-- **`hq`**: local commits only (lot 2 and the Next.js upgrade `fd64241`); they were
-  never pushed.
 
 ### Known bug: Black Pater blank page
 
@@ -169,7 +168,7 @@ effect's cleanup is not a function.
 
 ## 7. Next steps the owner asked for
 
-1. **HQ takes over all admin work.** HQ starts from this dashboard's architecture.
+1. **HQ takes over all admin work** in `levelupbonte-ai/leveldashbord` (lot 1 done: admin + aal2 gate; next lots in its `docs/hq-plan.md`).
    Move these into HQ, behind `requireHqSession()` and `hq_*` functions that write
    the audit log:
    - platform admin;
