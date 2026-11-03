@@ -3,7 +3,7 @@ import type { SearchParams } from 'nuqs/server';
 import { getTranslations } from 'next-intl/server';
 import { SitePage } from '@/features/site/components/site-page';
 import { AnalyticsView } from '@/features/insights/components/analytics-view';
-import { analyticsQueryOptions } from '@/features/insights/api/queries';
+import { analyticsQueryOptions, countriesQueryOptions } from '@/features/insights/api/queries';
 import { rangeSearchParamsCache } from '@/lib/searchparams';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,9 +18,10 @@ export default async function Page(props: { searchParams: Promise<SearchParams> 
     <SitePage
       title={t('title')}
       description={t('description')}
-      prefetch={(qc, db, websiteId) =>
-        void qc.prefetchQuery(analyticsQueryOptions(db, websiteId, range))
-      }
+      prefetch={(qc, db, websiteId) => {
+        void qc.prefetchQuery(analyticsQueryOptions(db, websiteId, range));
+        void qc.prefetchQuery(countriesQueryOptions(db, websiteId, range));
+      }}
     >
       <AnalyticsView />
     </SitePage>

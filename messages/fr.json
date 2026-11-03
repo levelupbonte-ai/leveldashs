@@ -2617,7 +2617,11 @@
       "unknownLanguage": "Inconnue",
       "emptyTitle": "Pas encore de données de visite",
       "emptyDescription": "Installez ou mettez à jour la balise LevelUp pour voir vos visiteurs : pages vues, visiteurs uniques, pages populaires, référents et langues, sans cookies.",
-      "installTag": "Installer la balise LevelUp"
+      "installTag": "Installer la balise LevelUp",
+      "countriesTitle": "Visiteurs par pays",
+      "countriesDescription": "D’où viennent vos visiteurs. Seul le pays est compté : jamais d’adresse ni rien qui identifie une personne.",
+      "countriesEmpty": "Aucun pays pour l’instant : ils apparaissent avec les prochaines visites.",
+      "visitorsCount": "{count, plural, one {# visiteur} other {# visiteurs}}"
     },
     "payments": {
       "emptyTitle": "Aucun paiement pour l’instant",
