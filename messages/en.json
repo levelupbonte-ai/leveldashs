@@ -2193,7 +2193,8 @@
         "newsletter": "Newsletter",
         "registration": "Sign-up",
         "preview_request": "Preview request"
-      }
+      },
+      "fileFailed": "The file couldn’t be opened. Try again."
     },
     "media": {
       "linkCopied": "Link copied",
@@ -4025,7 +4026,77 @@
         "bookingTitle": "Request a booking",
         "send": "Send",
         "requestQuote": "Request my quote",
-        "requestBooking": "Request my booking"
+        "requestBooking": "Request my booking",
+        "guests": "Number of guests",
+        "eventDate": "Which date?",
+        "diet": "Dietary needs",
+        "eventTitle": "Register for the event",
+        "register": "Register",
+        "position": "Position",
+        "positions": "Front desk,Sales,Other",
+        "experience": "Years of experience",
+        "cv": "Your CV",
+        "portfolio": "Portfolio or LinkedIn",
+        "why": "Why do you want to join us?",
+        "jobTitle": "Apply",
+        "apply": "Send my application",
+        "rating": "How would you rate your visit?",
+        "liked": "What did you like?",
+        "improve": "What could we do better?",
+        "recommend": "Would you recommend us?",
+        "yes": "Yes",
+        "maybe": "Maybe",
+        "no": "No",
+        "feedbackTitle": "Tell us how it went",
+        "sendFeedback": "Send my feedback",
+        "photosLabel": "Your photos",
+        "describe": "Describe what you need",
+        "photosTitle": "Send us your photos",
+        "sendRequest": "Send my request",
+        "products": "Products",
+        "productList": "Product A,Product B,Product C",
+        "quantity": "Quantity",
+        "delivery": "Delivery or pickup",
+        "deliveryOptions": "Delivery,Pickup",
+        "address": "Delivery address",
+        "orderTitle": "Place an order",
+        "order": "Send my order",
+        "q1": "How did you hear about us?",
+        "q1options": "Google,Social media,A friend,Other",
+        "q2": "What matters most to you?",
+        "q2options": "Price,Quality,Speed,Service",
+        "q3": "Anything else?",
+        "surveyTitle": "A few questions",
+        "sendAnswers": "Send my answers",
+        "personal": "About you",
+        "personalText": "So we can get back to you.",
+        "details": "Your request",
+        "detailsText": "Tell us what you need.",
+        "preferredTime": "Preferred time"
+      },
+      "event": {
+        "name": "Event registration",
+        "text": "Attendees, date, number of guests."
+      },
+      "job": {
+        "name": "Job application",
+        "text": "Position, experience, CV upload."
+      },
+      "feedback": {
+        "name": "Customer feedback",
+        "text": "Star rating and comments."
+      },
+      "photos": {
+        "name": "Photo request",
+        "text": "Customers send photos with their request."
+      },
+      "order": {
+        "name": "Order request",
+        "text": "Products, quantity, delivery."
+      },
+      "survey": {
+        "name": "Survey",
+        "text": "Several questions with choices."
       }
     },
     "builder": {
@@ -4054,7 +4125,10 @@
         "quote": "Quote",
         "registration": "Registration",
         "newsletter": "Newsletter",
-        "survey": "Survey"
+        "survey": "Survey",
+        "application": "Application",
+        "feedback": "Feedback",
+        "order": "Order"
       },
       "types": {
         "text": "Short text",
@@ -4066,7 +4140,12 @@
         "checkbox": "Checkbox",
         "multiselect": "Several choices",
         "date": "Date",
-        "number": "Number"
+        "number": "Number",
+        "time": "Time",
+        "url": "Link",
+        "rating": "Star rating",
+        "file": "File or photo",
+        "section": "Section title"
       },
       "newLabel": {
         "text": "Your answer",
@@ -4078,7 +4157,12 @@
         "checkbox": "I agree",
         "multiselect": "Choose all that apply",
         "date": "Date",
-        "number": "Number"
+        "number": "Number",
+        "time": "Preferred time",
+        "url": "Website or link",
+        "rating": "How would you rate us?",
+        "file": "Add a photo or a file",
+        "section": "New section"
       },
       "option": "Option {n}",
       "label": "Question",
@@ -4136,7 +4220,42 @@
       "saveLive": "Save and keep live",
       "saved": "Form saved.",
       "published": "Form published: its link works now.",
-      "readOnly": "You can view this form. Editors, admins and owners can change it."
+      "readOnly": "You can view this form. Editors, admins and owners can change it.",
+      "sectionText": "Text under the title",
+      "accept": "What can be sent",
+      "acceptOptions": {
+        "image": "Photos only",
+        "document": "Documents only (PDF, Word, text)",
+        "any": "Photos and documents"
+      },
+      "maxFiles": "How many files",
+      "stars": "Number of stars",
+      "font": "Font",
+      "fonts": {
+        "sans": "Modern",
+        "serif": "Elegant",
+        "mono": "Technical"
+      },
+      "layout": "Style",
+      "layouts": {
+        "card": "Card",
+        "plain": "Plain (no frame)"
+      },
+      "width": "Width",
+      "widths": {
+        "narrow": "Narrow",
+        "normal": "Normal",
+        "wide": "Wide"
+      },
+      "buttonStyle": "Button",
+      "buttons": {
+        "solid": "Filled",
+        "outline": "Outline",
+        "pill": "Rounded pill"
+      },
+      "cover": "Cover image (optional)",
+      "coverHint": "An https:// image link, for example from your media library.",
+      "fieldsLimit": "Up to 40 questions, 3 of them with files."
     },
     "share": {
       "publishFirst": "Publish the form (and save your changes) to get its link.",
@@ -4164,13 +4283,33 @@
         "email": "Enter a valid e-mail address.",
         "phone": "Enter a valid phone number.",
         "number": "Enter a number.",
-        "date": "Enter a valid date."
+        "date": "Enter a valid date.",
+        "url": "Enter a full link starting with https://",
+        "time": "Enter a valid time.",
+        "rating": "Choose a rating."
       },
       "failure": {
         "invalid": "Some answers need a fix. Check the highlighted field.",
         "limit": "Too many messages in a short time. Please try again a bit later.",
         "captcha": "Please confirm you’re not a robot, then send again.",
-        "unavailable": "The form couldn’t be sent right now. Please try again in a moment."
+        "unavailable": "The form couldn’t be sent right now. Please try again in a moment.",
+        "paused": "This form is paused for a few minutes for security reasons. Please try again later."
+      },
+      "stars": "{n} of {max} stars",
+      "files": {
+        "pick": "Add a file",
+        "pickPhoto": "Add a photo",
+        "uploading": "Uploading…",
+        "remove": "Remove {name}",
+        "tooMany": "Up to {max} files.",
+        "type": "{name}: this type of file isn’t accepted here.",
+        "size": "{name} is too large (10 MB max).",
+        "failed": "{name} couldn’t be sent. Please try again.",
+        "hint": {
+          "image": "Photos, up to {max}, 10 MB each",
+          "document": "PDF, Word or text, up to {max}, 10 MB each",
+          "any": "Photos or documents, up to {max}, 10 MB each"
+        }
       }
     }
   }

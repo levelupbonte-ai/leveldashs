@@ -9,7 +9,12 @@ export const FIELD_TYPES = [
   'checkbox',
   'multiselect',
   'date',
-  'number'
+  'time',
+  'number',
+  'url',
+  'rating',
+  'file',
+  'section'
 ] as const;
 export type FieldType = (typeof FIELD_TYPES)[number];
 
@@ -27,6 +32,19 @@ export interface FormField {
   maps?: FieldMap;
   options?: string[];
   width?: 'half';
+  /** file: what may be sent (images only, documents only, or both). */
+  accept?: 'image' | 'document' | 'any';
+  /** file: 1 to 5 files. */
+  max_files?: number;
+  /** rating: 3 to 10 stars. */
+  max?: number;
+}
+
+/** A file picked in a file field, once uploaded (the path is private). */
+export interface UploadedValue {
+  path: string;
+  name: string;
+  preview: string | null;
 }
 
 export interface FormSettings {
@@ -42,9 +60,24 @@ export interface FormSettings {
   mode?: 'light' | 'dark';
   radius?: 'none' | 'md' | 'lg';
   show_logo?: boolean;
+  /** https image shown above the form. */
+  cover_url?: string;
+  font?: 'sans' | 'serif' | 'mono';
+  layout?: 'card' | 'plain';
+  width?: 'narrow' | 'wide';
+  button?: 'solid' | 'outline' | 'pill';
 }
 
-export const FORM_TYPES = ['contact', 'quote', 'registration', 'newsletter', 'survey'] as const;
+export const FORM_TYPES = [
+  'contact',
+  'quote',
+  'registration',
+  'newsletter',
+  'survey',
+  'application',
+  'feedback',
+  'order'
+] as const;
 export type FormType = (typeof FORM_TYPES)[number];
 
 export type FormStatus = 'draft' | 'published';
@@ -82,4 +115,7 @@ export interface PublicForm {
   site: { name?: string; domain?: string; logo_url?: string };
 }
 
-export type FormValues = Record<string, string | string[] | boolean | number | undefined>;
+export type FormValues = Record<
+  string,
+  string | string[] | boolean | number | UploadedValue[] | undefined
+>;
