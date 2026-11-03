@@ -543,7 +543,9 @@ export function FormRenderer({
     if (result.ok) {
       setTicket(result.ticket ?? null);
       setStatus('sent');
-      if (settings.redirect_url) window.location.assign(settings.redirect_url);
+      // Inside an iframe the embedding page does the redirect (see hosted-form).
+      if (settings.redirect_url && window.parent === window)
+        window.location.assign(settings.redirect_url);
       return;
     }
     setStatus('idle');

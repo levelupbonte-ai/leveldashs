@@ -1,21 +1,86 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const subscribe = () => () => {};
 
-/** Link and copy-paste button of a published form (the page is hosted by LevelUp). */
+/** "https://Shop.example.com/page" -> "https://shop.example.com"; null when not an https site. */
+export function toOrigin(value: string): string | null {
+  const v = value.trim();
+  if (!v) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(v) ? v : `https://${v}`);
+    return u.protocol === 'https:' && u.hostname.includes('.') ? u.origin.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Where the form may be shown inside a website (settings.embed_origins). */
+function AllowedSites({
+  origins,
+  onChange,
+  disabled
+}: {
+  origins: string[] | undefined;
+  onChange: (next: string[] | undefined) => void;
+  disabled?: boolean;
+}) {
+  const t = useTranslations('siteForms.share');
+  const [draft, setDraft] = useState((origins ?? []).join('\n'));
+  const lines = draft
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const bad = lines.filter((l) => !toOrigin(l));
+  return (
+    <div className='grid gap-1.5'>
+      <span className='text-sm font-medium'>{t('allowed')}</span>
+      <Textarea
+        rows={3}
+        value={draft}
+        disabled={disabled}
+        placeholder='https://www.example.com'
+        onChange={(e) => {
+          setDraft(e.target.value);
+          const next = [
+            ...new Set(
+              e.target.value
+                .split('\n')
+                .map(toOrigin)
+                .filter((o): o is string => !!o)
+            )
+          ].slice(0, 10);
+          onChange(next.length ? next : undefined);
+        }}
+      />
+      {bad.length > 0 && (
+        <p className='text-destructive text-xs'>{t('allowedInvalid', { sites: bad.join(', ') })}</p>
+      )}
+      <p className='text-muted-foreground text-xs'>{t('allowedHint')}</p>
+    </div>
+  );
+}
+
+/** Link, copy-paste button and embed code of a published form (hosted by LevelUp). */
 export function ShareForm({
   publicId,
-  published
+  published,
+  origins,
+  onOrigins,
+  canEdit
 }: {
   publicId: string | null;
   published: boolean;
+  origins?: string[];
+  onOrigins: (next: string[] | undefined) => void;
+  canEdit: boolean;
 }) {
   const t = useTranslations('siteForms.share');
   const origin = useSyncExternalStore(
@@ -25,14 +90,18 @@ export function ShareForm({
   );
   if (!publicId || !published) {
     return (
-      <Alert>
-        <Icons.info className='size-4' aria-hidden />
-        <AlertDescription>{t('publishFirst')}</AlertDescription>
-      </Alert>
+      <div className='grid gap-5'>
+        <Alert>
+          <Icons.info className='size-4' aria-hidden />
+          <AlertDescription>{t('publishFirst')}</AlertDescription>
+        </Alert>
+        <AllowedSites origins={origins} onChange={onOrigins} disabled={!canEdit} />
+      </div>
     );
   }
   const url = `${origin}/f/${publicId}`;
   const button = `<a href="${url}" target="_blank" rel="noopener" style="display:inline-block;padding:12px 20px;border-radius:8px;background:#111827;color:#fff;font:600 15px system-ui,sans-serif;text-decoration:none">${t('buttonText')}</a>`;
+  const embed = `<div data-lu-embed="${publicId}"></div>\n<script src="${origin}/forms/embed.js" async></script>`;
   const copy = async (value: string) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -91,6 +160,21 @@ export function ShareForm({
         </div>
         <p className='text-muted-foreground text-xs'>{t('buttonHint')}</p>
       </div>
+      <div className='grid gap-1.5'>
+        <span className='text-sm font-medium'>{t('embed')}</span>
+        <pre className='bg-muted overflow-x-auto rounded-md p-3 text-xs whitespace-pre-wrap break-all'>
+          {embed}
+        </pre>
+        <div>
+          <Button type='button' variant='outline' size='sm' onClick={() => copy(embed)}>
+            <Icons.copy className='size-3.5' aria-hidden />
+            {t('copyEmbed')}
+          </Button>
+        </div>
+        <p className='text-muted-foreground text-xs'>{t('embedHint')}</p>
+        <p className='text-muted-foreground text-xs'>{t('embedTag')}</p>
+      </div>
+      <AllowedSites origins={origins} onChange={onOrigins} disabled={!canEdit} />
       <Alert>
         <Icons.shieldCheck className='size-4' aria-hidden />
         <AlertDescription>{t('secure')}</AlertDescription>

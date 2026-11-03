@@ -4269,7 +4269,14 @@
       "buttonText": "Contact us",
       "copyButton": "Copy the button",
       "buttonHint": "Paste it in your website’s code where the button should appear. It opens your form.",
-      "secure": "Your form is hosted on LevelUp’s secure page: answers are checked, protected against spam and saved straight into your dashboard."
+      "secure": "Your form is hosted on LevelUp’s secure page: answers are checked, protected against spam and saved straight into your dashboard.",
+      "embed": "Show it inside your website",
+      "copyEmbed": "Copy the code",
+      "embedHint": "Paste these two lines where the form should appear (an HTML or Code block works in WordPress, Wix, Webflow, Shopify, Squarespace…). It fits phones and follows the form’s height.",
+      "embedTag": "Your site already has the LevelUp tag? The first line (the div) is enough.",
+      "allowed": "Sites allowed to show this form",
+      "allowedHint": "One address per line, for example https://www.example.com. Leave empty to allow your website’s own addresses. Any other site is refused.",
+      "allowedInvalid": "Not a valid https address: {sites}"
     },
     "public": {
       "choose": "Choose…",

@@ -4269,7 +4269,14 @@
       "buttonText": "Contactez-nous",
       "copyButton": "Copier le bouton",
       "buttonHint": "Collez-le dans le code de votre site, à l’endroit du bouton. Il ouvre votre formulaire.",
-      "secure": "Votre formulaire est hébergé sur la page sécurisée de LevelUp : les réponses sont vérifiées, protégées contre le spam et enregistrées directement dans votre dashboard."
+      "secure": "Votre formulaire est hébergé sur la page sécurisée de LevelUp : les réponses sont vérifiées, protégées contre le spam et enregistrées directement dans votre dashboard.",
+      "embed": "L’afficher dans votre site",
+      "copyEmbed": "Copier le code",
+      "embedHint": "Collez ces deux lignes là où le formulaire doit apparaître (un bloc HTML ou Code fonctionne dans WordPress, Wix, Webflow, Shopify, Squarespace…). Il s’adapte au téléphone et suit la hauteur du formulaire.",
+      "embedTag": "Votre site a déjà la clé LevelUp ? La première ligne (le div) suffit.",
+      "allowed": "Sites autorisés à afficher ce formulaire",
+      "allowedHint": "Une adresse par ligne, par exemple https://www.example.com. Laissez vide pour autoriser les adresses de votre site. Tout autre site est refusé.",
+      "allowedInvalid": "Adresse https non valide : {sites}"
     },
     "public": {
       "choose": "Choisir…",
