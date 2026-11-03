@@ -112,7 +112,8 @@
       "projectRequests": "Project requests",
       "emailCampaigns": "Email campaigns",
       "clientPortal": "Client portal",
-      "activity": "Activity log"
+      "activity": "Activity log",
+      "forms": "Forms"
     }
   },
   "admin": {
@@ -1820,6 +1821,10 @@
       "activity": {
         "title": "Activity log",
         "description": "Who in your team changed what on the site"
+      },
+      "forms": {
+        "title": "Forms",
+        "description": "Forms LevelUp hosts for your website: build them here, answers arrive in Requests"
       }
     },
     "unavailable": {
@@ -3121,7 +3126,12 @@
         "portal_item_published": "Portal item published",
         "portal_item_archived": "Portal item archived",
         "portal_message_sent": "Portal message sent",
-        "project_request_updated": "Project request updated"
+        "project_request_updated": "Project request updated",
+        "forms_created": "Form created",
+        "forms_updated": "Form edited",
+        "forms_published": "Form published",
+        "forms_archived": "Form archived",
+        "support_ticket_created": "Ticket sent to LevelUp"
       }
     }
   },
@@ -3958,6 +3968,210 @@
       "you": "You",
       "reply": "Reply",
       "send": "Send"
+    }
+  },
+  "siteForms": {
+    "new": "Start a new form",
+    "yours": "Your forms",
+    "empty": "No form yet. Pick a starter above: you can change every field.",
+    "answers": "{count, plural, =0 {No answer yet} one {# answer} other {# answers}}",
+    "lastAnswer": "last {when}",
+    "fieldsCount": "{count, plural, one {# field} other {# fields}}",
+    "seeAnswers": "See answers",
+    "open": "Open",
+    "edit": "Edit",
+    "view": "View",
+    "archive": "Archive",
+    "archived": "Form archived.",
+    "cancel": "Cancel",
+    "archiveTitle": "Archive “{name}”?",
+    "archiveText": "Its link stops working at once. Answers already received stay in Requests.",
+    "starters": {
+      "contact": {
+        "name": "Contact form",
+        "text": "Name, e-mail, phone and message."
+      },
+      "quote": {
+        "name": "Quote request",
+        "text": "Company, budget and project details."
+      },
+      "booking": {
+        "name": "Booking request",
+        "text": "Preferred date and time of day."
+      },
+      "blank": {
+        "name": "New form",
+        "text": "Start from a name and an e-mail."
+      },
+      "labels": {
+        "name": "Full name",
+        "email": "E-mail",
+        "phone": "Phone",
+        "message": "Message",
+        "company": "Company",
+        "budget": "Budget",
+        "budget1": "Under $1,000",
+        "budget2": "$1,000 – $5,000",
+        "budget3": "Over $5,000",
+        "project": "Tell us about your project",
+        "date": "Preferred date",
+        "time": "Time of day",
+        "morning": "Morning",
+        "afternoon": "Afternoon",
+        "evening": "Evening",
+        "notes": "Anything we should know?",
+        "contactTitle": "Contact us",
+        "quoteTitle": "Request a quote",
+        "bookingTitle": "Request a booking",
+        "send": "Send",
+        "requestQuote": "Request my quote",
+        "requestBooking": "Request my booking"
+      }
+    },
+    "builder": {
+      "back": "All forms",
+      "unsaved": "Unsaved changes",
+      "untitled": "Untitled field",
+      "requiredShort": "Required",
+      "status": {
+        "draft": "Draft",
+        "published": "Live",
+        "archived": "Archived"
+      },
+      "tabs": {
+        "fields": "Fields",
+        "look": "Look",
+        "after": "After sending",
+        "share": "Share",
+        "preview": "Preview"
+      },
+      "name": "Form name",
+      "nameHint": "Only you see it (in your dashboard and in Requests).",
+      "formType": "Kind of request",
+      "formTypeHint": "How answers are labeled in Requests.",
+      "formTypes": {
+        "contact": "Contact",
+        "quote": "Quote",
+        "registration": "Registration",
+        "newsletter": "Newsletter",
+        "survey": "Survey"
+      },
+      "types": {
+        "text": "Short text",
+        "email": "E-mail",
+        "phone": "Phone",
+        "textarea": "Long text",
+        "select": "Dropdown",
+        "radio": "One choice",
+        "checkbox": "Checkbox",
+        "multiselect": "Several choices",
+        "date": "Date",
+        "number": "Number"
+      },
+      "newLabel": {
+        "text": "Your answer",
+        "email": "E-mail",
+        "phone": "Phone",
+        "textarea": "Message",
+        "select": "Choose an option",
+        "radio": "Choose one",
+        "checkbox": "I agree",
+        "multiselect": "Choose all that apply",
+        "date": "Date",
+        "number": "Number"
+      },
+      "option": "Option {n}",
+      "label": "Question",
+      "type": "Kind of answer",
+      "options": "Choices",
+      "optionsHint": "One per line (up to 30).",
+      "placeholder": "Example text in the box",
+      "help": "Help text under the question",
+      "maps": "Show in Requests as",
+      "mapsHint": "Fills that column of the request, so you can reply in one tap.",
+      "mapsNone": "An extra detail",
+      "mapsTo": {
+        "name": "Name",
+        "email": "E-mail",
+        "phone": "Phone",
+        "company": "Company",
+        "message": "Message"
+      },
+      "required": "Required",
+      "half": "Half width (on computers)",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "remove": "Remove field",
+      "addField": "Add a question",
+      "title": "Title shown to visitors",
+      "description": "Intro text",
+      "submitLabel": "Button text",
+      "submitDefault": "Send",
+      "accent": "Main color",
+      "mode": "Background",
+      "modes": {
+        "auto": "Visitor’s choice",
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "radius": "Corners",
+      "radii": {
+        "none": "Square",
+        "md": "Rounded",
+        "lg": "Very rounded"
+      },
+      "showLogo": "Show my logo",
+      "successTitle": "Thank-you title",
+      "successTitleDefault": "Thank you!",
+      "successMessage": "Thank-you message",
+      "successMessageDefault": "Your message has been sent. We’ll get back to you soon.",
+      "redirect": "Then go to (optional)",
+      "redirectHint": "An https:// page of your site, for example a thank-you page.",
+      "consent": "Consent box (optional)",
+      "consentHint": "When set, visitors must tick it, for example “I agree to be contacted about my request.”",
+      "livePreview": "Live preview",
+      "saveDraft": "Save draft",
+      "unpublish": "Unpublish",
+      "publish": "Publish",
+      "saveLive": "Save and keep live",
+      "saved": "Form saved.",
+      "published": "Form published: its link works now.",
+      "readOnly": "You can view this form. Editors, admins and owners can change it."
+    },
+    "share": {
+      "publishFirst": "Publish the form (and save your changes) to get its link.",
+      "link": "Link of your form",
+      "linkHint": "Share it anywhere: your website, social media, e-mails, a QR code.",
+      "copyLink": "Copy link",
+      "open": "Open the form",
+      "copied": "Copied.",
+      "copyFailed": "Copy failed. Select the text and copy it.",
+      "button": "Button for your website",
+      "buttonText": "Contact us",
+      "copyButton": "Copy the button",
+      "buttonHint": "Paste it in your website’s code where the button should appear. It opens your form.",
+      "secure": "Your form is hosted on LevelUp’s secure page: answers are checked, protected against spam and saved straight into your dashboard."
+    },
+    "public": {
+      "choose": "Choose…",
+      "submit": "Send",
+      "successTitle": "Thank you!",
+      "successMessage": "Your message has been sent. We’ll get back to you soon.",
+      "reference": "Reference: {ticket}",
+      "securedBy": "Secure form by",
+      "errors": {
+        "required": "This field is required.",
+        "email": "Enter a valid e-mail address.",
+        "phone": "Enter a valid phone number.",
+        "number": "Enter a number.",
+        "date": "Enter a valid date."
+      },
+      "failure": {
+        "invalid": "Some answers need a fix. Check the highlighted field.",
+        "limit": "Too many messages in a short time. Please try again a bit later.",
+        "captcha": "Please confirm you’re not a robot, then send again.",
+        "unavailable": "The form couldn’t be sent right now. Please try again in a moment."
+      }
     }
   }
 }

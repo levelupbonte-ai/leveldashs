@@ -156,6 +156,25 @@ functions from their own code:
   "password authentication failed": the GitHub secret `SUPABASE_DB_URL` must be the
   Session pooler URI with the current database password.
 
+## 5c. LevelUp Forms (lot 1, 2026-11-04)
+
+- Clients build forms in the dashboard (`/dashboard/site/forms`: starters, fields,
+  look, after sending, share) and LevelUp hosts them at
+  `dashboard.levelup-ecosystem.com/f/<public_id>` (no sign-in, `noindex`).
+- Database (`20261104100000_site_forms`): `site_forms` (fields and settings
+  validated by `private.form_clean_fields` / `form_clean_settings`),
+  `site_form_save` / `site_form_archive` (editor+), `site_forms_list`,
+  `public_form_get` and `public_form_submit` (anon). The submit checks every
+  value against the stored fields (unknown fields, wrong types, choices, HTML,
+  sizes) and writes `form_submissions` (with `site_form_id`), so answers show in
+  Requests.
+- `POST /api/forms/[id]`: same origin, honeypot, time check, per-sender limit
+  (hashed IP), and Cloudflare Turnstile when `TURNSTILE_SECRET_KEY` is set on
+  Vercel (Sensitive).
+- Next lots: embed in the client's site through the LevelUp tag
+  (`data-lu-embed`), confirmation e-mails, file uploads, multi-step, custom
+  domain.
+
 ## 6. Open items
 
 ### Owner actions still pending

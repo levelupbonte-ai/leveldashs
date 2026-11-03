@@ -159,6 +159,15 @@ export const navGroups: NavGroup[] = [
         ]
       },
       {
+        title: 'forms',
+        url: '/dashboard/site/forms',
+        icon: 'forms',
+        isActive: false,
+        items: [],
+        // Forms LevelUp hosts for the site (built here, answers in Requests).
+        access: { requireWebsite: true }
+      },
+      {
         title: 'emailCampaigns',
         url: '/dashboard/site/email-campaigns',
         icon: 'mail',
