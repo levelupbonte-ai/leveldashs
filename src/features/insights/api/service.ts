@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { rpc } from '@/lib/supabase/rpc-error';
 import type {
   ActivityItem,
+  ActivityLogPage,
   AnalyticsSummary,
   OverviewStats,
   RangeDays,
@@ -40,4 +41,17 @@ export async function getVisitorCountries(db: SupabaseClient, websiteId: string,
     db.rpc('site_analytics_countries', { p_website_id: websiteId, p_days: days })
   );
   return rows ?? [];
+}
+
+export const ACTIVITY_LOG_PER_PAGE = 50;
+
+/** The site's activity log (owners and admins; the function checks the role). */
+export function getActivityLog(db: SupabaseClient, websiteId: string, page: number) {
+  return rpc<ActivityLogPage>(
+    db.rpc('site_activity_log', {
+      p_website_id: websiteId,
+      p_page: page,
+      p_per_page: ACTIVITY_LOG_PER_PAGE
+    })
+  );
 }

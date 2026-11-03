@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
 import { siteKeys } from '@/features/site/api/queries';
 import {
+  getActivityLog,
   getAnalyticsSummary,
   getOverviewStats,
   getRecentActivity,
@@ -19,6 +20,7 @@ export const insightKeys = {
   analytics: (websiteId: string, days: RangeDays) =>
     [...insightKeys.all(websiteId), 'analytics', days] as const,
   activity: (websiteId: string) => [...insightKeys.all(websiteId), 'activity'] as const,
+  log: (websiteId: string, page: number) => [...insightKeys.all(websiteId), 'log', page] as const,
   countries: (websiteId: string, days: RangeDays) =>
     [...insightKeys.all(websiteId), 'countries', days] as const
 };
@@ -57,4 +59,11 @@ export const countriesQueryOptions = (db: SupabaseClient, websiteId: string, day
     queryKey: insightKeys.countries(websiteId, days),
     queryFn: () => getVisitorCountries(db, websiteId, days),
     staleTime: 60 * 1000
+  });
+
+export const activityLogQueryOptions = (db: SupabaseClient, websiteId: string, page: number) =>
+  queryOptions({
+    queryKey: insightKeys.log(websiteId, page),
+    queryFn: () => getActivityLog(db, websiteId, page),
+    staleTime: 30 * 1000
   });

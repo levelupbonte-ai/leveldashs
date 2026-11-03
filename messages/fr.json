@@ -111,7 +111,8 @@
       "payments": "Paiements",
       "projectRequests": "Demandes de projet",
       "emailCampaigns": "Campagnes e-mail",
-      "clientPortal": "Espace client"
+      "clientPortal": "Espace client",
+      "activity": "Journal d’activité"
     }
   },
   "admin": {
@@ -1815,6 +1816,10 @@
       "clientPortal": {
         "title": "Espace client",
         "description": "L’espace privé de vos clients : actualités, détails du voyage, documents et messages"
+      },
+      "activity": {
+        "title": "Journal d’activité",
+        "description": "Qui dans votre équipe a changé quoi sur le site"
       }
     },
     "unavailable": {
@@ -3072,6 +3077,51 @@
         "qualified": "Qualifiée",
         "review": "À examiner",
         "rejected": "Non pertinente"
+      }
+    },
+    "log": {
+      "adminsOnly": "Le journal d’activité est réservé aux propriétaires et aux admins de l’organisation.",
+      "empty": "Rien pour l’instant. Chaque changement de votre équipe apparaîtra ici.",
+      "system": "Automatique",
+      "content": {
+        "created": "Ajout · {what}",
+        "updated": "Modification · {what}",
+        "deleted": "Suppression · {what}"
+      },
+      "areas": {
+        "website_settings": "Paramètres",
+        "content_blocks": "Contenu des pages",
+        "services": "Services",
+        "faq_items": "FAQ",
+        "gallery_items": "Galerie",
+        "team_members": "Équipe",
+        "reviews": "Avis",
+        "announcements": "Annonces",
+        "media": "Médias",
+        "other": "Contenu"
+      },
+      "actions": {
+        "api_key_created": "Clé développeur créée",
+        "api_key_revoked": "Clé développeur révoquée",
+        "email_campaign_created": "Campagne créée",
+        "email_campaign_updated": "Campagne modifiée",
+        "email_campaign_scheduled": "Campagne programmée",
+        "email_campaign_unscheduled": "Programmation annulée",
+        "email_campaign_started": "Campagne lancée",
+        "email_campaign_finished": "Campagne terminée",
+        "email_campaign_failed": "Campagne en échec",
+        "email_contacts_imported": "Contacts importés",
+        "email_contacts_exported": "Contacts exportés",
+        "email_contact_unsubscribed": "Contact désinscrit",
+        "email_sender_updated": "Expéditeur modifié",
+        "email_sending_paused": "Envois mis en pause",
+        "email_test_sent": "E-mail de test envoyé",
+        "payments_exported": "Paiements exportés",
+        "portal_customer_invited": "Client invité sur le portail",
+        "portal_item_published": "Élément du portail publié",
+        "portal_item_archived": "Élément du portail archivé",
+        "portal_message_sent": "Message envoyé sur le portail",
+        "project_request_updated": "Demande de projet mise à jour"
       }
     }
   },
