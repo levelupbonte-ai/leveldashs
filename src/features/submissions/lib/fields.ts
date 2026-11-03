@@ -36,6 +36,12 @@ export function fieldLabel(key: string): string {
  */
 export function displayValue(value: unknown, max = 2000): string {
   if (value === null || value === undefined) return '';
+  const files = uploadedFiles(value);
+  if (files.length)
+    return files
+      .map((f) => f.name)
+      .join(', ')
+      .slice(0, max);
   if (typeof value === 'boolean') return value ? '✓' : '✗';
   if (Array.isArray(value))
     return value
@@ -55,4 +61,26 @@ export function displayValue(value: unknown, max = 2000): string {
 /** Form type key -> readable name when there is no translation ("vip_signup" -> "Vip signup"). */
 export function formTypeLabel(type: string): string {
   return fieldLabel(type);
+}
+
+/** A file a visitor sent with a LevelUp form (private bucket form-uploads). */
+export interface UploadedFile {
+  file: string;
+  name: string;
+  mime: string;
+  size?: number;
+}
+
+/** The files of a form answer, or [] when the value is not a list of uploads. */
+export function uploadedFiles(value: unknown): UploadedFile[] {
+  if (!Array.isArray(value) || !value.length) return [];
+  const files = value.filter(
+    (v): v is UploadedFile =>
+      !!v &&
+      typeof v === 'object' &&
+      typeof (v as UploadedFile).file === 'string' &&
+      /^[0-9a-f-]{36}\/[0-9a-f-]{36}\.[a-z]{3,4}$/.test((v as UploadedFile).file) &&
+      typeof (v as UploadedFile).name === 'string'
+  );
+  return files.length === value.length ? files : [];
 }

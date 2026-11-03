@@ -4,18 +4,12 @@ import { clientFingerprint } from '@/lib/access/hash';
 import { createClient } from '@/lib/supabase/server';
 import { turnstileRequired, verifyTurnstile } from '@/lib/turnstile';
 import { readJsonBody } from '@/lib/validation/http';
+import { FORM_ORIGINS } from './origins';
 
 // Answers to a LevelUp hosted form (/f/[id]). The browser sends the values; the
 // database checks every one against the stored form (public_form_submit).
 // Same origin only, 48 KB at most, a hidden honeypot field, the anti-robot
 // check when configured, and per-sender limits from the hashed IP.
-
-const ORIGINS = [
-  'https://dashboard.levelup-ecosystem.com',
-  ...(process.env.NODE_ENV === 'production'
-    ? []
-    : ['http://localhost:3000', 'http://localhost:3123'])
-];
 
 const Body = z.strictObject({
   values: z.record(z.string().max(40), z.unknown()),
@@ -33,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   const parsed = await readJsonBody(request, Body, {
     maxBytes: 48 * 1024,
-    allowedOrigins: ORIGINS
+    allowedOrigins: FORM_ORIGINS
   });
   if (!parsed.ok) return parsed.response;
   const { values, consent, website, turnstile, elapsed } = parsed.data;
@@ -59,6 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (error) {
     if (error.code === 'PT404') return NextResponse.json({ error: 'not_found' }, { status: 404 });
     if (error.code === 'PT429') return NextResponse.json({ error: 'limit' }, { status: 429 });
+    if (error.code === 'PT503') return NextResponse.json({ error: 'paused' }, { status: 503 });
     if (error.code === '22023' || error.code === '23514') {
       // Which field was refused (an id from the form itself), never the database message.
       const field =

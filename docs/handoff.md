@@ -156,6 +156,23 @@ functions from their own code:
   "password authentication failed": the GitHub secret `SUPABASE_DB_URL` must be the
   Session pooler URI with the current database password.
 
+## 5d. Emergency lockdown and traffic spikes (2026-11-04)
+
+- `private.security_lockdowns`: HQ owners (fresh second factor) can pause every
+  visitor write on one site or all sites (`assert_public_write_allowed` raises
+  `PT503`), or make every client dashboard read-only (`has_org_role` refuses
+  editor, admin and owner checks). HQ is never locked and lifts it
+  (`hq_lockdown_start` / `hq_lockdown_end`, HQ > Security). The security watch
+  pauses one site by itself for 30 minutes after 150 visitor writes in 15
+  minutes. A full automatic lockdown is deliberately not offered: an attacker
+  could use it to take every client offline.
+- Traffic spikes: the showcase API (`/api/v1/*`) answers the tag's reads (site
+  bundle 20 s, public website 30 s, waitlist 5 s) from memory with single
+  flight, so thousands of visitors cost a few database calls.
+- The daily backup can now use the secret `SUPABASE_DB_PASSWORD` (the raw
+  password; the workflow builds and encodes the connection string) and says
+  clearly when the password is refused.
+
 ## 5c. LevelUp Forms (lot 1, 2026-11-04)
 
 - Clients build forms in the dashboard (`/dashboard/site/forms`: starters, fields,
@@ -171,6 +188,16 @@ functions from their own code:
 - `POST /api/forms/[id]`: same origin, honeypot, time check, per-sender limit
   (hashed IP), and Cloudflare Turnstile when `TURNSTILE_SECRET_KEY` is set on
   Vercel (Sensitive).
+- Lot 2 (2026-11-04, `20261104120000_forms_files_and_lockdown`): field types
+  link, time, star rating, section title and **file / photo upload** (up to 3
+  upload fields, 5 files each, 10 MB). Files go to the PRIVATE bucket
+  `form-uploads`: `public_form_upload_reserve` books a path for one field
+  (type, size, limits), the storage policy only accepts booked paths, the
+  submit checks each path, and only members of the client's organization can
+  read them (5-minute signed links in Requests). More starters (event, job
+  application with CV, feedback, photo request, order, survey) and look options
+  (font, plain layout, width, button style, cover image).
+- Hosted form pages read the form at most every 30 s per server instance.
 - Next lots: embed in the client's site through the LevelUp tag
   (`data-lu-embed`), confirmation e-mails, file uploads, multi-step, custom
   domain.

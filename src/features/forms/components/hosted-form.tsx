@@ -4,7 +4,9 @@ import { useRef, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { TurnstileWidget, type TurnstileHandle } from '@/features/auth/components/turnstile';
 import { cn } from '@/lib/utils';
-import type { FormValues, PublicForm } from '../api/types';
+import { createClient } from '@/lib/supabase/client';
+import type { FormField, FormValues, PublicForm, UploadedValue } from '../api/types';
+import { prepareUpload } from '../lib/prepare-upload';
 import { toPayload } from '../lib/fields';
 import { FormRenderer, formTheme, type SubmitResult } from './form-renderer';
 
@@ -16,6 +18,41 @@ export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boole
   const widget = useRef<TurnstileHandle>(null);
   const [openedAt] = useState(() => Date.now());
   const honeypot = useRef<HTMLInputElement>(null);
+
+  /** Books a private path for the file, then sends it straight to storage. */
+  async function upload(
+    field: FormField,
+    picked: File
+  ): Promise<UploadedValue | 'type' | 'size' | 'failed'> {
+    const file = await prepareUpload(picked, field.accept ?? 'any');
+    if (typeof file === 'string') return file;
+    try {
+      const res = await fetch(`/api/forms/${form.public_id}/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          field: field.id,
+          name: file.name,
+          mime: file.blob.type,
+          size: file.blob.size
+        })
+      });
+      const body = (await res.json().catch(() => ({}))) as { path?: string; error?: string };
+      if (!res.ok || !body.path)
+        return body.error === 'type' ? 'type' : body.error === 'size' ? 'size' : 'failed';
+      const { error } = await createClient()
+        .storage.from('form-uploads')
+        .upload(body.path, file.blob, { contentType: file.blob.type, upsert: false });
+      if (error) return 'failed';
+      return {
+        path: body.path,
+        name: file.name,
+        preview: file.blob.type.startsWith('image/') ? URL.createObjectURL(file.blob) : null
+      };
+    } catch {
+      return 'failed';
+    }
+  }
 
   async function submit(values: FormValues, consent: boolean): Promise<SubmitResult> {
     if (captcha && !token) return { ok: false, error: 'captcha' };
@@ -42,6 +79,7 @@ export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boole
       if (body.error === 'invalid') return { ok: false, error: 'invalid', field: body.field };
       if (body.error === 'limit') return { ok: false, error: 'limit' };
       if (body.error === 'captcha') return { ok: false, error: 'captcha' };
+      if (body.error === 'paused') return { ok: false, error: 'paused' };
       return { ok: false, error: 'unavailable' };
     } catch {
       return { ok: false, error: 'unavailable' };
@@ -50,10 +88,11 @@ export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boole
 
   return (
     <main className={cn('flex min-h-dvh flex-col items-center px-4 py-8 sm:py-14', theme.page)}>
-      <div className='w-full max-w-xl'>
+      <div className={cn('w-full', theme.maxWidth)}>
         <FormRenderer
           form={form}
           onSubmit={submit}
+          onUpload={upload}
           beforeSubmit={
             <>
               {/* Honeypot: hidden from people and screen readers. */}

@@ -9,12 +9,23 @@ import { turnstileRequired } from '@/lib/turnstile';
 // Public page of a LevelUp form: no sign-in, published forms only. The form,
 // its look and the business name come from public_form_get (nothing internal).
 
+// A shared link can bring thousands of visitors at once: each form is read from
+// the database at most every 30 seconds per server instance (the answer itself
+// is always checked live by public_form_submit).
+const TTL_MS = 30_000;
+const recent = new Map<string, { at: number; form: PublicForm | null }>();
+
 const getForm = cache(async (id: string): Promise<PublicForm | null> => {
   if (!/^f[a-z0-9]{10}$/.test(id)) return null;
+  const hit = recent.get(id);
+  if (hit && Date.now() - hit.at < TTL_MS) return hit.form;
   const db = await createClient();
   const { data, error } = await db.rpc('public_form_get', { p_public_id: id });
-  if (error || !data) return null;
-  return data as PublicForm;
+  if (error) return null;
+  const form = (data as PublicForm | null) ?? null;
+  if (recent.size > 1000) recent.clear();
+  recent.set(id, { at: Date.now(), form });
+  return form;
 });
 
 export async function generateMetadata({

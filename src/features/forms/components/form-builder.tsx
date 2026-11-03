@@ -31,6 +31,7 @@ import { FormRenderer } from './form-renderer';
 import { ShareForm } from './share-form';
 
 const CHOICE_TYPES: FieldType[] = ['select', 'radio', 'multiselect'];
+const NO_PLACEHOLDER: FieldType[] = ['checkbox', 'file', 'rating', 'section'];
 /** Which standard request column each type can fill. */
 const MAPS_FOR: Partial<Record<FieldType, readonly string[]>> = {
   text: ['name', 'company', 'message'],
@@ -189,7 +190,7 @@ function FieldEditor({
               </Row>
             </div>
           )}
-          {field.type !== 'checkbox' && !CHOICE_TYPES.includes(field.type) && (
+          {!NO_PLACEHOLDER.includes(field.type) && !CHOICE_TYPES.includes(field.type) && (
             <Row label={t('placeholder')}>
               <Input
                 value={field.placeholder ?? ''}
@@ -198,13 +199,70 @@ function FieldEditor({
               />
             </Row>
           )}
-          <Row label={t('help')}>
-            <Input
-              value={field.help ?? ''}
-              maxLength={240}
-              onChange={(e) => onChange({ ...field, help: e.target.value || undefined })}
-            />
-          </Row>
+          {field.type === 'section' ? (
+            <div className='sm:col-span-2'>
+              <Row label={t('sectionText')}>
+                <Textarea
+                  rows={3}
+                  maxLength={1000}
+                  value={field.help ?? ''}
+                  onChange={(e) => onChange({ ...field, help: e.target.value || undefined })}
+                />
+              </Row>
+            </div>
+          ) : (
+            <Row label={t('help')}>
+              <Input
+                value={field.help ?? ''}
+                maxLength={240}
+                onChange={(e) => onChange({ ...field, help: e.target.value || undefined })}
+              />
+            </Row>
+          )}
+          {field.type === 'file' && (
+            <>
+              <Row label={t('accept')}>
+                <NativeSelect
+                  value={field.accept ?? 'any'}
+                  onChange={(e) =>
+                    onChange({ ...field, accept: e.target.value as FormField['accept'] })
+                  }
+                >
+                  {(['image', 'document', 'any'] as const).map((a) => (
+                    <NativeSelectOption key={a} value={a}>
+                      {t(`acceptOptions.${a}`)}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Row>
+              <Row label={t('maxFiles')}>
+                <NativeSelect
+                  value={String(field.max_files ?? 1)}
+                  onChange={(e) => onChange({ ...field, max_files: Number(e.target.value) })}
+                >
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <NativeSelectOption key={n} value={String(n)}>
+                      {n}
+                    </NativeSelectOption>
+                  ))}
+                </NativeSelect>
+              </Row>
+            </>
+          )}
+          {field.type === 'rating' && (
+            <Row label={t('stars')}>
+              <NativeSelect
+                value={String(field.max ?? 5)}
+                onChange={(e) => onChange({ ...field, max: Number(e.target.value) })}
+              >
+                {[3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                  <NativeSelectOption key={n} value={String(n)}>
+                    {n}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Row>
+          )}
           {mapsAllowed.length > 0 && (
             <Row label={t('maps')} hint={t('mapsHint')}>
               <NativeSelect
@@ -225,7 +283,12 @@ function FieldEditor({
               </NativeSelect>
             </Row>
           )}
-          <div className='flex flex-wrap items-center gap-x-6 gap-y-3 sm:col-span-2'>
+          <div
+            className={cn(
+              'flex flex-wrap items-center gap-x-6 gap-y-3 sm:col-span-2',
+              field.type === 'section' && 'hidden'
+            )}
+          >
             <label className='flex items-center gap-2 text-sm'>
               <Switch
                 checked={!!field.required}
@@ -319,7 +382,9 @@ export function FormBuilder({
       label,
       ...(CHOICE_TYPES.includes(type)
         ? { options: [t('option', { n: 1 }), t('option', { n: 2 })] }
-        : {})
+        : {}),
+      ...(type === 'file' ? { accept: 'any' as const, max_files: 1 } : {}),
+      ...(type === 'rating' ? { max: 5, required: true } : {})
     };
     set({ fields: [...form.fields, field] });
     setOpen(id);
@@ -411,11 +476,14 @@ export function FormBuilder({
                 />
               ))}
             </ul>
-            {form.fields.length < 25 && (
+            {form.fields.length < 40 && (
               <div className='grid gap-2'>
                 <span className='text-sm font-medium'>{t('addField')}</span>
                 <div className='flex flex-wrap gap-2'>
-                  {FIELD_TYPES.map((type) => (
+                  {FIELD_TYPES.filter(
+                    (type) =>
+                      type !== 'file' || form.fields.filter((f) => f.type === 'file').length < 3
+                  ).map((type) => (
                     <Button
                       key={type}
                       type='button'
@@ -503,6 +571,73 @@ export function FormBuilder({
                 <NativeSelectOption value='lg'>{t('radii.lg')}</NativeSelectOption>
               </NativeSelect>
             </Row>
+            <Row label={t('font')}>
+              <NativeSelect
+                value={form.settings.font ?? 'sans'}
+                onChange={(e) => setSettings({ font: e.target.value as FormSettings['font'] })}
+              >
+                {(['sans', 'serif', 'mono'] as const).map((v) => (
+                  <NativeSelectOption key={v} value={v}>
+                    {t(`fonts.${v}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Row>
+            <Row label={t('layout')}>
+              <NativeSelect
+                value={form.settings.layout ?? 'card'}
+                onChange={(e) => setSettings({ layout: e.target.value as FormSettings['layout'] })}
+              >
+                {(['card', 'plain'] as const).map((v) => (
+                  <NativeSelectOption key={v} value={v}>
+                    {t(`layouts.${v}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Row>
+            <Row label={t('width')}>
+              <NativeSelect
+                value={form.settings.width ?? 'normal'}
+                onChange={(e) =>
+                  setSettings({
+                    width:
+                      e.target.value === 'normal'
+                        ? undefined
+                        : (e.target.value as FormSettings['width'])
+                  })
+                }
+              >
+                {(['narrow', 'normal', 'wide'] as const).map((v) => (
+                  <NativeSelectOption key={v} value={v}>
+                    {t(`widths.${v}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Row>
+            <Row label={t('buttonStyle')}>
+              <NativeSelect
+                value={form.settings.button ?? 'solid'}
+                onChange={(e) => setSettings({ button: e.target.value as FormSettings['button'] })}
+              >
+                {(['solid', 'outline', 'pill'] as const).map((v) => (
+                  <NativeSelectOption key={v} value={v}>
+                    {t(`buttons.${v}`)}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
+            </Row>
+            <div className='sm:col-span-2'>
+              <Row label={t('cover')} hint={t('coverHint')}>
+                <Input
+                  type='url'
+                  inputMode='url'
+                  placeholder='https://'
+                  maxLength={1000}
+                  value={form.settings.cover_url ?? ''}
+                  onChange={(e) => setSettings({ cover_url: e.target.value || undefined })}
+                />
+              </Row>
+            </div>
             <label className='flex items-center gap-2 self-end text-sm'>
               <Switch
                 checked={form.settings.show_logo !== false}

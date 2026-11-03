@@ -61,7 +61,8 @@ import {
   type SubmissionStatus,
   type SubmissionView
 } from '../api/types';
-import { detectDataFields, displayValue, fieldLabel } from '../lib/fields';
+import { detectDataFields, displayValue, fieldLabel, uploadedFiles } from '../lib/fields';
+import { UploadedFiles } from './uploaded-files';
 import { submissionParams, toSubmissionFilters } from '../lib/filters';
 
 const STATUSES: SubmissionStatus[] = [
@@ -486,7 +487,13 @@ function SubmissionFields({ row }: { row: FormSubmission }) {
             {data.map(([key, value]) => (
               <div key={key} className='contents'>
                 <dt className='text-muted-foreground break-words'>{fieldLabel(key)}</dt>
-                <dd className='min-w-0 break-words whitespace-pre-wrap'>{displayValue(value)}</dd>
+                <dd className='min-w-0 break-words whitespace-pre-wrap'>
+                  {uploadedFiles(value).length ? (
+                    <UploadedFiles files={uploadedFiles(value)} />
+                  ) : (
+                    displayValue(value)
+                  )}
+                </dd>
               </div>
             ))}
           </dl>

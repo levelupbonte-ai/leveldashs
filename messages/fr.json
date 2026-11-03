@@ -2193,7 +2193,8 @@
         "newsletter": "Newsletter",
         "registration": "Inscription",
         "preview_request": "Demande d’aperçu"
-      }
+      },
+      "fileFailed": "Impossible d’ouvrir le fichier. Réessayez."
     },
     "media": {
       "linkCopied": "Lien copié",
@@ -4025,7 +4026,77 @@
         "bookingTitle": "Demander une réservation",
         "send": "Envoyer",
         "requestQuote": "Demander mon devis",
-        "requestBooking": "Demander ma réservation"
+        "requestBooking": "Demander ma réservation",
+        "guests": "Nombre d’invités",
+        "eventDate": "Quelle date ?",
+        "diet": "Régime alimentaire",
+        "eventTitle": "Inscrivez-vous à l’événement",
+        "register": "M’inscrire",
+        "position": "Poste",
+        "positions": "Accueil,Vente,Autre",
+        "experience": "Années d’expérience",
+        "cv": "Votre CV",
+        "portfolio": "Portfolio ou LinkedIn",
+        "why": "Pourquoi voulez-vous nous rejoindre ?",
+        "jobTitle": "Postuler",
+        "apply": "Envoyer ma candidature",
+        "rating": "Quelle note donnez-vous à votre visite ?",
+        "liked": "Qu’avez-vous aimé ?",
+        "improve": "Que pourrions-nous améliorer ?",
+        "recommend": "Nous recommanderiez-vous ?",
+        "yes": "Oui",
+        "maybe": "Peut-être",
+        "no": "Non",
+        "feedbackTitle": "Dites-nous comment ça s’est passé",
+        "sendFeedback": "Envoyer mon avis",
+        "photosLabel": "Vos photos",
+        "describe": "Décrivez votre besoin",
+        "photosTitle": "Envoyez-nous vos photos",
+        "sendRequest": "Envoyer ma demande",
+        "products": "Produits",
+        "productList": "Produit A,Produit B,Produit C",
+        "quantity": "Quantité",
+        "delivery": "Livraison ou retrait",
+        "deliveryOptions": "Livraison,Retrait",
+        "address": "Adresse de livraison",
+        "orderTitle": "Passer commande",
+        "order": "Envoyer ma commande",
+        "q1": "Comment nous avez-vous connus ?",
+        "q1options": "Google,Réseaux sociaux,Un ami,Autre",
+        "q2": "Qu’est-ce qui compte le plus pour vous ?",
+        "q2options": "Le prix,La qualité,La rapidité,Le service",
+        "q3": "Autre chose ?",
+        "surveyTitle": "Quelques questions",
+        "sendAnswers": "Envoyer mes réponses",
+        "personal": "Vous",
+        "personalText": "Pour pouvoir vous répondre.",
+        "details": "Votre demande",
+        "detailsText": "Dites-nous ce dont vous avez besoin.",
+        "preferredTime": "Heure souhaitée"
+      },
+      "event": {
+        "name": "Inscription à un événement",
+        "text": "Participants, date, nombre d’invités."
+      },
+      "job": {
+        "name": "Candidature",
+        "text": "Poste, expérience, envoi du CV."
+      },
+      "feedback": {
+        "name": "Avis client",
+        "text": "Note en étoiles et commentaires."
+      },
+      "photos": {
+        "name": "Demande avec photos",
+        "text": "Vos clients envoient des photos avec leur demande."
+      },
+      "order": {
+        "name": "Bon de commande",
+        "text": "Produits, quantité, livraison."
+      },
+      "survey": {
+        "name": "Questionnaire",
+        "text": "Plusieurs questions à choix."
       }
     },
     "builder": {
@@ -4054,7 +4125,10 @@
         "quote": "Devis",
         "registration": "Inscription",
         "newsletter": "Newsletter",
-        "survey": "Questionnaire"
+        "survey": "Questionnaire",
+        "application": "Candidature",
+        "feedback": "Avis",
+        "order": "Commande"
       },
       "types": {
         "text": "Texte court",
@@ -4066,7 +4140,12 @@
         "checkbox": "Case à cocher",
         "multiselect": "Choix multiples",
         "date": "Date",
-        "number": "Nombre"
+        "number": "Nombre",
+        "time": "Heure",
+        "url": "Lien",
+        "rating": "Note en étoiles",
+        "file": "Fichier ou photo",
+        "section": "Titre de section"
       },
       "newLabel": {
         "text": "Votre réponse",
@@ -4078,7 +4157,12 @@
         "checkbox": "J’accepte",
         "multiselect": "Choisissez tout ce qui s’applique",
         "date": "Date",
-        "number": "Nombre"
+        "number": "Nombre",
+        "time": "Heure souhaitée",
+        "url": "Site web ou lien",
+        "rating": "Quelle note nous donnez-vous ?",
+        "file": "Ajoutez une photo ou un fichier",
+        "section": "Nouvelle section"
       },
       "option": "Option {n}",
       "label": "Question",
@@ -4136,7 +4220,42 @@
       "saveLive": "Enregistrer et garder en ligne",
       "saved": "Formulaire enregistré.",
       "published": "Formulaire publié : son lien fonctionne maintenant.",
-      "readOnly": "Vous pouvez voir ce formulaire. Les éditeurs, admins et propriétaires peuvent le modifier."
+      "readOnly": "Vous pouvez voir ce formulaire. Les éditeurs, admins et propriétaires peuvent le modifier.",
+      "sectionText": "Texte sous le titre",
+      "accept": "Ce qui peut être envoyé",
+      "acceptOptions": {
+        "image": "Photos uniquement",
+        "document": "Documents uniquement (PDF, Word, texte)",
+        "any": "Photos et documents"
+      },
+      "maxFiles": "Nombre de fichiers",
+      "stars": "Nombre d’étoiles",
+      "font": "Police",
+      "fonts": {
+        "sans": "Moderne",
+        "serif": "Élégante",
+        "mono": "Technique"
+      },
+      "layout": "Style",
+      "layouts": {
+        "card": "Carte",
+        "plain": "Simple (sans cadre)"
+      },
+      "width": "Largeur",
+      "widths": {
+        "narrow": "Étroite",
+        "normal": "Normale",
+        "wide": "Large"
+      },
+      "buttonStyle": "Bouton",
+      "buttons": {
+        "solid": "Plein",
+        "outline": "Contour",
+        "pill": "Pilule arrondie"
+      },
+      "cover": "Image de couverture (facultatif)",
+      "coverHint": "Un lien d’image https://, par exemple depuis votre médiathèque.",
+      "fieldsLimit": "Jusqu’à 40 questions, dont 3 avec des fichiers."
     },
     "share": {
       "publishFirst": "Publiez le formulaire (et enregistrez vos modifications) pour obtenir son lien.",
@@ -4164,13 +4283,33 @@
         "email": "Saisissez une adresse e-mail valide.",
         "phone": "Saisissez un numéro de téléphone valide.",
         "number": "Saisissez un nombre.",
-        "date": "Saisissez une date valide."
+        "date": "Saisissez une date valide.",
+        "url": "Saisissez un lien complet qui commence par https://",
+        "time": "Saisissez une heure valide.",
+        "rating": "Choisissez une note."
       },
       "failure": {
         "invalid": "Certaines réponses sont à corriger. Vérifiez le champ indiqué.",
         "limit": "Trop de messages en peu de temps. Réessayez un peu plus tard.",
         "captcha": "Confirmez que vous n’êtes pas un robot, puis renvoyez.",
-        "unavailable": "Le formulaire n’a pas pu être envoyé pour le moment. Réessayez dans un instant."
+        "unavailable": "Le formulaire n’a pas pu être envoyé pour le moment. Réessayez dans un instant.",
+        "paused": "Ce formulaire est en pause quelques minutes pour des raisons de sécurité. Réessayez plus tard."
+      },
+      "stars": "{n} étoile(s) sur {max}",
+      "files": {
+        "pick": "Ajouter un fichier",
+        "pickPhoto": "Ajouter une photo",
+        "uploading": "Envoi…",
+        "remove": "Retirer {name}",
+        "tooMany": "Jusqu’à {max} fichiers.",
+        "type": "{name} : ce type de fichier n’est pas accepté ici.",
+        "size": "{name} est trop volumineux (10 Mo max).",
+        "failed": "{name} n’a pas pu être envoyé. Réessayez.",
+        "hint": {
+          "image": "Photos, jusqu’à {max}, 10 Mo chacune",
+          "document": "PDF, Word ou texte, jusqu’à {max}, 10 Mo chacun",
+          "any": "Photos ou documents, jusqu’à {max}, 10 Mo chacun"
+        }
       }
     }
   }

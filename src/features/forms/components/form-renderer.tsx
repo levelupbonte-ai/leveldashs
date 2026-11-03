@@ -3,7 +3,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
-import type { FormField, FormSettings, FormValues, PublicForm } from '../api/types';
+import type { FormField, FormSettings, FormValues, PublicForm, UploadedValue } from '../api/types';
 import { validateValues, type FieldError } from '../lib/fields';
 
 /** Error key of the consent box (never a field id: those start with a letter). */
@@ -33,8 +33,197 @@ export function formTheme(settings: FormSettings) {
       : light
         ? 'bg-white border-zinc-300 text-zinc-900 placeholder:text-zinc-400'
         : 'bg-background border-input placeholder:text-muted-foreground',
-    muted: dark ? 'text-zinc-400' : light ? 'text-zinc-500' : 'text-muted-foreground'
+    muted: dark ? 'text-zinc-400' : light ? 'text-zinc-500' : 'text-muted-foreground',
+    // Explicit stacks: the dashboard themes reset Tailwind's serif / mono fonts.
+    fontFamily:
+      settings.font === 'serif'
+        ? 'Georgia, Cambria, "Times New Roman", serif'
+        : settings.font === 'mono'
+          ? 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+          : undefined,
+    plain: settings.layout === 'plain',
+    maxWidth:
+      settings.width === 'narrow'
+        ? 'max-w-lg'
+        : settings.width === 'wide'
+          ? 'max-w-3xl'
+          : 'max-w-xl',
+    button: settings.button ?? 'solid'
   };
+}
+
+/** What a file field does with a picked file (hosted page: upload; preview: nothing). */
+export type UploadFn = (
+  field: FormField,
+  file: File
+) => Promise<UploadedValue | 'type' | 'size' | 'failed'>;
+
+const ACCEPT: Record<NonNullable<FormField['accept']>, string> = {
+  image: 'image/*',
+  document: '.pdf,.docx,.txt,application/pdf,text/plain',
+  any: 'image/*,.pdf,.docx,.txt,application/pdf,text/plain'
+};
+
+function FilePicker({
+  field,
+  id,
+  value,
+  onChange,
+  onUpload,
+  theme,
+  disabled,
+  describedBy
+}: {
+  field: FormField;
+  id: string;
+  value: UploadedValue[];
+  onChange: (v: UploadedValue[]) => void;
+  onUpload?: UploadFn;
+  theme: Theme;
+  disabled?: boolean;
+  describedBy?: string;
+}) {
+  const t = useTranslations('siteForms.public');
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const max = field.max_files ?? 1;
+
+  async function pick(list: FileList | null) {
+    if (!list?.length || !onUpload) return;
+    setProblem(null);
+    const room = Math.max(0, max - value.length);
+    const files = Array.from(list).slice(0, room);
+    if (list.length > room) setProblem(t('files.tooMany', { max }));
+    setBusy(true);
+    const added: UploadedValue[] = [];
+    for (const file of files) {
+      const result = await onUpload(field, file);
+      if (typeof result === 'string') setProblem(t(`files.${result}`, { name: file.name }));
+      else added.push(result);
+    }
+    setBusy(false);
+    if (added.length) onChange([...value, ...added]);
+  }
+
+  return (
+    <div className='grid gap-2'>
+      {value.length > 0 && (
+        <ul className='grid gap-2 sm:grid-cols-2'>
+          {value.map((f) => (
+            <li
+              key={f.path}
+              className={cn(
+                'flex items-center gap-2 border p-1.5 pr-2 text-sm',
+                theme.input,
+                theme.radius
+              )}
+            >
+              {f.preview ? (
+                // eslint-disable-next-line @next/next/no-img-element -- local preview of the visitor's photo
+                <img src={f.preview} alt='' className='size-10 shrink-0 rounded object-cover' />
+              ) : (
+                <span className='flex size-10 shrink-0 items-center justify-center'>
+                  <Icons.page className='size-5' aria-hidden />
+                </span>
+              )}
+              <span className='min-w-0 flex-1 truncate'>{f.name}</span>
+              <button
+                type='button'
+                disabled={disabled}
+                onClick={() => onChange(value.filter((x) => x.path !== f.path))}
+                aria-label={t('files.remove', { name: f.name })}
+                className='flex size-8 shrink-0 items-center justify-center rounded-md opacity-70 hover:opacity-100'
+              >
+                <Icons.close className='size-4' aria-hidden />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {value.length < max && (
+        <label
+          htmlFor={id}
+          className={cn(
+            'flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1.5 border border-dashed px-4 py-5 text-center text-sm transition hover:border-[var(--lu-accent)]',
+            theme.input,
+            theme.radius,
+            (disabled || busy || !onUpload) && 'cursor-not-allowed opacity-70'
+          )}
+        >
+          {busy ? (
+            <Icons.spinner className='size-5 animate-spin' aria-hidden />
+          ) : field.accept === 'document' ? (
+            <Icons.upload className='size-5' aria-hidden />
+          ) : (
+            <Icons.photo className='size-5' aria-hidden />
+          )}
+          <span className='font-medium'>
+            {busy
+              ? t('files.uploading')
+              : field.accept === 'image'
+                ? t('files.pickPhoto')
+                : t('files.pick')}
+          </span>
+          <span className={cn('text-xs', theme.muted)}>
+            {t(`files.hint.${field.accept ?? 'any'}`, { max })}
+          </span>
+          <input
+            id={id}
+            type='file'
+            className='sr-only'
+            accept={ACCEPT[field.accept ?? 'any']}
+            multiple={max > 1}
+            disabled={disabled || busy || !onUpload}
+            aria-describedby={describedBy}
+            onChange={(e) => {
+              void pick(e.target.files);
+              e.target.value = '';
+            }}
+          />
+        </label>
+      )}
+      {problem && <p className='text-xs text-red-500'>{problem}</p>}
+    </div>
+  );
+}
+
+function Stars({
+  field,
+  id,
+  value,
+  onChange,
+  disabled
+}: {
+  field: FormField;
+  id: string;
+  value: number | undefined;
+  onChange: (v: number) => void;
+  disabled?: boolean;
+}) {
+  const t = useTranslations('siteForms.public');
+  const max = field.max ?? 5;
+  return (
+    <div role='radiogroup' id={id} aria-label={field.label} className='flex flex-wrap gap-1'>
+      {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+        <button
+          key={n}
+          type='button'
+          role='radio'
+          aria-checked={value === n}
+          aria-label={t('stars', { n, max })}
+          disabled={disabled}
+          onClick={() => onChange(n)}
+          className='flex size-11 items-center justify-center rounded-md transition hover:scale-110'
+        >
+          <Icons.star
+            className={cn('size-7', value && n <= value ? 'text-[var(--lu-accent)]' : 'opacity-30')}
+            fill={value && n <= value ? 'currentColor' : 'none'}
+            aria-hidden
+          />
+        </button>
+      ))}
+    </div>
+  );
 }
 
 type Theme = ReturnType<typeof formTheme>;
@@ -45,7 +234,8 @@ function Field({
   error,
   onChange,
   theme,
-  disabled
+  disabled,
+  onUpload
 }: {
   field: FormField;
   value: FormValues[string];
@@ -53,6 +243,7 @@ function Field({
   onChange: (v: FormValues[string]) => void;
   theme: Theme;
   disabled?: boolean;
+  onUpload?: UploadFn;
 }) {
   const t = useTranslations('siteForms.public');
   const id = `lu-f-${field.id}`;
@@ -84,8 +275,44 @@ function Field({
     </label>
   );
 
+  if (field.type === 'section') {
+    return (
+      <div className='grid gap-1 pt-2'>
+        <h2 className='text-lg font-semibold'>{field.label}</h2>
+        {field.help && (
+          <p className={cn('text-sm whitespace-pre-wrap', theme.muted)}>{field.help}</p>
+        )}
+      </div>
+    );
+  }
+
   let control: React.ReactNode;
   switch (field.type) {
+    case 'file':
+      control = (
+        <FilePicker
+          field={field}
+          id={id}
+          value={(value as UploadedValue[]) ?? []}
+          onChange={onChange}
+          onUpload={onUpload}
+          theme={theme}
+          disabled={disabled}
+          describedBy={describedBy || undefined}
+        />
+      );
+      break;
+    case 'rating':
+      control = (
+        <Stars
+          field={field}
+          id={id}
+          value={typeof value === 'number' ? value : undefined}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      );
+      break;
     case 'textarea':
       control = (
         <textarea
@@ -213,11 +440,15 @@ function Field({
                 ? 'tel'
                 : field.type === 'date'
                   ? 'date'
-                  : field.type === 'number'
-                    ? 'number'
-                    : 'text'
+                  : field.type === 'time'
+                    ? 'time'
+                    : field.type === 'url'
+                      ? 'url'
+                      : field.type === 'number'
+                        ? 'number'
+                        : 'text'
           }
-          inputMode={field.type === 'number' ? 'decimal' : undefined}
+          inputMode={field.type === 'number' ? 'decimal' : field.type === 'url' ? 'url' : undefined}
           autoComplete={
             field.maps === 'name'
               ? 'name'
@@ -229,7 +460,7 @@ function Field({
                     ? 'organization'
                     : undefined
           }
-          maxLength={field.type === 'email' ? 254 : 200}
+          maxLength={field.type === 'email' ? 254 : field.type === 'url' ? 500 : 200}
           placeholder={field.placeholder}
           value={(value as string | number | undefined) ?? ''}
           onChange={(e) => onChange(e.target.value)}
@@ -258,7 +489,11 @@ function Field({
 
 export type SubmitResult =
   | { ok: true; ticket?: string }
-  | { ok: false; field?: string; error: 'invalid' | 'limit' | 'unavailable' | 'captcha' };
+  | {
+      ok: false;
+      field?: string;
+      error: 'invalid' | 'limit' | 'unavailable' | 'captcha' | 'paused';
+    };
 
 /**
  * A LevelUp form, exactly as visitors see it (hosted page, and the live preview
@@ -270,10 +505,12 @@ export function FormRenderer({
   onSubmit,
   preview,
   footer,
-  beforeSubmit
+  beforeSubmit,
+  onUpload
 }: {
   form: Pick<PublicForm, 'fields' | 'settings' | 'site' | 'name'>;
   onSubmit?: (values: FormValues, consent: boolean) => Promise<SubmitResult>;
+  onUpload?: UploadFn;
   preview?: boolean;
   /** Extra content above the button (e.g. the anti-robot check). */
   beforeSubmit?: React.ReactNode;
@@ -314,13 +551,32 @@ export function FormRenderer({
     setFailure(t(`failure.${result.error}`));
   }
 
-  const style = { '--lu-accent': theme.accent } as React.CSSProperties;
+  const style = {
+    '--lu-accent': theme.accent,
+    fontFamily: theme.fontFamily
+  } as React.CSSProperties;
 
   return (
     <div
       style={style}
-      className={cn('w-full border p-5 shadow-sm sm:p-8', theme.card, theme.radius)}
+      className={cn(
+        'w-full overflow-hidden',
+        theme.plain ? 'p-1 sm:p-2' : cn('border p-5 shadow-sm sm:p-8', theme.card, theme.radius)
+      )}
     >
+      {settings.cover_url && (
+        // eslint-disable-next-line @next/next/no-img-element -- cover image chosen by the client (https only)
+        <img
+          src={settings.cover_url}
+          alt=''
+          className={cn(
+            'mb-6 aspect-[3/1] w-full object-cover',
+            theme.plain
+              ? theme.radius
+              : '-mx-5 -mt-5 w-[calc(100%+2.5rem)] max-w-none sm:-mx-8 sm:-mt-8 sm:w-[calc(100%+4rem)]'
+          )}
+        />
+      )}
       {(settings.show_logo !== false && site.logo_url) || site.name ? (
         <div className='mb-5 flex items-center gap-3'>
           {settings.show_logo !== false && site.logo_url && (
@@ -368,6 +624,7 @@ export function FormRenderer({
                   value={values[f.id]}
                   error={errors[f.id]}
                   disabled={status === 'sending'}
+                  onUpload={preview ? undefined : onUpload}
                   onChange={(v) => {
                     setValues((all) => ({ ...all, [f.id]: v }));
                     if (errors[f.id]) setErrors(({ [f.id]: _, ...rest }) => rest);
@@ -401,10 +658,15 @@ export function FormRenderer({
             type='submit'
             disabled={status === 'sending'}
             className={cn(
-              'flex h-12 w-full items-center justify-center gap-2 px-5 text-base font-medium text-white transition hover:opacity-90 disabled:opacity-60 sm:h-11 sm:text-sm',
-              theme.radius
+              'flex h-12 w-full items-center justify-center gap-2 px-5 text-base font-medium transition hover:opacity-90 disabled:opacity-60 sm:h-11 sm:text-sm',
+              theme.button === 'pill' ? 'rounded-full' : theme.radius,
+              theme.button === 'outline' ? 'border-2 bg-transparent' : 'text-white'
             )}
-            style={{ background: theme.accent }}
+            style={
+              theme.button === 'outline'
+                ? { borderColor: theme.accent, color: theme.accent }
+                : { background: theme.accent }
+            }
           >
             {status === 'sending' && <Icons.spinner className='size-4 animate-spin' aria-hidden />}
             {settings.submit_label || t('submit')}

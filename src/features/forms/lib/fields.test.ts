@@ -48,4 +48,28 @@ describe('form fields', () => {
       { name: 'Ana', email: 'ana@example.com', guests: 4, terms: true }
     );
   });
+
+  test('links, times, ratings and files follow the same rules as the server', () => {
+    const more: FormField[] = [
+      { id: 'intro', type: 'section', label: 'About you' },
+      { id: 'site', type: 'url', label: 'Site' },
+      { id: 'at', type: 'time', label: 'Time' },
+      { id: 'stars', type: 'rating', label: 'Rating', max: 5, required: true },
+      { id: 'cv', type: 'file', label: 'CV', max_files: 2 }
+    ];
+    assert.deepEqual(validateValues(more, { site: 'nope', at: '25:00', stars: 7 }), {
+      site: 'url',
+      at: 'time',
+      stars: 'rating'
+    });
+    assert.deepEqual(
+      toPayload(more, {
+        site: 'https://a.example.com',
+        at: '09:30',
+        stars: 4,
+        cv: [{ path: 'abc/def.pdf', name: 'cv.pdf', preview: null }]
+      }),
+      { site: 'https://a.example.com', at: '09:30', stars: 4, cv: ['abc/def.pdf'] }
+    );
+  });
 });
