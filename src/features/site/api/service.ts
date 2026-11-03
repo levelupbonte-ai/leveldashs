@@ -54,6 +54,9 @@ export interface SiteScope {
 // reaches the screen.
 function fail(error: { message: string; code?: string; details?: string | null } | null): never {
   const code = error?.code;
+  if (error?.message === 'media_kind_not_allowed') {
+    throw new AppError('mediaKindNotAllowed', { cause: error });
+  }
   // Plan storage limit (media_mb): "Your plan allows N MB … Upgrade".
   const limit = planLimitFromDb(error);
   if (limit) throw new PlanLimitError(limit, { cause: error });
@@ -277,11 +280,23 @@ export const MEDIA_TYPES: Record<string, string> = {
   'video/webm': 'webm'
 };
 const MEDIA_COLUMNS =
-  'id, storage_path, thumb_path, filename, mime_type, size_bytes, width, height, alt_text, created_at, created_by';
+  'id, bucket, storage_path, thumb_path, filename, mime_type, size_bytes, width, height, alt_text, created_at, created_by';
 
 type MediaRow = Omit<MediaItem, 'url' | 'thumbUrl'>;
 
+/**
+ * New files go to Cloudflare R2 when the dashboard is configured for it
+ * (NEXT_PUBLIC_MEDIA_BASE_URL, the bucket's public domain); older files stay in
+ * Supabase Storage and keep working.
+ */
+const R2_BASE_URL = (process.env.NEXT_PUBLIC_MEDIA_BASE_URL ?? '').replace(/\/+$/, '');
+const R2_ENABLED = /^https:\/\/[a-z0-9.-]+$/i.test(R2_BASE_URL);
+
 function withUrls(db: SupabaseClient, row: MediaRow): MediaItem {
+  if (row.bucket === 'r2') {
+    const url = `${R2_BASE_URL}/${row.storage_path}`;
+    return { ...row, url, thumbUrl: row.thumb_path ? `${R2_BASE_URL}/${row.thumb_path}` : url };
+  }
   const bucket = db.storage.from(MEDIA_BUCKET);
   const url = bucket.getPublicUrl(row.storage_path).data.publicUrl;
   return {
@@ -362,25 +377,74 @@ export async function uploadMedia(
   });
   if (check.error) fail(check.error);
 
-  const bucket = db.storage.from(MEDIA_BUCKET);
-  const path = mediaObjectPath(scope.organizationId, scope.websiteId, crypto.randomUUID(), ext);
-  const upload = await bucket.upload(path, body, {
-    contentType: type,
-    cacheControl: MEDIA_CACHE_SECONDS,
-    upsert: false
-  });
-  if (upload.error) throw new AppError('uploadForbidden', { cause: upload.error });
-
+  let path: string;
   let thumbPath: string | null = null;
-  if (thumb) {
-    const candidate = thumbPathFor(path);
-    const thumbUpload = await bucket.upload(candidate, thumb, {
-      contentType: 'image/webp',
+  let stored: 'media' | 'r2' = MEDIA_BUCKET;
+  if (R2_ENABLED) {
+    // The server books the upload (role, type, size, quota) and signs PUT URLs
+    // for exactly this path, type and size; the file goes straight to R2.
+    const res = await fetch('/api/media/r2/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        websiteId: scope.websiteId,
+        ext,
+        bytes: body.size,
+        thumbBytes: thumb?.size ?? 0
+      })
+    }).catch(() => null);
+    const booked = (await res?.json().catch(() => null)) as {
+      error?: string;
+      db?: { message: string; code?: string; details?: string | null };
+      path?: string;
+      thumbPath?: string | null;
+      url?: string;
+      thumbUrl?: string | null;
+    } | null;
+    if (!res?.ok || !booked?.path || !booked.url) {
+      if (booked?.db) fail(booked.db);
+      if (booked?.error === 'kind_not_allowed') throw new AppError('mediaKindNotAllowed');
+      if (booked?.error === 'rate_limited') throw new AppError('rateLimited');
+      if (booked?.error === 'forbidden') throw new AppError('forbidden');
+      throw new AppError('uploadForbidden');
+    }
+    const put = await fetch(booked.url, {
+      method: 'PUT',
+      headers: { 'Content-Type': type },
+      body
+    }).catch(() => null);
+    if (!put?.ok) throw new AppError('uploadForbidden');
+    path = booked.path;
+    stored = 'r2';
+    if (thumb && booked.thumbPath && booked.thumbUrl) {
+      const thumbPut = await fetch(booked.thumbUrl, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'image/webp' },
+        body: thumb
+      }).catch(() => null);
+      // The booking includes the thumbnail path: register it only if it is there.
+      if (thumbPut?.ok) thumbPath = booked.thumbPath;
+      else throw new AppError('uploadForbidden');
+    }
+  } else {
+    const bucket = db.storage.from(MEDIA_BUCKET);
+    path = mediaObjectPath(scope.organizationId, scope.websiteId, crypto.randomUUID(), ext);
+    const upload = await bucket.upload(path, body, {
+      contentType: type,
       cacheControl: MEDIA_CACHE_SECONDS,
       upsert: false
     });
-    // A missing thumbnail is not fatal: the grid shows the file itself.
-    if (!thumbUpload.error) thumbPath = candidate;
+    if (upload.error) throw new AppError('uploadForbidden', { cause: upload.error });
+    if (thumb) {
+      const candidate = thumbPathFor(path);
+      const thumbUpload = await bucket.upload(candidate, thumb, {
+        contentType: 'image/webp',
+        cacheControl: MEDIA_CACHE_SECONDS,
+        upsert: false
+      });
+      // A missing thumbnail is not fatal: the grid shows the file itself.
+      if (!thumbUpload.error) thumbPath = candidate;
+    }
   }
 
   const { data, error } = await db
@@ -388,7 +452,7 @@ export async function uploadMedia(
     .insert({
       organization_id: scope.organizationId,
       website_id: scope.websiteId,
-      bucket: MEDIA_BUCKET,
+      bucket: stored,
       storage_path: path,
       thumb_path: thumbPath,
       filename: safeFileName(storedFileName(file.name, ext), `upload.${ext}`, 200),
@@ -403,7 +467,10 @@ export async function uploadMedia(
     .select(MEDIA_COLUMNS)
     .single();
   if (error) {
-    await bucket.remove(thumbPath ? [path, thumbPath] : [path]);
+    // R2: the unused booking is cleaned up by the server within the hour.
+    if (stored === MEDIA_BUCKET) {
+      await db.storage.from(MEDIA_BUCKET).remove(thumbPath ? [path, thumbPath] : [path]);
+    }
     fail(error);
   }
   return withUrls(db, data as MediaRow);
@@ -419,8 +486,18 @@ export async function updateMediaAlt(db: SupabaseClient, id: string, altText: st
 
 export async function deleteMedia(
   db: SupabaseClient,
-  item: Pick<MediaItem, 'id' | 'storage_path' | 'thumb_path'>
+  item: Pick<MediaItem, 'id' | 'bucket' | 'storage_path' | 'thumb_path'>
 ) {
+  if (item.bucket === 'r2') {
+    // The server checks the role in the database, then deletes the objects.
+    const res = await fetch('/api/media/r2/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: item.id })
+    }).catch(() => null);
+    if (!res?.ok) throw new AppError('deleteFailed');
+    return;
+  }
   const paths = item.thumb_path ? [item.storage_path, item.thumb_path] : [item.storage_path];
   const removed = await db.storage.from(MEDIA_BUCKET).remove(paths);
   if (removed.error) throw new AppError('deleteFailed', { cause: removed.error });

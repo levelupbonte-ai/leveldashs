@@ -908,7 +908,8 @@
     "buttonIncomplete": "Un bouton a besoin d’un libellé et d’un lien.",
     "invalidImage": "Choisissez une image de votre médiathèque.",
     "emailSendFailed": "L’e-mail n’a pas pu être envoyé. Réessayez dans un instant.",
-    "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place."
+    "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place.",
+    "mediaKindNotAllowed": "Les vidéos ne sont pas encore activées pour votre compte. Demandez à LevelUp de les activer."
   },
   "workspaces": {
     "title": "Organisations",
@@ -2226,7 +2227,10 @@
         "altHint": "Utilisé lorsque l’image est affichée sur votre site.",
         "altSaved": "Texte alternatif enregistré",
         "save": "Enregistrer"
-      }
+      },
+      "planStorage": "Espace utilisé sur votre forfait",
+      "planStorageOf": "{used} utilisés sur {limit} (tous vos sites)",
+      "videosOff": "Les vidéos ne sont pas activées pour votre compte : demandez à LevelUp de les activer."
     },
     "settings": {
       "settingsTab": "Paramètres",
@@ -2621,7 +2625,9 @@
       "countriesTitle": "Visiteurs par pays",
       "countriesDescription": "D’où viennent vos visiteurs. Seul le pays est compté : jamais d’adresse ni rien qui identifie une personne.",
       "countriesEmpty": "Aucun pays pour l’instant : ils apparaissent avec les prochaines visites.",
-      "visitorsCount": "{count, plural, one {# visiteur} other {# visiteurs}}"
+      "visitorsCount": "{count, plural, one {# visiteur} other {# visiteurs}}",
+      "mapViews": "Pages vues",
+      "mapShare": "{percent} % de vos visiteurs"
     },
     "payments": {
       "emptyTitle": "Aucun paiement pour l’instant",

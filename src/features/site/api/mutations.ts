@@ -95,7 +95,7 @@ export function useSiteMutations(scope: SiteScope) {
       ...common
     }),
     deleteMedia: useMutation({
-      mutationFn: (item: Pick<MediaItem, 'id' | 'storage_path' | 'thumb_path'>) =>
+      mutationFn: (item: Pick<MediaItem, 'id' | 'bucket' | 'storage_path' | 'thumb_path'>) =>
         deleteMedia(db, item),
       ...common
     }),
