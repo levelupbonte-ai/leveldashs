@@ -9,7 +9,7 @@ import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useSiteMutations } from '../api/mutations';
 import { blocksQueryOptions, settingsQueryOptions } from '../api/queries';
-import { JsonEditorCard } from './json-editor-card';
+import { ValueFormCard } from './value-form-card';
 import { useSiteScope } from './use-site-scope';
 
 const SETTING_HELP = [
@@ -47,7 +47,7 @@ export function SettingsEditor() {
       </Alert>
       <TabsContent value='settings' className='grid grid-cols-1 gap-4 lg:grid-cols-2'>
         {settings.map((s) => (
-          <JsonEditorCard
+          <ValueFormCard
             key={`${s.key}-${s.updated_at}`}
             title={s.key}
             description={help(s.key)}
@@ -75,7 +75,7 @@ export function SettingsEditor() {
               {blocks
                 .filter((b) => b.page === page)
                 .map((b) => (
-                  <JsonEditorCard
+                  <ValueFormCard
                     key={`${b.id}-${b.updated_at}`}
                     title={b.block_key}
                     badge={b.status === 'published' ? undefined : b.status}
@@ -84,6 +84,7 @@ export function SettingsEditor() {
                     saving={updateBlock.isPending}
                     onSave={(data) => {
                       if (!data || typeof data !== 'object' || Array.isArray(data)) {
+                        // The form keeps the block's shape: only a broken value lands here.
                         toast.error(t('mustBeObject'));
                         return;
                       }
