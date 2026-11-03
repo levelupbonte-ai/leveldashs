@@ -5,7 +5,8 @@ import {
   getAnalyticsSummary,
   getOverviewStats,
   getRecentActivity,
-  getSiteCapabilities
+  getSiteCapabilities,
+  getVisitorCountries
 } from './service';
 import type { RangeDays } from './types';
 
@@ -17,7 +18,9 @@ export const insightKeys = {
     [...insightKeys.all(websiteId), 'overview', days] as const,
   analytics: (websiteId: string, days: RangeDays) =>
     [...insightKeys.all(websiteId), 'analytics', days] as const,
-  activity: (websiteId: string) => [...insightKeys.all(websiteId), 'activity'] as const
+  activity: (websiteId: string) => [...insightKeys.all(websiteId), 'activity'] as const,
+  countries: (websiteId: string, days: RangeDays) =>
+    [...insightKeys.all(websiteId), 'countries', days] as const
 };
 
 export const capabilitiesQueryOptions = (db: SupabaseClient, websiteId: string) =>
@@ -47,4 +50,11 @@ export const activityQueryOptions = (db: SupabaseClient, websiteId: string) =>
     queryFn: () => getRecentActivity(db, websiteId),
     staleTime: 30 * 1000,
     refetchInterval: 60 * 1000
+  });
+
+export const countriesQueryOptions = (db: SupabaseClient, websiteId: string, days: RangeDays) =>
+  queryOptions({
+    queryKey: insightKeys.countries(websiteId, days),
+    queryFn: () => getVisitorCountries(db, websiteId, days),
+    staleTime: 60 * 1000
   });

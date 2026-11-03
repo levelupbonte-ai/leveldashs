@@ -1,6 +1,7 @@
 'use client';
 
 import { useSuspenseQuery } from '@tanstack/react-query';
+import { WorldMap, useCountryName } from '@/components/world-map';
 import Link from 'next/link';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
 import { Icons } from '@/components/icons';
@@ -17,7 +18,7 @@ import {
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
-import { analyticsQueryOptions } from '../api/queries';
+import { analyticsQueryOptions, countriesQueryOptions } from '../api/queries';
 import { fillDays, percentChange } from '../lib/range';
 import { DailyArea, RankedList } from './charts';
 import { RangeTabs, useRange } from './range-tabs';
@@ -28,6 +29,10 @@ export function AnalyticsView() {
   const scope = useSiteScope();
   const { range, setRange, isPending } = useRange();
   const { data } = useSuspenseQuery(analyticsQueryOptions(createClient(), scope.websiteId, range));
+  const { data: countries } = useSuspenseQuery(
+    countriesQueryOptions(createClient(), scope.websiteId, range)
+  );
+  const countryName = useCountryName();
   const t = useTranslations('insights.analytics');
   const format = useFormatter();
   const languages = useLanguageName();
@@ -162,6 +167,37 @@ export function AnalyticsView() {
               valueLabel={(v) => t('viewsCount', { count: v })}
               empty={t('noReferrers')}
             />
+          </CardContent>
+        </Card>
+        <Card className='lg:col-span-2'>
+          <CardHeader>
+            <CardTitle className='text-base'>{t('countriesTitle')}</CardTitle>
+            <CardDescription>{t('countriesDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {countries.length === 0 ? (
+              <p className='text-muted-foreground text-sm'>{t('countriesEmpty')}</p>
+            ) : (
+              <div className='grid gap-6 md:grid-cols-[2fr_1fr] md:items-center'>
+                <WorldMap
+                  items={countries.map((c) => ({
+                    country: c.country,
+                    value: c.visitors || c.views
+                  }))}
+                  label={t('countriesTitle')}
+                  valueLabel={(v) => t('visitorsCount', { count: v })}
+                />
+                <RankedList
+                  items={countries.slice(0, 8).map((c) => ({
+                    key: c.country,
+                    label: countryName(c.country),
+                    value: c.visitors || c.views
+                  }))}
+                  valueLabel={(v) => t('visitorsCount', { count: v })}
+                  empty={t('none')}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
         <Card>

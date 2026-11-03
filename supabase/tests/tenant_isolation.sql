@@ -348,6 +348,7 @@ BEGIN
         format('INSERT INTO public.site_audit_log (website_id, organization_id, action, metadata) VALUES (%L, %L, %L, jsonb_build_object(%L, %L))', w, o, 'api_key.created', 'note', m),
         format('INSERT INTO public.site_traffic_daily (website_id, organization_id, day, views, visitors) VALUES (%L, %L, current_date, %s, 1)', w, o, num[k]),
         format('INSERT INTO public.site_pageviews_daily (website_id, organization_id, day, path, views) VALUES (%L, %L, current_date, %L, %s)', w, o, '/' || m, num[k]),
+        format('INSERT INTO public.site_countries_daily (website_id, organization_id, day, country, views, visitors) VALUES (%L, %L, current_date, %L, %s, 1)', w, o, chr(65 + k) || chr(65 + k), num[k]),
         format('INSERT INTO public.ai_usage (organization_id, feature, count) VALUES (%L, %L, %s)', o, 'assistant', 7),
         format('INSERT INTO public.organization_required_tasks (organization_id, task) VALUES (%L, %L)', o, 'profile'),
         format('INSERT INTO public.organization_billing (organization_id, plan_key, billing_note) VALUES (%L, %L, %L)', o, v_plan, m || ' billing note'),

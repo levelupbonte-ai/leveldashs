@@ -2617,7 +2617,11 @@
       "unknownLanguage": "Unknown",
       "emptyTitle": "No visitor data yet",
       "emptyDescription": "Install or update the LevelUp tag to see visitors: views, unique visitors, top pages, referrers and languages, without cookies.",
-      "installTag": "Install the LevelUp tag"
+      "installTag": "Install the LevelUp tag",
+      "countriesTitle": "Visitors by country",
+      "countriesDescription": "Where your visitors come from. Only the country is counted: never an address or anything that identifies a person.",
+      "countriesEmpty": "No country yet: it appears with the next visits.",
+      "visitorsCount": "{count, plural, one {# visitor} other {# visitors}}"
     },
     "payments": {
       "emptyTitle": "No payment yet",

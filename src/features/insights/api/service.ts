@@ -33,3 +33,11 @@ export async function getRecentActivity(db: SupabaseClient, websiteId: string) {
   );
   return rows ?? [];
 }
+
+/** Visitors per country (two-letter codes), most first. */
+export async function getVisitorCountries(db: SupabaseClient, websiteId: string, days: RangeDays) {
+  const rows = await rpc<{ country: string; views: number; visitors: number }[] | null>(
+    db.rpc('site_analytics_countries', { p_website_id: websiteId, p_days: days })
+  );
+  return rows ?? [];
+}
