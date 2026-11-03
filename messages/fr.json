@@ -112,7 +112,8 @@
       "projectRequests": "Demandes de projet",
       "emailCampaigns": "Campagnes e-mail",
       "clientPortal": "Espace client",
-      "activity": "Journal d’activité"
+      "activity": "Journal d’activité",
+      "forms": "Formulaires"
     }
   },
   "admin": {
@@ -1820,6 +1821,10 @@
       "activity": {
         "title": "Journal d’activité",
         "description": "Qui dans votre équipe a changé quoi sur le site"
+      },
+      "forms": {
+        "title": "Formulaires",
+        "description": "Des formulaires hébergés par LevelUp pour votre site : créez-les ici, les réponses arrivent dans Demandes"
       }
     },
     "unavailable": {
@@ -3121,7 +3126,12 @@
         "portal_item_published": "Élément du portail publié",
         "portal_item_archived": "Élément du portail archivé",
         "portal_message_sent": "Message envoyé sur le portail",
-        "project_request_updated": "Demande de projet mise à jour"
+        "project_request_updated": "Demande de projet mise à jour",
+        "forms_created": "Formulaire créé",
+        "forms_updated": "Formulaire modifié",
+        "forms_published": "Formulaire publié",
+        "forms_archived": "Formulaire archivé",
+        "support_ticket_created": "Ticket envoyé à LevelUp"
       }
     }
   },
@@ -3958,6 +3968,210 @@
       "you": "Vous",
       "reply": "Répondre",
       "send": "Envoyer"
+    }
+  },
+  "siteForms": {
+    "new": "Créer un formulaire",
+    "yours": "Vos formulaires",
+    "empty": "Aucun formulaire pour l’instant. Choisissez un modèle ci-dessus : vous pouvez changer chaque champ.",
+    "answers": "{count, plural, =0 {Aucune réponse} one {# réponse} other {# réponses}}",
+    "lastAnswer": "dernière {when}",
+    "fieldsCount": "{count, plural, one {# champ} other {# champs}}",
+    "seeAnswers": "Voir les réponses",
+    "open": "Ouvrir",
+    "edit": "Modifier",
+    "view": "Voir",
+    "archive": "Archiver",
+    "archived": "Formulaire archivé.",
+    "cancel": "Annuler",
+    "archiveTitle": "Archiver « {name} » ?",
+    "archiveText": "Son lien cesse de fonctionner tout de suite. Les réponses déjà reçues restent dans Demandes.",
+    "starters": {
+      "contact": {
+        "name": "Formulaire de contact",
+        "text": "Nom, e-mail, téléphone et message."
+      },
+      "quote": {
+        "name": "Demande de devis",
+        "text": "Entreprise, budget et détails du projet."
+      },
+      "booking": {
+        "name": "Demande de réservation",
+        "text": "Date souhaitée et moment de la journée."
+      },
+      "blank": {
+        "name": "Nouveau formulaire",
+        "text": "Partir d’un nom et d’un e-mail."
+      },
+      "labels": {
+        "name": "Nom complet",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "message": "Message",
+        "company": "Entreprise",
+        "budget": "Budget",
+        "budget1": "Moins de 1 000 $",
+        "budget2": "1 000 à 5 000 $",
+        "budget3": "Plus de 5 000 $",
+        "project": "Parlez-nous de votre projet",
+        "date": "Date souhaitée",
+        "time": "Moment de la journée",
+        "morning": "Matin",
+        "afternoon": "Après-midi",
+        "evening": "Soir",
+        "notes": "Quelque chose à nous dire ?",
+        "contactTitle": "Contactez-nous",
+        "quoteTitle": "Demander un devis",
+        "bookingTitle": "Demander une réservation",
+        "send": "Envoyer",
+        "requestQuote": "Demander mon devis",
+        "requestBooking": "Demander ma réservation"
+      }
+    },
+    "builder": {
+      "back": "Tous les formulaires",
+      "unsaved": "Modifications non enregistrées",
+      "untitled": "Champ sans titre",
+      "requiredShort": "Obligatoire",
+      "status": {
+        "draft": "Brouillon",
+        "published": "En ligne",
+        "archived": "Archivé"
+      },
+      "tabs": {
+        "fields": "Champs",
+        "look": "Apparence",
+        "after": "Après l’envoi",
+        "share": "Partager",
+        "preview": "Aperçu"
+      },
+      "name": "Nom du formulaire",
+      "nameHint": "Vous seul le voyez (dans votre dashboard et dans Demandes).",
+      "formType": "Type de demande",
+      "formTypeHint": "Comment les réponses sont classées dans Demandes.",
+      "formTypes": {
+        "contact": "Contact",
+        "quote": "Devis",
+        "registration": "Inscription",
+        "newsletter": "Newsletter",
+        "survey": "Questionnaire"
+      },
+      "types": {
+        "text": "Texte court",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "textarea": "Texte long",
+        "select": "Liste déroulante",
+        "radio": "Choix unique",
+        "checkbox": "Case à cocher",
+        "multiselect": "Choix multiples",
+        "date": "Date",
+        "number": "Nombre"
+      },
+      "newLabel": {
+        "text": "Votre réponse",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "textarea": "Message",
+        "select": "Choisissez une option",
+        "radio": "Choisissez-en une",
+        "checkbox": "J’accepte",
+        "multiselect": "Choisissez tout ce qui s’applique",
+        "date": "Date",
+        "number": "Nombre"
+      },
+      "option": "Option {n}",
+      "label": "Question",
+      "type": "Type de réponse",
+      "options": "Choix",
+      "optionsHint": "Un par ligne (30 au maximum).",
+      "placeholder": "Texte d’exemple dans la case",
+      "help": "Aide sous la question",
+      "maps": "Afficher dans Demandes comme",
+      "mapsHint": "Remplit cette colonne de la demande, pour répondre en un geste.",
+      "mapsNone": "Un détail en plus",
+      "mapsTo": {
+        "name": "Nom",
+        "email": "E-mail",
+        "phone": "Téléphone",
+        "company": "Entreprise",
+        "message": "Message"
+      },
+      "required": "Obligatoire",
+      "half": "Demi-largeur (sur ordinateur)",
+      "moveUp": "Monter",
+      "moveDown": "Descendre",
+      "remove": "Supprimer le champ",
+      "addField": "Ajouter une question",
+      "title": "Titre affiché aux visiteurs",
+      "description": "Texte d’introduction",
+      "submitLabel": "Texte du bouton",
+      "submitDefault": "Envoyer",
+      "accent": "Couleur principale",
+      "mode": "Fond",
+      "modes": {
+        "auto": "Selon le visiteur",
+        "light": "Clair",
+        "dark": "Sombre"
+      },
+      "radius": "Coins",
+      "radii": {
+        "none": "Carrés",
+        "md": "Arrondis",
+        "lg": "Très arrondis"
+      },
+      "showLogo": "Afficher mon logo",
+      "successTitle": "Titre de remerciement",
+      "successTitleDefault": "Merci !",
+      "successMessage": "Message de remerciement",
+      "successMessageDefault": "Votre message a bien été envoyé. Nous revenons vers vous rapidement.",
+      "redirect": "Ensuite, aller vers (facultatif)",
+      "redirectHint": "Une page https:// de votre site, par exemple une page de remerciement.",
+      "consent": "Case de consentement (facultatif)",
+      "consentHint": "Si elle est remplie, le visiteur doit la cocher, par exemple « J’accepte d’être recontacté au sujet de ma demande. »",
+      "livePreview": "Aperçu en direct",
+      "saveDraft": "Enregistrer le brouillon",
+      "unpublish": "Retirer du site",
+      "publish": "Publier",
+      "saveLive": "Enregistrer et garder en ligne",
+      "saved": "Formulaire enregistré.",
+      "published": "Formulaire publié : son lien fonctionne maintenant.",
+      "readOnly": "Vous pouvez voir ce formulaire. Les éditeurs, admins et propriétaires peuvent le modifier."
+    },
+    "share": {
+      "publishFirst": "Publiez le formulaire (et enregistrez vos modifications) pour obtenir son lien.",
+      "link": "Lien de votre formulaire",
+      "linkHint": "Partagez-le partout : votre site, vos réseaux sociaux, vos e-mails, un QR code.",
+      "copyLink": "Copier le lien",
+      "open": "Ouvrir le formulaire",
+      "copied": "Copié.",
+      "copyFailed": "La copie a échoué. Sélectionnez le texte et copiez-le.",
+      "button": "Bouton pour votre site",
+      "buttonText": "Contactez-nous",
+      "copyButton": "Copier le bouton",
+      "buttonHint": "Collez-le dans le code de votre site, à l’endroit du bouton. Il ouvre votre formulaire.",
+      "secure": "Votre formulaire est hébergé sur la page sécurisée de LevelUp : les réponses sont vérifiées, protégées contre le spam et enregistrées directement dans votre dashboard."
+    },
+    "public": {
+      "choose": "Choisir…",
+      "submit": "Envoyer",
+      "successTitle": "Merci !",
+      "successMessage": "Votre message a bien été envoyé. Nous revenons vers vous rapidement.",
+      "reference": "Référence : {ticket}",
+      "securedBy": "Formulaire sécurisé par",
+      "errors": {
+        "required": "Ce champ est obligatoire.",
+        "email": "Saisissez une adresse e-mail valide.",
+        "phone": "Saisissez un numéro de téléphone valide.",
+        "number": "Saisissez un nombre.",
+        "date": "Saisissez une date valide."
+      },
+      "failure": {
+        "invalid": "Certaines réponses sont à corriger. Vérifiez le champ indiqué.",
+        "limit": "Trop de messages en peu de temps. Réessayez un peu plus tard.",
+        "captcha": "Confirmez que vous n’êtes pas un robot, puis renvoyez.",
+        "unavailable": "Le formulaire n’a pas pu être envoyé pour le moment. Réessayez dans un instant."
+      }
     }
   }
 }
