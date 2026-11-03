@@ -14,7 +14,14 @@ import { geminiRotator } from './gemini';
  *   AI_ROUTE_AGENTS="groq:openai/gpt-oss-120b,gemini:gemini-3.1-flash-lite"
  */
 
-export type AiTask = 'agents' | 'writing' | 'reports' | 'site' | 'studio_chat' | 'studio_build';
+export type AiTask =
+  | 'agents'
+  | 'writing'
+  | 'reports'
+  | 'site'
+  | 'studio_chat'
+  | 'studio_build'
+  | 'vision';
 export type ProviderId = 'groq' | 'cerebras' | 'mistral' | 'openrouter' | 'deepseek' | 'gemini';
 export interface AiTarget {
   provider: ProviderId;
@@ -50,6 +57,9 @@ const DEFAULT_ROUTES: Record<AiTask, string> = {
   site: 'groq:openai/gpt-oss-20b,mistral:mistral-small-latest,gemini:gemini-3.1-flash-lite',
   studio_chat:
     'groq:openai/gpt-oss-120b,cerebras:gpt-oss-120b,gemini:gemini-3.1-flash-lite,deepseek:deepseek-chat',
+  // Reading what a client attaches (screenshots, photos, PDFs): models that see.
+  vision:
+    'gemini:gemini-3.1-flash-lite,groq:meta-llama/llama-4-scout-17b-16e-instruct,gemini:gemini-3-flash-preview',
   studio_build:
     'gemini:gemini-3.5-flash,gemini:gemini-3-flash-preview,deepseek:deepseek-chat,openrouter:deepseek/deepseek-chat,gemini:gemini-3.1-flash-lite'
 };
@@ -62,6 +72,11 @@ const PROVIDERS = new Set<ProviderId>([
   'deepseek',
   'gemini'
 ]);
+
+/** Base URL of an OpenAI-compatible provider (for calls that need their own body, e.g. images). */
+export function openAiBaseUrl(provider: Exclude<ProviderId, 'gemini'>): string {
+  return OPENAI_COMPATIBLE[provider].baseUrl;
+}
 
 export function providerKey(provider: ProviderId): string | null {
   if (provider === 'gemini') return 'gemini';
