@@ -6,6 +6,7 @@ import { parseAsStringLiteral, useQueryStates } from 'nuqs';
 import { useEffect, useRef } from 'react';
 import { Icons } from '@/components/icons';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RawSettings } from './developers/raw-settings';
 import { DeveloperActivityCard } from '@/features/api-keys/components/developer-activity';
 import { ServerKeysCard } from '@/features/api-keys/components/server-keys-card';
 import { useNow } from '@/features/insights/lib/use-now';
@@ -17,14 +18,15 @@ import { useSiteScope } from './use-site-scope';
 
 export { TAG_URL } from './developers/snippets';
 
-const TABS = ['quickstart', 'javascript', 'keys', 'payments', 'activity'] as const;
+const TABS = ['quickstart', 'javascript', 'keys', 'payments', 'activity', 'raw'] as const;
 type Tab = (typeof TABS)[number];
 const TAB_ICONS = {
   quickstart: Icons.circleCheck,
   javascript: Icons.code,
   keys: Icons.key,
   payments: Icons.creditCard,
-  activity: Icons.activity
+  activity: Icons.activity,
+  raw: Icons.code
 } satisfies Record<Tab, unknown>;
 
 /**
@@ -41,7 +43,7 @@ export function DevelopersPanel() {
   );
   const t = useTranslations('site.developers.tabs');
   const now = useNow();
-  const tabs = TABS.filter((k) => k !== 'activity' || scope.canAdmin);
+  const tabs = TABS.filter((k) => (k !== 'activity' && k !== 'raw') || scope.canAdmin);
   const current: Tab = tabs.includes(tab) ? tab : 'quickstart';
   const strip = useRef<HTMLDivElement>(null);
 
@@ -84,6 +86,11 @@ export function DevelopersPanel() {
         {scope.canAdmin && (
           <TabsContent value='activity' className='pt-4'>
             <DeveloperActivityCard />
+          </TabsContent>
+        )}
+        {scope.canAdmin && (
+          <TabsContent value='raw' className='pt-4'>
+            <RawSettings />
           </TabsContent>
         )}
       </Tabs>

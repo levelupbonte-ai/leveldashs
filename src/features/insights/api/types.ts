@@ -180,3 +180,22 @@ export interface ActivityItem {
   date?: string;
   time?: string;
 }
+
+/** One row of public.site_activity_log: who in the team changed what. */
+export interface ActivityLogEntry {
+  id: number;
+  created_at: string;
+  /** e.g. content.updated, email.campaign_started, portal.message_sent */
+  action: string;
+  /** Table area of a content change (services, media, website_settings, …). */
+  area: string | null;
+  /** Readable name of the item (service name, setting key, …). */
+  label: string | null;
+  /** Team member e-mail, 'LevelUp' for LevelUp staff, null for the system. */
+  actor: string | null;
+}
+
+export interface ActivityLogPage {
+  total: number;
+  rows: ActivityLogEntry[];
+}

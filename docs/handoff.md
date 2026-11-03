@@ -130,6 +130,26 @@ functions from their own code:
     (`/api/portal/outbox`, HMAC-signed with `PORTAL_NOTIFY_SECRET`, same value on
     both projects). A daily Vercel cron retries.
 
+## 5b. Security watch, logs, AI (2026-11-03)
+
+- **Security watch** (`20261103200000_security_watch`): `private.security_scan()` runs
+  every 15 minutes (pg_cron `security-scan`). Signals: floods on a rate-limited
+  action, guessing (codes, verifications, activations), outsiders trying HQ,
+  HQ team / key / settings changes, new platform admins, sign-up floods. Alerts go
+  to `private.security_alerts` (HQ > Security) and, when the owner has added the
+  Resend key to Supabase Vault as `resend_alerts_key`, by e-mail to active HQ
+  owners. Never put that key in code or chat.
+- **Activity logs** (`20261103210000_activity_and_ai`): content changes made by
+  people (settings, content, services, FAQ, gallery, team, reviews, announcements,
+  media) go to `site_audit_log` (same item, same person: once per 2 minutes).
+  Client dashboard: Activity log page (owners / admins, `site_activity_log`;
+  LevelUp staff show as "LevelUp"). HQ: Client activity (`hq_list_site_activity`).
+- **AI**: the client assistant is at `/dashboard/site/assistant`. HQ > AI usage
+  (`hq_ai_overview`): calls per app, model and client, key health, never keys.
+- **Daily database backup** (`.github/workflows/db-backup.yml`) fails with
+  "password authentication failed": the GitHub secret `SUPABASE_DB_URL` must be the
+  Session pooler URI with the current database password.
+
 ## 6. Open items
 
 ### Owner actions still pending

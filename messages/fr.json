@@ -111,7 +111,8 @@
       "payments": "Paiements",
       "projectRequests": "Demandes de projet",
       "emailCampaigns": "Campagnes e-mail",
-      "clientPortal": "Espace client"
+      "clientPortal": "Espace client",
+      "activity": "Journal d’activité"
     }
   },
   "admin": {
@@ -1815,6 +1816,10 @@
       "clientPortal": {
         "title": "Espace client",
         "description": "L’espace privé de vos clients : actualités, détails du voyage, documents et messages"
+      },
+      "activity": {
+        "title": "Journal d’activité",
+        "description": "Qui dans votre équipe a changé quoi sur le site"
       }
     },
     "unavailable": {
@@ -2235,7 +2240,7 @@
     "settings": {
       "settingsTab": "Paramètres",
       "contentTab": "Textes des pages",
-      "hint": "Modifiez uniquement les valeurs entre guillemets. Les changements sont en ligne dès l’enregistrement.",
+      "hint": "Modifiez les champs, puis enregistrez : votre site se met à jour aussitôt.",
       "private": "privé",
       "saved": "Enregistré",
       "noSettings": "Aucun paramètre.",
@@ -2311,7 +2316,8 @@
         "javascript": "Formulaires et JavaScript",
         "keys": "Clés serveur",
         "payments": "Paiements",
-        "activity": "Activité"
+        "activity": "Activité",
+        "raw": "Paramètres bruts (JSON)"
       },
       "quickstart": {
         "title": "Installer la balise LevelUp",
@@ -2524,6 +2530,82 @@
     },
     "fieldBadges": {
       "featured_on_home": "Accueil"
+    },
+    "form": {
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "enabled": "Activé",
+      "onePerLine": "Un par ligne.",
+      "item": "Élément {n}",
+      "remove": "Retirer",
+      "add": "Ajouter",
+      "empty": "Rien à régler ici.",
+      "tooDeep": "Demandez à LevelUp de modifier cette partie.",
+      "keys": {
+        "phone": "Téléphone",
+        "phones": "Téléphones",
+        "email": "E-mail",
+        "address": "Adresse",
+        "city": "Ville",
+        "country": "Pays",
+        "postal_code": "Code postal",
+        "zip": "Code postal",
+        "maps_url": "Lien Google Maps",
+        "map_url": "Lien Google Maps",
+        "website": "Site web",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "tiktok": "TikTok",
+        "linkedin": "LinkedIn",
+        "youtube": "YouTube",
+        "x": "X (Twitter)",
+        "twitter": "X (Twitter)",
+        "hours": "Horaires d’ouverture",
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche",
+        "open": "Ouverture",
+        "close": "Fermeture",
+        "closed": "Fermé",
+        "enabled": "Activé",
+        "title": "Titre",
+        "subtitle": "Sous-titre",
+        "description": "Description",
+        "text": "Texte",
+        "body": "Texte",
+        "name": "Nom",
+        "label": "Libellé",
+        "url": "Lien",
+        "link": "Lien",
+        "image": "Image",
+        "image_url": "Lien de l’image",
+        "logo": "Logo",
+        "color": "Couleur",
+        "primary_color": "Couleur principale",
+        "price": "Prix",
+        "currency": "Devise",
+        "duration": "Durée",
+        "slot_minutes": "Durée d’un créneau (minutes)",
+        "min_notice_hours": "Délai minimum (heures)",
+        "booking": "Réservation",
+        "waitlist": "Liste d’attente",
+        "contact": "Contact",
+        "social": "Réseaux sociaux",
+        "branding": "Identité visuelle",
+        "seo": "Moteurs de recherche (SEO)",
+        "cta": "Bouton",
+        "cta_label": "Texte du bouton",
+        "cta_url": "Lien du bouton",
+        "items": "Éléments",
+        "faq": "FAQ",
+        "question": "Question",
+        "answer": "Réponse"
+      }
     }
   },
   "insights": {
@@ -2995,6 +3077,51 @@
         "qualified": "Qualifiée",
         "review": "À examiner",
         "rejected": "Non pertinente"
+      }
+    },
+    "log": {
+      "adminsOnly": "Le journal d’activité est réservé aux propriétaires et aux admins de l’organisation.",
+      "empty": "Rien pour l’instant. Chaque changement de votre équipe apparaîtra ici.",
+      "system": "Automatique",
+      "content": {
+        "created": "Ajout · {what}",
+        "updated": "Modification · {what}",
+        "deleted": "Suppression · {what}"
+      },
+      "areas": {
+        "website_settings": "Paramètres",
+        "content_blocks": "Contenu des pages",
+        "services": "Services",
+        "faq_items": "FAQ",
+        "gallery_items": "Galerie",
+        "team_members": "Équipe",
+        "reviews": "Avis",
+        "announcements": "Annonces",
+        "media": "Médias",
+        "other": "Contenu"
+      },
+      "actions": {
+        "api_key_created": "Clé développeur créée",
+        "api_key_revoked": "Clé développeur révoquée",
+        "email_campaign_created": "Campagne créée",
+        "email_campaign_updated": "Campagne modifiée",
+        "email_campaign_scheduled": "Campagne programmée",
+        "email_campaign_unscheduled": "Programmation annulée",
+        "email_campaign_started": "Campagne lancée",
+        "email_campaign_finished": "Campagne terminée",
+        "email_campaign_failed": "Campagne en échec",
+        "email_contacts_imported": "Contacts importés",
+        "email_contacts_exported": "Contacts exportés",
+        "email_contact_unsubscribed": "Contact désinscrit",
+        "email_sender_updated": "Expéditeur modifié",
+        "email_sending_paused": "Envois mis en pause",
+        "email_test_sent": "E-mail de test envoyé",
+        "payments_exported": "Paiements exportés",
+        "portal_customer_invited": "Client invité sur le portail",
+        "portal_item_published": "Élément du portail publié",
+        "portal_item_archived": "Élément du portail archivé",
+        "portal_message_sent": "Message envoyé sur le portail",
+        "project_request_updated": "Demande de projet mise à jour"
       }
     }
   },

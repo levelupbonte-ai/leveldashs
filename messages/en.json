@@ -111,7 +111,8 @@
       "payments": "Payments",
       "projectRequests": "Project requests",
       "emailCampaigns": "Email campaigns",
-      "clientPortal": "Client portal"
+      "clientPortal": "Client portal",
+      "activity": "Activity log"
     }
   },
   "admin": {
@@ -1815,6 +1816,10 @@
       "clientPortal": {
         "title": "Client portal",
         "description": "Your customers' private space: updates, trip details, documents and messages"
+      },
+      "activity": {
+        "title": "Activity log",
+        "description": "Who in your team changed what on the site"
       }
     },
     "unavailable": {
@@ -2235,7 +2240,7 @@
     "settings": {
       "settingsTab": "Settings",
       "contentTab": "Page texts",
-      "hint": "Only change the values inside quotes. Changes go live as soon as you save.",
+      "hint": "Change the fields, then save: your website updates right away.",
       "private": "private",
       "saved": "Saved",
       "noSettings": "No settings.",
@@ -2311,7 +2316,8 @@
         "javascript": "Forms & JavaScript",
         "keys": "Server keys",
         "payments": "Payments",
-        "activity": "Activity"
+        "activity": "Activity",
+        "raw": "Raw settings (JSON)"
       },
       "quickstart": {
         "title": "Install the LevelUp tag",
@@ -2524,6 +2530,82 @@
     },
     "fieldBadges": {
       "featured_on_home": "Home page"
+    },
+    "form": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "enabled": "Turned on",
+      "onePerLine": "One per line.",
+      "item": "Item {n}",
+      "remove": "Remove",
+      "add": "Add",
+      "empty": "Nothing to set here.",
+      "tooDeep": "Ask LevelUp to change this part.",
+      "keys": {
+        "phone": "Phone",
+        "phones": "Phones",
+        "email": "E-mail",
+        "address": "Address",
+        "city": "City",
+        "country": "Country",
+        "postal_code": "Postal code",
+        "zip": "ZIP code",
+        "maps_url": "Google Maps link",
+        "map_url": "Google Maps link",
+        "website": "Website",
+        "whatsapp": "WhatsApp",
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "tiktok": "TikTok",
+        "linkedin": "LinkedIn",
+        "youtube": "YouTube",
+        "x": "X (Twitter)",
+        "twitter": "X (Twitter)",
+        "hours": "Opening hours",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "open": "Opens",
+        "close": "Closes",
+        "closed": "Closed",
+        "enabled": "Turned on",
+        "title": "Title",
+        "subtitle": "Subtitle",
+        "description": "Description",
+        "text": "Text",
+        "body": "Text",
+        "name": "Name",
+        "label": "Label",
+        "url": "Link",
+        "link": "Link",
+        "image": "Image",
+        "image_url": "Image link",
+        "logo": "Logo",
+        "color": "Colour",
+        "primary_color": "Main colour",
+        "price": "Price",
+        "currency": "Currency",
+        "duration": "Duration",
+        "slot_minutes": "Slot length (minutes)",
+        "min_notice_hours": "Minimum notice (hours)",
+        "booking": "Booking",
+        "waitlist": "Waiting list",
+        "contact": "Contact",
+        "social": "Social networks",
+        "branding": "Branding",
+        "seo": "Search engines (SEO)",
+        "cta": "Button",
+        "cta_label": "Button text",
+        "cta_url": "Button link",
+        "items": "Items",
+        "faq": "FAQ",
+        "question": "Question",
+        "answer": "Answer"
+      }
     }
   },
   "insights": {
@@ -2995,6 +3077,51 @@
         "qualified": "Qualified",
         "review": "To review",
         "rejected": "Not a fit"
+      }
+    },
+    "log": {
+      "adminsOnly": "The activity log is for owners and admins of the organization.",
+      "empty": "Nothing yet. Every change your team makes will show here.",
+      "system": "Automatic",
+      "content": {
+        "created": "Added · {what}",
+        "updated": "Edited · {what}",
+        "deleted": "Deleted · {what}"
+      },
+      "areas": {
+        "website_settings": "Settings",
+        "content_blocks": "Page content",
+        "services": "Services",
+        "faq_items": "FAQ",
+        "gallery_items": "Gallery",
+        "team_members": "Team",
+        "reviews": "Reviews",
+        "announcements": "Announcements",
+        "media": "Media",
+        "other": "Content"
+      },
+      "actions": {
+        "api_key_created": "Developer key created",
+        "api_key_revoked": "Developer key revoked",
+        "email_campaign_created": "Campaign created",
+        "email_campaign_updated": "Campaign edited",
+        "email_campaign_scheduled": "Campaign scheduled",
+        "email_campaign_unscheduled": "Campaign unscheduled",
+        "email_campaign_started": "Campaign started",
+        "email_campaign_finished": "Campaign finished",
+        "email_campaign_failed": "Campaign failed",
+        "email_contacts_imported": "Contacts imported",
+        "email_contacts_exported": "Contacts exported",
+        "email_contact_unsubscribed": "Contact unsubscribed",
+        "email_sender_updated": "Sender details edited",
+        "email_sending_paused": "Sending paused",
+        "email_test_sent": "Test e-mail sent",
+        "payments_exported": "Payments exported",
+        "portal_customer_invited": "Customer invited to the portal",
+        "portal_item_published": "Portal item published",
+        "portal_item_archived": "Portal item archived",
+        "portal_message_sent": "Portal message sent",
+        "project_request_updated": "Project request updated"
       }
     }
   },

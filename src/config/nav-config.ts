@@ -201,6 +201,15 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
+        title: 'activity',
+        url: '/dashboard/site/activity',
+        icon: 'activity',
+        isActive: false,
+        items: [],
+        // Who in the team changed what (owners and admins; the database checks).
+        access: { requireWebsite: true, role: 'admin' }
+      },
+      {
         title: 'siteSettings',
         url: '/dashboard/site/settings',
         icon: 'settings',
