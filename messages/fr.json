@@ -2226,7 +2226,9 @@
         "altHint": "Utilisé lorsque l’image est affichée sur votre site.",
         "altSaved": "Texte alternatif enregistré",
         "save": "Enregistrer"
-      }
+      },
+      "planStorage": "Espace utilisé sur votre forfait",
+      "planStorageOf": "{used} utilisés sur {limit} (tous vos sites)"
     },
     "settings": {
       "settingsTab": "Paramètres",

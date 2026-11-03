@@ -196,6 +196,35 @@ export function MediaLibrary() {
                   documents: stats.documents
                 })}
               </p>
+              {stats.limit_bytes ? (
+                <div className='mt-2 w-56 max-w-full'>
+                  <div
+                    className='bg-muted h-1.5 overflow-hidden rounded-full'
+                    role='meter'
+                    aria-valuemin={0}
+                    aria-valuemax={stats.limit_bytes}
+                    aria-valuenow={stats.org_bytes ?? 0}
+                    aria-label={t('planStorage')}
+                  >
+                    <div
+                      className={
+                        (stats.org_bytes ?? 0) / stats.limit_bytes >= 0.9
+                          ? 'bg-destructive h-full rounded-full'
+                          : 'bg-primary h-full rounded-full'
+                      }
+                      style={{
+                        width: `${Math.min(100, Math.round(((stats.org_bytes ?? 0) / stats.limit_bytes) * 100))}%`
+                      }}
+                    />
+                  </div>
+                  <p className='text-muted-foreground mt-1 text-xs tabular-nums'>
+                    {t('planStorageOf', {
+                      used: fileSize(stats.org_bytes ?? 0),
+                      limit: fileSize(stats.limit_bytes)
+                    })}
+                  </p>
+                </div>
+              ) : null}
             </div>
           </div>
           {scope.canEdit && (

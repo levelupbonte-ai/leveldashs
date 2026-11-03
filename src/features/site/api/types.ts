@@ -69,6 +69,8 @@ export type MediaKind = 'image' | 'video' | 'document';
 
 export interface MediaItem {
   id: string;
+  /** 'media' (Supabase Storage, older files) or 'r2' (Cloudflare R2). */
+  bucket: string;
   storage_path: string;
   thumb_path: string | null;
   filename: string;
@@ -108,6 +110,10 @@ export interface MediaStats {
   images: number;
   videos: number;
   documents: number;
+  /** Storage used by the whole organization (every site). */
+  org_bytes?: number | null;
+  /** Plan storage limit in bytes; null = unlimited. */
+  limit_bytes?: number | null;
 }
 
 export interface WebsiteSetting {

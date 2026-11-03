@@ -2226,7 +2226,9 @@
         "altHint": "Used when the image is shown on your website.",
         "altSaved": "Alt text saved",
         "save": "Save"
-      }
+      },
+      "planStorage": "Storage used on your plan",
+      "planStorageOf": "{used} of {limit} used (all your sites)"
     },
     "settings": {
       "settingsTab": "Settings",
