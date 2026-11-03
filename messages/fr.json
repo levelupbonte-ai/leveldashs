@@ -3128,24 +3128,22 @@
   "assistant": {
     "noAnswer": "Je n’ai pas de réponse pour le moment.",
     "title": "Assistant de {name}",
-    "intro": "Posez une question sur votre activité, demandez un texte ou de l’aide sur le tableau de bord. L’assistant ne voit jamais les coordonnées de vos clients.",
+    "intro": "Décrivez un problème, posez une question ou envoyez une capture d’écran : l’assistant regarde votre site, explique quoi faire et peut préparer la modification pour vous. Il ne voit jamais les coordonnées de vos clients.",
     "suggestions": {
-      "week": "Résume mon activité de la semaine",
-      "service": "Rédige une meilleure description pour mon service principal",
+      "week": "Résume ma semaine",
+      "service": "Écris une meilleure description pour mon service principal",
       "seo": "Propose un titre et une description Google pour mon site",
-      "team": "Comment ajouter un membre à mon équipe ?"
+      "problem": "Quelque chose ne marche pas sur mon site"
     },
     "thinking": "L’assistant réfléchit…",
     "message": "Votre message",
-    "placeholder": "Écrivez votre question…",
+    "placeholder": "Décrivez votre problème ou posez une question…",
     "send": "Envoyer",
     "remaining": "{count, plural, one {# message restant} other {# messages restants}} aujourd’hui",
-    "limit": "Limite quotidienne de l’assistant atteinte. Réessayez demain.",
-    "unavailable": "L’assistant est momentanément indisponible. Réessayez dans un instant.",
+    "limit": "Vous avez atteint la limite du jour de l’assistant. Elle se remet à zéro demain.",
+    "unavailable": "L’assistant est occupé ou indisponible pour le moment. Votre message est toujours dans la zone de saisie : réessayez dans un instant.",
     "applied": "Modification enregistrée.",
     "appliedBadge": "Appliqué",
-    "applying": "Enregistrement…",
-    "apply": "Appliquer",
     "proposal": {
       "service": "Service : {name}",
       "faq": "Nouvelle question FAQ",
@@ -3154,7 +3152,19 @@
       "priceLabel": "Prix affiché",
       "question": "Question",
       "answer": "Réponse",
-      "title": "Titre"
+      "title": "Titre",
+      "requestStatus": "Changer le statut d’une demande",
+      "appointmentStatus": "Changer le statut d’un rendez-vous",
+      "announcement": "Nouvelle annonce",
+      "support": "Ticket pour le support LevelUp",
+      "item": "Élément",
+      "change": "Changement",
+      "content": "Contenu",
+      "subject": "Objet",
+      "details": "Détails",
+      "customerMayBeNotified": "Le client peut recevoir un e-mail à propos de ce changement.",
+      "savedAsDraft": "Enregistrée en brouillon : vous la publiez depuis Annonces.",
+      "supportNote": "L’équipe LevelUp reçoit ce ticket avec le nom de votre site. Rien n’est envoyé tant que vous ne touchez pas le bouton."
     },
     "weekly": {
       "title": "Résumé de la semaine",
@@ -3164,7 +3174,53 @@
       "limit": "Limite quotidienne de l’IA atteinte. Réessayez demain.",
       "unavailable": "Le résumé est momentanément indisponible. Réessayez dans un instant."
     },
-    "refused": "Je ne peux pas partager cela. Je peux vous aider avec votre site et votre tableau de bord : que souhaitez-vous faire ?"
+    "refused": "Je ne peux pas partager cela. Je peux vous aider avec votre site et votre tableau de bord : que souhaitez-vous faire ?",
+    "can": {
+      "solve": "Trouve la cause d’un problème et vous donne les étapes pour le régler",
+      "files": "Lit les captures d’écran, photos, PDF et fichiers texte que vous joignez",
+      "actions": "Prépare des modifications et des tickets de support : rien ne se passe tant que vous ne touchez pas Autoriser"
+    },
+    "readingFiles": "Lecture de vos fichiers…",
+    "privacy": "Les fichiers sont lus une fois et jamais conservés.",
+    "signedOut": "Votre session est terminée. Reconnectez-vous, puis renvoyez votre message.",
+    "forbidden": "Votre compte ne peut pas utiliser l’assistant sur ce site. Demandez à un propriétaire de votre organisation.",
+    "authorize": "Autoriser",
+    "authorizeSend": "Envoyer à LevelUp",
+    "decline": "Refuser",
+    "declinedBadge": "Refusée",
+    "sentBadge": "Envoyé",
+    "ticketSent": "Envoyé au support LevelUp. Nous revenons vers vous.",
+    "editorsOnly": "Seuls les éditeurs, admins et propriétaires peuvent autoriser cette modification.",
+    "triageLabel": "Comment l’assistant a classé votre problème",
+    "categories": {
+      "content": "Contenu du site",
+      "bookings": "Réservations",
+      "requests": "Demandes",
+      "payments": "Paiements",
+      "billing": "Facturation",
+      "email": "E-mails",
+      "seo": "Google et SEO",
+      "website_bug": "Bug du site",
+      "account_access": "Compte et accès",
+      "other": "Autre"
+    },
+    "urgency": {
+      "low": "Faible",
+      "normal": "Normale",
+      "high": "Élevée",
+      "urgent": "Urgente"
+    },
+    "files": {
+      "attach": "Joindre une capture, une photo ou un fichier",
+      "remove": "Retirer {name}",
+      "preparing": "Préparation…",
+      "tooMany": "Joignez jusqu’à {max} fichiers par message.",
+      "type": "{name} : ce type n’est pas pris en charge. Utilisez une image, un PDF ou un fichier texte.",
+      "size": "{name} est trop volumineux. Utilisez un fichier plus léger (environ 1 Mo) ou une capture d’écran.",
+      "unreadable": "Impossible d’ouvrir {name}. Essayez un autre format (JPG ou PNG).",
+      "refused": "Non utilisés (type non autorisé) : {names}",
+      "defaultPrompt": "Regarde ce que j’ai joint et aide-moi."
+    }
   },
   "forms": {
     "selectOption": "Choisir une option",

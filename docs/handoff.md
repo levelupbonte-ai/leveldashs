@@ -144,7 +144,13 @@ functions from their own code:
   media) go to `site_audit_log` (same item, same person: once per 2 minutes).
   Client dashboard: Activity log page (owners / admins, `site_activity_log`;
   LevelUp staff show as "LevelUp"). HQ: Client activity (`hq_list_site_activity`).
-- **AI**: the client assistant is at `/dashboard/site/assistant`. HQ > AI usage
+- **AI**: the client assistant is at `/dashboard/site/assistant`. It reads up to
+  3 attached files (images resized in the browser, PDFs, text; real type checked,
+  read once by the `vision` route, never stored), classifies problems
+  (`classify_problem`) and prepares actions shown as cards with Authorize /
+  Decline: service, FAQ, SEO, request / appointment status, announcement draft,
+  and a ticket to LevelUp support (`support_tickets`, `support_ticket_create`;
+  HQ > Support). Nothing changes until the user authorizes it. HQ > AI usage
   (`hq_ai_overview`): calls per app, model and client, key health, never keys.
 - **Daily database backup** (`.github/workflows/db-backup.yml`) fails with
   "password authentication failed": the GitHub secret `SUPABASE_DB_URL` must be the

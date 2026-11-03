@@ -3128,24 +3128,22 @@
   "assistant": {
     "noAnswer": "I don’t have an answer right now.",
     "title": "{name} assistant",
-    "intro": "Ask about your business, request a text or get help with the dashboard. The assistant never sees your customers’ contact details.",
+    "intro": "Describe a problem, ask a question or send a screenshot: the assistant looks into your site, explains what to do and can prepare the change for you. It never sees your customers’ contact details.",
     "suggestions": {
       "week": "Summarize my week",
       "service": "Write a better description for my main service",
       "seo": "Suggest a Google title and description for my website",
-      "team": "How do I add a member to my team?"
+      "problem": "Something isn’t working on my website"
     },
     "thinking": "The assistant is thinking…",
     "message": "Your message",
-    "placeholder": "Type your question…",
+    "placeholder": "Describe your problem or ask a question…",
     "send": "Send",
     "remaining": "{count, plural, one {# message} other {# messages}} left today",
-    "limit": "You’ve reached today’s assistant limit. Please try again tomorrow.",
-    "unavailable": "The assistant is temporarily unavailable. Please try again in a moment.",
+    "limit": "You’ve reached today’s assistant limit. It resets tomorrow.",
+    "unavailable": "The assistant is busy or unavailable right now. Your message is still in the box: try again in a moment.",
     "applied": "Change saved.",
     "appliedBadge": "Applied",
-    "applying": "Saving…",
-    "apply": "Apply",
     "proposal": {
       "service": "Service: {name}",
       "faq": "New FAQ question",
@@ -3154,7 +3152,19 @@
       "priceLabel": "Displayed price",
       "question": "Question",
       "answer": "Answer",
-      "title": "Title"
+      "title": "Title",
+      "requestStatus": "Change a request’s status",
+      "appointmentStatus": "Change an appointment’s status",
+      "announcement": "New announcement",
+      "support": "Ticket for LevelUp support",
+      "item": "Item",
+      "change": "Change",
+      "content": "Content",
+      "subject": "Subject",
+      "details": "Details",
+      "customerMayBeNotified": "The customer may receive an e-mail about this change.",
+      "savedAsDraft": "Saved as a draft: you publish it from Announcements.",
+      "supportNote": "The LevelUp team receives this ticket with your website name. Nothing is sent until you tap the button."
     },
     "weekly": {
       "title": "This week",
@@ -3164,7 +3174,53 @@
       "limit": "You’ve reached today’s AI limit. Please try again tomorrow.",
       "unavailable": "The summary is temporarily unavailable. Please try again in a moment."
     },
-    "refused": "I can’t share that. I can help you with your website and your dashboard: what would you like to do?"
+    "refused": "I can’t share that. I can help you with your website and your dashboard: what would you like to do?",
+    "can": {
+      "solve": "Finds the cause of a problem and gives you the steps to fix it",
+      "files": "Reads screenshots, photos, PDFs and text files you attach",
+      "actions": "Prepares changes and support tickets: nothing happens until you tap Authorize"
+    },
+    "readingFiles": "Reading your files…",
+    "privacy": "Files are read once and never stored.",
+    "signedOut": "Your session has ended. Sign in again, then resend your message.",
+    "forbidden": "Your account can’t use the assistant on this website. Ask an owner of your organization.",
+    "authorize": "Authorize",
+    "authorizeSend": "Send to LevelUp",
+    "decline": "Decline",
+    "declinedBadge": "Declined",
+    "sentBadge": "Sent",
+    "ticketSent": "Sent to LevelUp support. We’ll get back to you.",
+    "editorsOnly": "Only editors, admins and owners can authorize this change.",
+    "triageLabel": "How the assistant classified your problem",
+    "categories": {
+      "content": "Website content",
+      "bookings": "Bookings",
+      "requests": "Requests",
+      "payments": "Payments",
+      "billing": "Billing",
+      "email": "E-mails",
+      "seo": "Google & SEO",
+      "website_bug": "Website bug",
+      "account_access": "Account & access",
+      "other": "Other"
+    },
+    "urgency": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "files": {
+      "attach": "Attach a screenshot, photo or file",
+      "remove": "Remove {name}",
+      "preparing": "Preparing…",
+      "tooMany": "Attach up to {max} files per message.",
+      "type": "{name}: this type isn’t supported. Use an image, a PDF or a text file.",
+      "size": "{name} is too large. Use a smaller file (about 1 MB) or a screenshot.",
+      "unreadable": "{name} couldn’t be opened. Try another format (JPG or PNG).",
+      "refused": "Not used (type not allowed): {names}",
+      "defaultPrompt": "Look at what I attached and help me."
+    }
   },
   "forms": {
     "selectOption": "Select an option",
