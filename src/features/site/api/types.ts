@@ -114,6 +114,8 @@ export interface MediaStats {
   org_bytes?: number | null;
   /** Plan storage limit in bytes; null = unlimited. */
   limit_bytes?: number | null;
+  /** Kinds this client may upload (set by LevelUp): 'image' | 'video' | 'document'. */
+  allowed_kinds?: string[];
 }
 
 export interface WebsiteSetting {

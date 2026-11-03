@@ -64,6 +64,7 @@ export async function POST(request: NextRequest) {
         { status: 402 }
       );
     }
+    if (error.message === 'media_kind_not_allowed') return errorResponse(403, 'kind_not_allowed');
     const code =
       error.code === 'PT429'
         ? 'rate_limited'

@@ -908,7 +908,8 @@
     "buttonIncomplete": "A button needs both a label and a link.",
     "invalidImage": "Choose an image from your media library.",
     "emailSendFailed": "The email could not be sent. Try again in a moment.",
-    "emailNotConfigured": "Sending emails is not available yet. LevelUp is setting it up."
+    "emailNotConfigured": "Sending emails is not available yet. LevelUp is setting it up.",
+    "mediaKindNotAllowed": "Videos are not turned on for your account yet. Ask LevelUp to enable them."
   },
   "workspaces": {
     "title": "Organizations",
@@ -2228,7 +2229,8 @@
         "save": "Save"
       },
       "planStorage": "Storage used on your plan",
-      "planStorageOf": "{used} of {limit} used (all your sites)"
+      "planStorageOf": "{used} of {limit} used (all your sites)",
+      "videosOff": "Videos are not turned on for your account: ask LevelUp to enable them."
     },
     "settings": {
       "settingsTab": "Settings",

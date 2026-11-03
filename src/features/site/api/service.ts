@@ -54,6 +54,9 @@ export interface SiteScope {
 // reaches the screen.
 function fail(error: { message: string; code?: string; details?: string | null } | null): never {
   const code = error?.code;
+  if (error?.message === 'media_kind_not_allowed') {
+    throw new AppError('mediaKindNotAllowed', { cause: error });
+  }
   // Plan storage limit (media_mb): "Your plan allows N MB … Upgrade".
   const limit = planLimitFromDb(error);
   if (limit) throw new PlanLimitError(limit, { cause: error });
@@ -400,6 +403,7 @@ export async function uploadMedia(
     } | null;
     if (!res?.ok || !booked?.path || !booked.url) {
       if (booked?.db) fail(booked.db);
+      if (booked?.error === 'kind_not_allowed') throw new AppError('mediaKindNotAllowed');
       if (booked?.error === 'rate_limited') throw new AppError('rateLimited');
       if (booked?.error === 'forbidden') throw new AppError('forbidden');
       throw new AppError('uploadForbidden');

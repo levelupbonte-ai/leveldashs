@@ -908,7 +908,8 @@
     "buttonIncomplete": "Un bouton a besoin d’un libellé et d’un lien.",
     "invalidImage": "Choisissez une image de votre médiathèque.",
     "emailSendFailed": "L’e-mail n’a pas pu être envoyé. Réessayez dans un instant.",
-    "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place."
+    "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place.",
+    "mediaKindNotAllowed": "Les vidéos ne sont pas encore activées pour votre compte. Demandez à LevelUp de les activer."
   },
   "workspaces": {
     "title": "Organisations",
@@ -2228,7 +2229,8 @@
         "save": "Enregistrer"
       },
       "planStorage": "Espace utilisé sur votre forfait",
-      "planStorageOf": "{used} utilisés sur {limit} (tous vos sites)"
+      "planStorageOf": "{used} utilisés sur {limit} (tous vos sites)",
+      "videosOff": "Les vidéos ne sont pas activées pour votre compte : demandez à LevelUp de les activer."
     },
     "settings": {
       "settingsTab": "Paramètres",

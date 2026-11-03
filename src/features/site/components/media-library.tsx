@@ -90,6 +90,11 @@ function FileIcon({ mime, className }: { mime: string; className?: string }) {
  * (never a bucket listing), search and type filters in the URL, browser-side
  * optimization on upload, thumbnails in the grid, details sheet with alt text.
  */
+/** 'image' | 'video' | 'document' from a MIME type (same rule as the database). */
+function mediaKind(type: string): string {
+  return type.startsWith('image/') ? 'image' : type.startsWith('video/') ? 'video' : 'document';
+}
+
 export function MediaLibrary() {
   const scope = useSiteScope();
   const db = createClient();
@@ -124,6 +129,7 @@ export function MediaLibrary() {
   const tc = useTranslations('site.content');
   const fileSize = useFileSize();
   const format = useFormatter();
+  const allowedKinds = stats.allowed_kinds ?? ['image', 'document'];
 
   // Debounced search: the URL (and the query key) change 300 ms after typing.
   useEffect(() => {
@@ -136,7 +142,12 @@ export function MediaLibrary() {
     disabled: !scope.canEdit,
     noClick: true,
     maxSize: MEDIA_IMAGE_INPUT_MAX_BYTES,
-    accept: Object.fromEntries(Object.keys(MEDIA_TYPES).map((type) => [type, []])),
+    // Only the kinds LevelUp allows for this client (videos are turned on in HQ).
+    accept: Object.fromEntries(
+      Object.keys(MEDIA_TYPES)
+        .filter((type) => allowedKinds.includes(mediaKind(type)))
+        .map((type) => [type, []])
+    ),
     onDropRejected: () => toast.error(t('rejected')),
     onDropAccepted: async (files) => {
       setUploading((n) => n + files.length);
@@ -196,6 +207,9 @@ export function MediaLibrary() {
                   documents: stats.documents
                 })}
               </p>
+              {!allowedKinds.includes('video') && (
+                <p className='text-muted-foreground mt-1 text-xs'>{t('videosOff')}</p>
+              )}
               {stats.limit_bytes ? (
                 <div className='mt-2 w-56 max-w-full'>
                   <div
