@@ -13,6 +13,36 @@ const HOOK_SECRET = process.env.SEND_EMAIL_HOOK_SECRET ?? '';
 const RESEND_API_KEY = process.env.RESEND_API_KEY ?? '';
 const FROM = process.env.AUTH_EMAIL_FROM || 'LevelUp Ecosystem <account@levelup-ecosystem.com>';
 const APP_URL = 'https://dashboard.levelup-ecosystem.com';
+// LevelUp HQ (internal admin, levelupbonte-ai/leveldashbord) shares this Supabase
+// project: its sign-in and invitation links must come back to HQ, where the
+// PKCE verifier lives. HQ_APP_URL (https origin) adds a custom HQ domain.
+const HQ_ORIGINS = new Set(
+  [
+    'https://hq.levelup-ecosystem.com',
+    'https://leveldashbord.vercel.app',
+    process.env.HQ_APP_URL ?? ''
+  ]
+    .map((u) => {
+      try {
+        const url = new URL(u);
+        return url.protocol === 'https:' ? url.origin : '';
+      } catch {
+        return '';
+      }
+    })
+    .filter(Boolean)
+);
+
+/** Origin the e-mail button opens: HQ for HQ sign-ins, the dashboard otherwise. */
+function linkOrigin(redirectTo: string | undefined): string {
+  try {
+    const url = redirectTo ? new URL(redirectTo) : null;
+    if (url && HQ_ORIGINS.has(url.origin) && url.pathname === '/auth/callback') return url.origin;
+  } catch {
+    /* dashboard */
+  }
+  return APP_URL;
+}
 const TOLERANCE_SECONDS = 5 * 60;
 
 // Signed by Supabase, still validated: bounded strings only.
@@ -60,7 +90,10 @@ function destination(redirectTo: string | undefined): string {
   if (!redirectTo) return '/dashboard/site';
   try {
     const url = new URL(redirectTo);
-    if (url.origin === APP_URL && url.pathname === '/auth/callback') {
+    if (
+      (url.origin === APP_URL || HQ_ORIGINS.has(url.origin)) &&
+      url.pathname === '/auth/callback'
+    ) {
       return safeNext(url.searchParams.get('next'));
     }
   } catch {
@@ -88,12 +121,17 @@ const VERIFY_TYPE: Record<string, string> = {
   email_change: 'email_change'
 };
 
-function link(type: string, tokenHash: string | undefined, next: string): string | undefined {
+function link(
+  type: string,
+  tokenHash: string | undefined,
+  next: string,
+  origin: string = APP_URL
+): string | undefined {
   const verifyType = VERIFY_TYPE[type];
   // PKCE flows (the dashboard's) send hashes prefixed with "pkce_".
   if (!verifyType || !tokenHash || !/^(pkce_)?[A-Za-z0-9_-]{16,256}$/.test(tokenHash))
     return undefined;
-  const url = new URL('/auth/callback', APP_URL);
+  const url = new URL('/auth/callback', origin);
   url.searchParams.set('token_hash', tokenHash);
   url.searchParams.set('type', verifyType);
   url.searchParams.set('next', next);
@@ -174,7 +212,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       await send(user.email, type, {
-        link: link(type, data.token_hash, next),
+        link: link(type, data.token_hash, next, linkOrigin(data.redirect_to)),
         code: type === 'reauthentication' ? data.token : undefined,
         locale
       });

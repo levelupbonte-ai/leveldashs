@@ -24,23 +24,25 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession | nu
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [profileRes, adminRes, membershipRes] = await Promise.all([
+  const [profileRes, membershipRes] = await Promise.all([
     supabase.from('profiles').select('full_name, avatar_url').eq('id', user.id).maybeSingle(),
-    supabase.from('platform_admins').select('user_id').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('organization_members')
       .select('role, organizations (id, name, slug, status)')
       .eq('user_id', user.id)
   ]);
 
-  const isPlatformAdmin = !!adminRes.data;
+  // All LevelUp admin work happens in HQ (levelupbonte-ai/leveldashbord). Here a
+  // LevelUp admin is a normal member of their own organizations: no staff
+  // pages, no other clients, no admin wording. RLS still decides every read.
+  const isPlatformAdmin = false;
   const roles = new Map<string, OrgRole>();
   for (const row of membershipRes.data ?? []) {
     const org = row.organizations as unknown as { id: string } | null;
     if (org) roles.set(org.id, row.role as OrgRole);
   }
 
-  // Platform admins see every organization (RLS allows it); members see theirs.
+  // Members see their organizations only.
   const orgQuery = supabase
     .from('organizations')
     .select('id, name, slug, logo_url')

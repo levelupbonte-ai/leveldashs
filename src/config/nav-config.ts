@@ -17,8 +17,8 @@ import { NavGroup } from '@/types';
  * - `hasContracts`: only once LevelUp sent the organization a contract
  *
  * `label` / `title` are keys of the `nav.groups` / `nav.items` messages (see
- * docs/i18n.md). LevelUp staff entries are not here: they come from
- * `src/config/admin-nav.ts` (server-only), so client bundles never list them.
+ * docs/i18n.md). LevelUp staff work lives in HQ (levelupbonte-ai/leveldashbord),
+ * never in this dashboard.
  */
 export const navGroups: NavGroup[] = [
   {
