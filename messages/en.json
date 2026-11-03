@@ -2625,7 +2625,9 @@
       "countriesTitle": "Visitors by country",
       "countriesDescription": "Where your visitors come from. Only the country is counted: never an address or anything that identifies a person.",
       "countriesEmpty": "No country yet: it appears with the next visits.",
-      "visitorsCount": "{count, plural, one {# visitor} other {# visitors}}"
+      "visitorsCount": "{count, plural, one {# visitor} other {# visitors}}",
+      "mapViews": "Page views",
+      "mapShare": "{percent}% of your visitors"
     },
     "payments": {
       "emptyTitle": "No payment yet",

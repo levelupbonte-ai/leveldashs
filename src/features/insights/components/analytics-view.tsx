@@ -182,10 +182,12 @@ export function AnalyticsView() {
                 <WorldMap
                   items={countries.map((c) => ({
                     country: c.country,
-                    value: c.visitors || c.views
+                    value: c.visitors || c.views,
+                    details: [{ label: t('mapViews'), value: format.number(c.views) }]
                   }))}
                   label={t('countriesTitle')}
                   valueLabel={(v) => t('visitorsCount', { count: v })}
+                  shareLabel={(percent) => t('mapShare', { percent })}
                 />
                 <RankedList
                   items={countries.slice(0, 8).map((c) => ({
