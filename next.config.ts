@@ -7,7 +7,9 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const isProd = process.env.NODE_ENV === 'production';
-const SUPABASE = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rncuhmvykrmtxfzqpitc.supabase.co')
+const SUPABASE = (
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rncuhmvykrmtxfzqpitc.supabase.co'
+)
   .trim()
   .replace(/\/$/, '');
 
@@ -19,9 +21,10 @@ const SUPABASE = (process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rncuhmvykrmtx
  *   Pwned Passwords, Vercel Analytics). Browsers log violations in the console;
  *   once a production week shows none, move it to the enforced header.
  */
-function contentSecurityPolicy(): { enforced: string; reportOnly: string } {
+function contentSecurityPolicy(framable = false): { enforced: string; reportOnly: string } {
   const enforced = [
-    "frame-ancestors 'none'",
+    // Embedded forms: frame-ancestors comes from the proxy, per form (allowed sites).
+    ...(framable ? [] : ["frame-ancestors 'none'"]),
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -46,13 +49,14 @@ function contentSecurityPolicy(): { enforced: string; reportOnly: string } {
   return { enforced: enforced.join('; '), reportOnly: full.join('; ') };
 }
 
-function securityHeaders() {
-  const csp = contentSecurityPolicy();
+function securityHeaders(framable = false) {
+  const csp = contentSecurityPolicy(framable);
   return [
-    { key: 'Content-Security-Policy', value: csp.enforced },
+    // Embedded forms get their enforced policy from the proxy (frame-ancestors per form).
+    ...(framable ? [] : [{ key: 'Content-Security-Policy', value: csp.enforced }]),
     { key: 'Content-Security-Policy-Report-Only', value: csp.reportOnly },
-    // Legacy twin of frame-ancestors 'none'.
-    { key: 'X-Frame-Options', value: 'DENY' },
+    // Legacy twin of frame-ancestors 'none' (not on embedded forms).
+    ...(framable ? [] : [{ key: 'X-Frame-Options', value: 'DENY' }]),
     { key: 'X-Content-Type-Options', value: 'nosniff' },
     { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
     // Google's sign-in popup must keep a handle on this window.
@@ -88,7 +92,12 @@ const baseConfig: NextConfig = {
   transpilePackages: ['geist'],
   poweredByHeader: false,
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders() }];
+    return [
+      // Every page refuses to be framed, except an embedded form
+      // (/f/<id>/embed), framed only by the sites its owner allows.
+      { source: '/((?!f/f[a-z0-9]{10}/embed$).*)', headers: securityHeaders() },
+      { source: '/f/:id/embed', headers: securityHeaders(true) }
+    ];
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production'

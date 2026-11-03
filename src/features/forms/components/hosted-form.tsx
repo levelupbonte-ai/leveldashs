@@ -1,6 +1,6 @@
 'use client';
 import { useTranslations } from 'next-intl';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icons } from '@/components/icons';
 import { TurnstileWidget, type TurnstileHandle } from '@/features/auth/components/turnstile';
 import { cn } from '@/lib/utils';
@@ -10,14 +10,46 @@ import { prepareUpload } from '../lib/prepare-upload';
 import { toPayload } from '../lib/fields';
 import { FormRenderer, formTheme, type SubmitResult } from './form-renderer';
 
-/** The hosted LevelUp form page (/f/[id]): the client's form, LevelUp's secure page. */
-export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boolean }) {
+/** Messages to the page that embeds the form (forms/embed.js, the LevelUp tag). */
+function tellParent(message: Record<string, unknown>) {
+  if (window.parent === window) return;
+  // Height and "sent" only: nothing private, so any embedding page may read it.
+  window.parent.postMessage({ source: 'levelup-form', ...message }, '*');
+}
+
+/**
+ * The hosted LevelUp form page (/f/[id]): the client's form, LevelUp's secure
+ * page. `embed`: shown inside the client's website (no page background, height
+ * sent to the embedding page, redirect done by that page).
+ */
+export function HostedForm({
+  form,
+  captcha,
+  embed
+}: {
+  form: PublicForm;
+  captcha: boolean;
+  embed?: boolean;
+}) {
   const t = useTranslations('siteForms.public');
   const theme = formTheme(form.settings);
   const [token, setToken] = useState<string | null>(null);
   const widget = useRef<TurnstileHandle>(null);
   const [openedAt] = useState(() => Date.now());
   const honeypot = useRef<HTMLInputElement>(null);
+  const root = useRef<HTMLElement>(null);
+
+  // Embedded: keep the iframe exactly as tall as the form.
+  useEffect(() => {
+    if (!embed || !root.current) return;
+    const el = root.current;
+    const send = () =>
+      tellParent({ type: 'height', form: form.public_id, height: Math.ceil(el.scrollHeight) });
+    const observer = new ResizeObserver(send);
+    observer.observe(el);
+    send();
+    return () => observer.disconnect();
+  }, [embed, form.public_id]);
 
   /** Books a private path for the file, then sends it straight to storage. */
   async function upload(
@@ -74,7 +106,16 @@ export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boole
         error?: string;
         field?: string;
       };
-      if (res.ok && body.ok) return { ok: true, ticket: body.ticket };
+      if (res.ok && body.ok) {
+        if (embed) {
+          tellParent({
+            type: 'sent',
+            form: form.public_id,
+            redirect: form.settings.redirect_url ?? null
+          });
+        }
+        return { ok: true, ticket: body.ticket };
+      }
       widget.current?.reset();
       if (body.error === 'invalid') return { ok: false, error: 'invalid', field: body.field };
       if (body.error === 'limit') return { ok: false, error: 'limit' };
@@ -87,8 +128,14 @@ export function HostedForm({ form, captcha }: { form: PublicForm; captcha: boole
   }
 
   return (
-    <main className={cn('flex min-h-dvh flex-col items-center px-4 py-8 sm:py-14', theme.page)}>
-      <div className={cn('w-full', theme.maxWidth)}>
+    <main
+      ref={root}
+      className={cn(
+        'flex flex-col items-center',
+        embed ? 'bg-transparent p-1' : cn('min-h-dvh px-4 py-8 sm:py-14', theme.page)
+      )}
+    >
+      <div className={cn('w-full', embed ? 'max-w-none' : theme.maxWidth)}>
         <FormRenderer
           form={form}
           onSubmit={submit}
