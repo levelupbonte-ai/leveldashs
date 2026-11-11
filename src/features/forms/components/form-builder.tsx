@@ -686,7 +686,13 @@ export function FormBuilder({
           </TabsContent>
 
           <TabsContent value='share' className='mt-4'>
-            <ShareForm publicId={publicId} published={form.status === 'published' && !dirty} />
+            <ShareForm
+              publicId={publicId}
+              published={form.status === 'published' && !dirty}
+              origins={form.settings.embed_origins}
+              onOrigins={(embed_origins) => setSettings({ embed_origins })}
+              canEdit={canEdit}
+            />
           </TabsContent>
 
           <TabsContent value='preview' className='mt-4 lg:hidden'>

@@ -198,9 +198,16 @@ functions from their own code:
   application with CV, feedback, photo request, order, survey) and look options
   (font, plain layout, width, button style, cover image).
 - Hosted form pages read the form at most every 30 s per server instance.
-- Next lots: embed in the client's site through the LevelUp tag
-  (`data-lu-embed`), confirmation e-mails, file uploads, multi-step, custom
-  domain.
+- Lot 3 (2026-11-04, `20261104140000_form_embed`): the form inside the
+  client's own page. `<div data-lu-embed="f…"></div>` plus
+  `https://dashboard.levelup-ecosystem.com/forms/embed.js` (or just the div on
+  sites with LevelUp tag 1.4.0+) becomes an iframe of `/f/<id>/embed`, sized
+  by postMessage; a configured thank-you page opens in the host page. Only the
+  sites in `settings.embed_origins` (default: the website's allowed origins and
+  primary domain) may frame it: the proxy sets `frame-ancestors` from
+  `public_form_embed_origins` (cached 60 s); every other page keeps
+  `frame-ancestors 'none'` and `X-Frame-Options: DENY`.
+- Next lots: confirmation e-mails, multi-step forms, custom domain.
 
 ## 6. Open items
 

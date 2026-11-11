@@ -66,6 +66,8 @@ export interface FormSettings {
   layout?: 'card' | 'plain';
   width?: 'narrow' | 'wide';
   button?: 'solid' | 'outline' | 'pill';
+  /** https origins that may show the form inside their pages (default: the website's own). */
+  embed_origins?: string[];
 }
 
 export const FORM_TYPES = [
