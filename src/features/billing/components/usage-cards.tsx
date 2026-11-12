@@ -38,70 +38,73 @@ export function LimitMeters({ usage }: { usage: UsageMeter[] }) {
           <p className='text-muted-foreground text-sm'>{t('none')}</p>
         ) : (
           <ul className='space-y-5'>
-            {usage.map((m) => {
-              // Websites are set up by LevelUp: using all of them is normal, only more is flagged.
-              const state =
-                m.key === 'websites' && m.limit !== null && m.used <= m.limit
-                  ? 'ok'
-                  : meterState(m.used, m.limit);
-              const percent = meterPercent(m.used, m.limit);
-              const Icon = LIMIT_ICON[m.key];
-              return (
-                <li key={m.key} className='space-y-2'>
-                  <div className='flex items-center justify-between gap-3 text-sm'>
-                    <span className='flex min-w-0 items-center gap-2 font-medium'>
-                      <Icon className='text-muted-foreground size-4 shrink-0' aria-hidden />
-                      <span className='truncate'>{t(m.key)}</span>
-                    </span>
-                    <span className='shrink-0 tabular-nums'>
-                      {m.limit === null
-                        ? `${value(m.key, m.used)} · ${t('unlimited')}`
-                        : t('of', {
-                            used: value(m.key, m.used),
-                            limit: value(m.key, m.limit)
-                          })}
-                    </span>
-                  </div>
-                  {m.limit !== null && (
-                    <div
-                      role='progressbar'
-                      aria-label={t(m.key)}
-                      aria-valuemin={0}
-                      aria-valuemax={100}
-                      aria-valuenow={percent}
-                      className='bg-muted h-2 overflow-hidden rounded-full'
-                    >
-                      <div
-                        className={cn(
-                          'h-full rounded-full transition-all',
-                          state === 'reached'
-                            ? 'bg-destructive'
-                            : state === 'near'
-                              ? 'bg-amber-500'
-                              : 'bg-primary'
-                        )}
-                        style={{
-                          width: `${Math.max(percent, m.used > 0 ? 2 : 0)}%`
-                        }}
-                      />
+            {/* Storage is shown as used space (UsagePanel), never against a promised number. */}
+            {usage
+              .filter((m) => m.key !== 'media_mb')
+              .map((m) => {
+                // Websites are set up by LevelUp: using all of them is normal, only more is flagged.
+                const state =
+                  m.key === 'websites' && m.limit !== null && m.used <= m.limit
+                    ? 'ok'
+                    : meterState(m.used, m.limit);
+                const percent = meterPercent(m.used, m.limit);
+                const Icon = LIMIT_ICON[m.key];
+                return (
+                  <li key={m.key} className='space-y-2'>
+                    <div className='flex items-center justify-between gap-3 text-sm'>
+                      <span className='flex min-w-0 items-center gap-2 font-medium'>
+                        <Icon className='text-muted-foreground size-4 shrink-0' aria-hidden />
+                        <span className='truncate'>{t(m.key)}</span>
+                      </span>
+                      <span className='shrink-0 tabular-nums'>
+                        {m.limit === null
+                          ? `${value(m.key, m.used)} · ${t('unlimited')}`
+                          : t('of', {
+                              used: value(m.key, m.used),
+                              limit: value(m.key, m.limit)
+                            })}
+                      </span>
                     </div>
-                  )}
-                  {state !== 'ok' && (
-                    <p
-                      className={cn(
-                        'flex items-center gap-1 text-xs',
-                        state === 'reached'
-                          ? 'text-destructive'
-                          : 'text-amber-700 dark:text-amber-300'
-                      )}
-                    >
-                      <Icons.alertCircle className='size-3.5' aria-hidden />
-                      {state === 'reached' ? t('reached') : t('near')}
-                    </p>
-                  )}
-                </li>
-              );
-            })}
+                    {m.limit !== null && (
+                      <div
+                        role='progressbar'
+                        aria-label={t(m.key)}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={percent}
+                        className='bg-muted h-2 overflow-hidden rounded-full'
+                      >
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            state === 'reached'
+                              ? 'bg-destructive'
+                              : state === 'near'
+                                ? 'bg-amber-500'
+                                : 'bg-primary'
+                          )}
+                          style={{
+                            width: `${Math.max(percent, m.used > 0 ? 2 : 0)}%`
+                          }}
+                        />
+                      </div>
+                    )}
+                    {state !== 'ok' && (
+                      <p
+                        className={cn(
+                          'flex items-center gap-1 text-xs',
+                          state === 'reached'
+                            ? 'text-destructive'
+                            : 'text-amber-700 dark:text-amber-300'
+                        )}
+                      >
+                        <Icons.alertCircle className='size-3.5' aria-hidden />
+                        {state === 'reached' ? t('reached') : t('near')}
+                      </p>
+                    )}
+                  </li>
+                );
+              })}
           </ul>
         )}
       </CardContent>
