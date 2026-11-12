@@ -138,6 +138,8 @@ export interface PortalKnowledgeNote {
 export interface PortalAssistant {
   enabled: boolean;
   daily: number;
+  /** Images per member per day: [base, plan 1, plan 2, plan 3]. */
+  images: number[];
   questions_today: number;
   questions_month: number;
   handoffs_open: number;
@@ -148,6 +150,8 @@ export interface PortalAssistant {
 export interface PortalProfile {
   profile: Record<string, unknown> | null;
   updated_at: string | null;
+  /** What the member wrote about their project. */
+  note: string | null;
 }
 
 /** What the publish form sends (validated again by portal_admin_publish). */

@@ -197,6 +197,8 @@ export function AssistantPanel() {
   );
 }
 
+const IMAGE_LEVELS = ['base', 'plan1', 'plan2', 'plan3'] as const;
+
 function SettingsCard({ data }: { data: PortalAssistant }) {
   const scope = useSiteScope();
   const t = useTranslations('clientPortal.assistant');
@@ -211,20 +213,31 @@ function SettingsCard({ data }: { data: PortalAssistant }) {
         daily: z
           .string()
           .regex(/^\d{1,3}$/, tv('invalid'))
-          .refine((v) => Number(v) >= 1 && Number(v) <= 200, t('dailyInvalid'))
+          .refine((v) => Number(v) >= 1 && Number(v) <= 200, t('dailyInvalid')),
+        images: z.array(
+          z
+            .string()
+            .regex(/^\d{1,2}$/, tv('invalid'))
+            .refine((v) => Number(v) <= 50, t('imagesInvalid'))
+        )
       }),
     [t, tv]
   );
 
   const form = useAppForm({
-    defaultValues: { enabled: data.enabled, daily: String(data.daily) },
+    defaultValues: {
+      enabled: data.enabled,
+      daily: String(data.daily),
+      images: IMAGE_LEVELS.map((_, i) => String(data.images?.[i] ?? 0))
+    },
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       const v = schema.parse(value);
       try {
         await savePortalAssistantSettings(createClient(), scope.websiteId, {
           enabled: v.enabled,
-          daily: Number(v.daily)
+          daily: Number(v.daily),
+          images: v.images.map(Number)
         });
         toast.success(t('saved'));
         void queryClient.invalidateQueries({ queryKey: portalKeys.assistant(scope.websiteId) });
@@ -284,6 +297,27 @@ function SettingsCard({ data }: { data: PortalAssistant }) {
               )}
             />
           </FieldGroup>
+          <fieldset className='space-y-2'>
+            <legend className='text-sm font-medium'>{t('images')}</legend>
+            <p className='text-muted-foreground text-sm'>{t('imagesHint')}</p>
+            <div className='grid grid-cols-2 gap-3 sm:grid-cols-4'>
+              {IMAGE_LEVELS.map((level, i) => (
+                <form.AppField
+                  key={level}
+                  name={`images[${i}]`}
+                  children={(field) => (
+                    <field.TextField
+                      label={t(`imageLevels.${level}`)}
+                      inputMode='numeric'
+                      maxLength={2}
+                      showCount={false}
+                      disabled={!scope.canEdit}
+                    />
+                  )}
+                />
+              ))}
+            </div>
+          </fieldset>
           {scope.canEdit && (
             <form.AppForm>
               <form.SubmitButton>{t('save')}</form.SubmitButton>

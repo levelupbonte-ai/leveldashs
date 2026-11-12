@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from 'next/server';
 import * as z from 'zod';
 import { createAnonClient } from '@/lib/supabase/anon';
 import { readJsonBody } from '@/lib/validation/http';
-import { answerQuestion, prepareHandoff } from '@/features/client-portal/server/assistant';
+import {
+  answerQuestion,
+  parseImage,
+  prepareHandoff
+} from '@/features/client-portal/server/assistant';
 import type { AssistantContext } from '@/features/client-portal/server/assistant-prompt';
 
 // Members' AI assistant of a client portal, called by the client website's
@@ -10,7 +14,8 @@ import type { AssistantContext } from '@/features/client-portal/server/assistant
 // member's portal session. The database checks both, the membership and the
 // daily quota (portal_ai_begin); the AI keys never leave LevelUp.
 //
-//   POST { action: 'ask', session, question }       -> { answer }
+//   POST { action: 'ask', session, question, images?, site? } -> { answer }
+//   (images are read once by the AI and never stored; only their count is kept)
 //   POST { action: 'handoff', session, questionId }  -> { ok, id }
 
 export const maxDuration = 60;
@@ -22,7 +27,17 @@ const Body = z.discriminatedUnion('action', [
   z.strictObject({
     action: z.literal('ask'),
     session: SESSION,
-    question: z.string().trim().min(1).max(2000)
+    question: z.string().trim().min(1).max(2000),
+    /** Read once by the AI, never stored. JPEG / PNG / WebP data URLs. */
+    images: z.array(z.string().max(1_400_000)).max(3).optional(),
+    /** From the website's server: how its app works, the dossier in words. */
+    site: z
+      .strictObject({
+        guide: z.string().max(6000).optional(),
+        dossier: z.string().max(8000).optional()
+      })
+      .optional(),
+    lang: z.enum(['en', 'fr']).optional()
   }),
   z.strictObject({
     action: z.literal('handoff'),
@@ -37,6 +52,7 @@ const STATUS: Record<string, [number, string]> = {
   PT403: [403, 'forbidden'],
   PT404: [404, 'not_found'],
   PT429: [429, 'rate_limited'],
+  PT431: [429, 'image_limit'],
   '22023': [400, 'invalid_request']
 };
 
@@ -52,22 +68,32 @@ export async function POST(request: NextRequest) {
   const key = request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '';
   if (!KEY.test(key)) return json(401, { error: 'unauthorized' });
   // Server-to-server: no browser origin to check; the key and session are the proof.
-  const parsed = await readJsonBody(request, Body, { maxBytes: 8 * 1024, allowCrossOrigin: true });
+  const parsed = await readJsonBody(request, Body, {
+    maxBytes: 4_300_000,
+    allowCrossOrigin: true
+  });
   if (!parsed.ok) return parsed.response;
   const body = parsed.data;
   const db = createAnonClient();
 
   if (body.action === 'ask') {
+    const images = (body.images ?? []).map(parseImage);
+    if (images.some((i) => !i)) return json(400, { error: 'invalid_request' });
     const begin = await db.rpc('portal_ai_begin', {
       p_key: key,
       p_session: body.session,
-      p_question: body.question
+      p_question: body.question,
+      p_images: images.length
     });
     if (begin.error) return dbError(begin.error);
     const ctx = begin.data as AssistantContext;
     let answer: { text: string; sources: { url: string; title: string }[] };
     try {
-      answer = await answerQuestion(ctx);
+      answer = await answerQuestion(
+        ctx,
+        body.site ?? {},
+        images.filter((i) => i !== null)
+      );
       if (!answer.text) throw new Error('empty');
     } catch {
       // Withdraw the question so it does not count against the member's quota.

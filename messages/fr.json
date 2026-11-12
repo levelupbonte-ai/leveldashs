@@ -4159,12 +4159,22 @@
         "emptyTitle": "Aucune note pour l’instant",
         "emptyDescription": "Ajoutez vos conseils pour que l’assistant réponde comme vous le feriez."
       },
-      "transparency": "Les membres voient toujours que les réponses viennent d’un assistant IA, avec les sources et leurs dates. Vos réponses aux questions transmises sont marquées comme validées par vous."
+      "transparency": "Les membres voient toujours que les réponses viennent d’un assistant IA, avec les sources et leurs dates. Vos réponses aux questions transmises sont marquées comme validées par vous.",
+      "images": "Images par membre et par jour",
+      "imagesHint": "Les membres peuvent joindre des photos de leurs documents à une question. L’IA les lit une seule fois : elles ne sont jamais enregistrées, elles restent sur le téléphone du membre.",
+      "imagesInvalid": "Entre 0 et 50.",
+      "imageLevels": {
+        "base": "Adhésion",
+        "plan1": "Forfait 1",
+        "plan2": "Forfait 2",
+        "plan3": "Forfait 3"
+      }
     },
     "profile": {
       "title": "Dossier du membre",
       "empty": "Pas encore de dossier : le membre n’a pas rempli le questionnaire du site.",
-      "updated": "Rempli le {date}"
+      "updated": "Rempli le {date}",
+      "note": "Avec ses mots"
     }
   },
   "siteForms": {
