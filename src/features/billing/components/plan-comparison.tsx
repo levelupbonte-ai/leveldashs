@@ -30,7 +30,7 @@ import { cn } from '@/lib/utils';
 import { billingKeys } from '../api/queries';
 import { requestPlanUpgrade } from '../api/service';
 import { LIMIT_KEYS, type BillingSummary, type PlanSummary } from '../api/types';
-import { formatMoney, storageParts } from '../lib/format';
+import { formatMoney } from '../lib/format';
 import { taglineFor } from './plan-card';
 
 /** Plan cards with limits and features. "Upgrade" asks LevelUp; it is not a payment. */
@@ -47,11 +47,9 @@ export function PlanComparison({
   const currentIndex = summary.plans.findIndex((p) => p.key === summary.plan.key);
 
   const limitValue = (key: (typeof LIMIT_KEYS)[number], v: number | null | undefined) => {
+    // Storage is never promised as a number: LevelUp sizes it to each client.
+    if (key === 'media_mb') return t('limits.storageIncluded');
     if (v === null || v === undefined) return t('limits.unlimited');
-    if (key === 'media_mb') {
-      const s = storageParts(v * 1048576);
-      return `${format.number(s.value)} ${s.unit}`;
-    }
     return format.number(v);
   };
 

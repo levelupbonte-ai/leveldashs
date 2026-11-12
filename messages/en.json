@@ -1005,14 +1005,15 @@
       "description": "What your plan includes and how much of it you use.",
       "team_members": "Team members",
       "assistant_requests_month": "Assistant requests this month",
-      "media_mb": "Media storage",
+      "media_mb": "Storage",
       "websites": "Websites",
       "unlimited": "Unlimited",
       "of": "{used} / {limit}",
       "near": "Almost at your limit",
       "reached": "Limit reached",
       "none": "Your plan has no limits.",
-      "emails_month": "Emails this month"
+      "emails_month": "Emails this month",
+      "storageIncluded": "Included, sized to your activity"
     },
     "usage": {
       "title": "Usage this month",
@@ -1119,7 +1120,7 @@
       "title": "Plan limit reached",
       "team_members": "Your plan allows {limit, plural, one {# team member} other {# team members}} (pending invitations included).",
       "assistant_requests_month": "Your plan allows {limit, plural, one {# assistant request} other {# assistant requests}} per month.",
-      "media_mb": "Your plan allows {limit} MB of media storage.",
+      "media_mb": "Your storage is full. Write to LevelUp to get more: we size it to your activity.",
       "websites": "Your plan allows {limit, plural, one {# website} other {# websites}}.",
       "upgrade": "Upgrade to do more.",
       "action": "See plans",

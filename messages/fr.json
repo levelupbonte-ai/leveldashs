@@ -1005,14 +1005,15 @@
       "description": "Ce que comprend votre forfait et ce que vous en utilisez.",
       "team_members": "Membres de l’équipe",
       "assistant_requests_month": "Requêtes à l’assistant ce mois-ci",
-      "media_mb": "Stockage des médias",
+      "media_mb": "Stockage",
       "websites": "Sites web",
       "unlimited": "Illimité",
       "of": "{used} / {limit}",
       "near": "Bientôt à la limite",
       "reached": "Limite atteinte",
       "none": "Votre forfait n’a pas de limites.",
-      "emails_month": "E-mails ce mois-ci"
+      "emails_month": "E-mails ce mois-ci",
+      "storageIncluded": "Inclus, adapté à votre activité"
     },
     "usage": {
       "title": "Consommation du mois",
@@ -1119,7 +1120,7 @@
       "title": "Limite du forfait atteinte",
       "team_members": "Votre forfait permet {limit, plural, one {# membre} other {# membres}} dans l’équipe (invitations en attente comprises).",
       "assistant_requests_month": "Votre forfait permet {limit, plural, one {# requête} other {# requêtes}} à l’assistant par mois.",
-      "media_mb": "Votre forfait permet {limit} Mo de stockage des médias.",
+      "media_mb": "Votre espace de stockage est plein. Écrivez à LevelUp pour l’agrandir : nous l’adaptons à votre activité.",
       "websites": "Votre forfait permet {limit, plural, one {# site web} other {# sites web}}.",
       "upgrade": "Changez de forfait pour en faire plus.",
       "action": "Voir les forfaits",
