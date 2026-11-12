@@ -24,9 +24,12 @@ Ensure these are set in your deployment platform:
   `LEVELUP_ONLINE_PAYMENTS=on`, `LEVELUP_BILLING_KEY`, optional `LEVELUP_PAYMENT_PROVIDER=stripe|square`,
   and one provider's keys: Stripe `LEVELUP_STRIPE_SECRET_KEY`, `LEVELUP_STRIPE_WEBHOOK_SECRET`, or Square
   `LEVELUP_SQUARE_ACCESS_TOKEN`, `LEVELUP_SQUARE_LOCATION_ID`, `LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY`,
-  `LEVELUP_SQUARE_ENV=sandbox|production` (optional `LEVELUP_SQUARE_WEBHOOK_URL`). Mark them *Sensitive*;
-  steps in [billing.md](./billing.md#turning-on-online-payments) and
-  [billing.md → Turning on Square](./billing.md#turning-on-square)
+  `LEVELUP_SQUARE_ENV=sandbox|production` (optional `LEVELUP_SQUARE_WEBHOOK_URL`); PayPal, beside the
+  card provider or alone: `LEVELUP_PAYPAL_CLIENT_ID`, `LEVELUP_PAYPAL_CLIENT_SECRET`,
+  `LEVELUP_PAYPAL_WEBHOOK_ID`, `LEVELUP_PAYPAL_ENV=sandbox|production`. Mark them *Sensitive*;
+  steps in [billing.md](./billing.md#turning-on-online-payments),
+  [billing.md → Turning on Square](./billing.md#turning-on-square) and
+  [billing.md → Turning on PayPal](./billing.md#turning-on-paypal)
 
 - Client email campaigns, server-only: `RESEND_API_KEY` (same key as the account e-mails), optional
   `CAMPAIGN_EMAIL_FROM_ADDRESS`, and for scheduled sending and delivery tracking `LEVELUP_EMAIL_KEY`,

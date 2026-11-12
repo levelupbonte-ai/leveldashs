@@ -19,6 +19,12 @@
  *   LEVELUP_SQUARE_ENV=sandbox|production
  *   LEVELUP_SQUARE_WEBHOOK_URL=https://…          (optional: the subscription's URL)
  *
+ *   PayPal (offered beside the card provider, or alone):
+ *   LEVELUP_PAYPAL_CLIENT_ID=…
+ *   LEVELUP_PAYPAL_CLIENT_SECRET=…
+ *   LEVELUP_PAYPAL_WEBHOOK_ID=…                    (the webhook's id in the PayPal app)
+ *   LEVELUP_PAYPAL_ENV=sandbox|production
+ *
  * Provider: LEVELUP_PAYMENT_PROVIDER when set (its keys must be complete, otherwise
  * payments stay off; any other value keeps them off). Unset: the provider whose
  * keys are complete, Stripe when both are.
@@ -26,7 +32,17 @@
  * Never NEXT_PUBLIC_: these stay on the server. Never logged.
  */
 
-export type PaymentProviderName = 'stripe' | 'square';
+export type PaymentProviderName = 'stripe' | 'square' | 'paypal';
+
+/** What the payer picks: a card (Stripe or Square, whichever is set up) or PayPal. */
+export type PaymentMethodChoice = 'card' | 'paypal';
+
+export interface PayPalConfig {
+  clientId: string;
+  clientSecret: string;
+  webhookId: string;
+  environment: 'sandbox' | 'production';
+}
 
 export interface StripeConfig {
   secretKey: string;
@@ -45,12 +61,17 @@ export interface SquareConfig {
 }
 
 export interface OnlinePaymentsConfig {
-  /** The provider new checkouts use. */
+  /** The provider new checkouts use by default (the card provider, else PayPal). */
   provider: PaymentProviderName;
+  /** The card provider (Stripe or Square), or null when only PayPal is set up. */
+  cardProvider: 'stripe' | 'square' | null;
+  /** What the payer can choose, card first. */
+  methods: PaymentMethodChoice[];
   billingKey: string;
   /** Complete keys of each provider (webhooks keep working for both). */
   stripe: StripeConfig | null;
   square: SquareConfig | null;
+  paypal: PayPalConfig | null;
 }
 
 type Env = Record<string, string | undefined>;
@@ -61,6 +82,8 @@ const BILLING_KEY = /^lu_bill_[0-9a-f]{48}$/;
 const SQUARE_TOKEN = /^[A-Za-z0-9_-]{20,255}$/;
 const SQUARE_LOCATION = /^[A-Za-z0-9]{4,64}$/;
 const SQUARE_SIGNATURE_KEY = /^[A-Za-z0-9_+/=-]{10,255}$/;
+const PAYPAL_CLIENT = /^[A-Za-z0-9_-]{20,128}$/;
+const PAYPAL_WEBHOOK_ID = /^[A-Z0-9]{8,64}$/;
 
 const read = (env: Env, key: string) => (env[key] ?? '').trim();
 
@@ -94,12 +117,23 @@ export function readSquareConfig(env: Env): SquareConfig | null {
   return { accessToken, locationId, webhookSignatureKey, environment, webhookUrl };
 }
 
-/** The provider for new checkouts, or null when online payments stay off. */
+export function readPayPalConfig(env: Env): PayPalConfig | null {
+  const clientId = read(env, 'LEVELUP_PAYPAL_CLIENT_ID');
+  const clientSecret = read(env, 'LEVELUP_PAYPAL_CLIENT_SECRET');
+  const webhookId = read(env, 'LEVELUP_PAYPAL_WEBHOOK_ID');
+  const environment = read(env, 'LEVELUP_PAYPAL_ENV').toLowerCase();
+  if (!PAYPAL_CLIENT.test(clientId) || !PAYPAL_CLIENT.test(clientSecret)) return null;
+  if (!PAYPAL_WEBHOOK_ID.test(webhookId)) return null;
+  if (environment !== 'sandbox' && environment !== 'production') return null;
+  return { clientId, clientSecret, webhookId, environment };
+}
+
+/** The card provider for new checkouts, or null when none is set up. */
 export function selectProvider(
   env: Env,
   stripe: StripeConfig | null,
   square: SquareConfig | null
-): PaymentProviderName | null {
+): 'stripe' | 'square' | null {
   const wanted = read(env, 'LEVELUP_PAYMENT_PROVIDER').toLowerCase();
   if (wanted === 'stripe') return stripe ? 'stripe' : null;
   if (wanted === 'square') return square ? 'square' : null;
@@ -113,7 +147,22 @@ export function readOnlinePaymentsConfig(env: Env): OnlinePaymentsConfig | null 
   if (!BILLING_KEY.test(billingKey)) return null;
   const stripe = readStripeConfig(env);
   const square = readSquareConfig(env);
-  const provider = selectProvider(env, stripe, square);
-  if (!provider) return null;
-  return { provider, billingKey, stripe, square };
+  const paypal = readPayPalConfig(env);
+  const wanted = read(env, 'LEVELUP_PAYMENT_PROVIDER').toLowerCase();
+  // LEVELUP_PAYMENT_PROVIDER names the card provider; 'paypal' means PayPal only.
+  const cardProvider = wanted === 'paypal' ? null : selectProvider(env, stripe, square);
+  if (wanted && wanted !== 'paypal' && !cardProvider) return null;
+  const methods: PaymentMethodChoice[] = [];
+  if (cardProvider) methods.push('card');
+  if (paypal) methods.push('paypal');
+  if (!methods.length) return null;
+  return {
+    provider: cardProvider ?? 'paypal',
+    cardProvider,
+    methods,
+    billingKey,
+    stripe,
+    square,
+    paypal
+  };
 }

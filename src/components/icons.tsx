@@ -69,6 +69,7 @@ import {
   IconClock,
   IconCode,
   IconCreditCard,
+  IconBrandPaypal,
   IconDeviceLaptop,
   IconDots,
   IconDotsVertical,
@@ -356,6 +357,7 @@ export const Icons = {
   // Commerce / Plans
   billing: IconCreditCard,
   creditCard: IconCreditCard,
+  paypal: IconBrandPaypal,
   receipt: IconReceipt,
   refund: IconReceiptRefund,
   key: IconKey,
