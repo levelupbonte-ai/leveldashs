@@ -113,7 +113,11 @@
       "emailCampaigns": "Campagnes e-mail",
       "clientPortal": "Espace client",
       "activity": "Journal d’activité",
-      "forms": "Formulaires"
+      "forms": "Formulaires",
+      "marketing": "Marketing",
+      "campaigns": "Campagnes",
+      "promoCodes": "Codes promo",
+      "siteConfig": "Réglages à distance"
     }
   },
   "admin": {
@@ -1825,6 +1829,18 @@
       "forms": {
         "title": "Formulaires",
         "description": "Des formulaires hébergés par LevelUp pour votre site : créez-les ici, les réponses arrivent dans Demandes"
+      },
+      "campaigns": {
+        "title": "Campagnes",
+        "description": "Bandeaux, pop-ups et comptes à rebours affichés sur votre site"
+      },
+      "promoCodes": {
+        "title": "Codes promo",
+        "description": "Codes de réduction que vos clients saisissent avant de payer"
+      },
+      "siteConfig": {
+        "title": "Réglages à distance",
+        "description": "Valeurs lues par votre site, modifiées ici sans toucher à son code"
       }
     },
     "unavailable": {
@@ -4423,6 +4439,209 @@
           "any": "Photos ou documents, jusqu’à {max}, 10 Mo chacun"
         }
       }
+    }
+  },
+  "engage": {
+    "campaigns": {
+      "intro": "Votre site les affiche tout seul grâce au tag LevelUp. Les changements arrivent chez les visiteurs en moins d’une minute.",
+      "new": "Nouvelle campagne",
+      "edit": "Modifier",
+      "pause": "Mettre en pause",
+      "activate": "Afficher sur le site",
+      "archive": "Archiver",
+      "emptyTitle": "Aucune campagne",
+      "emptyDescription": "Annoncez une offre avec un bandeau, un pop-up avec un code promo ou un compte à rebours dans une page.",
+      "status": {
+        "draft": "Brouillon",
+        "active": "En ligne",
+        "paused": "En pause",
+        "archived": "Archivée"
+      },
+      "statusSaved": {
+        "draft": "Enregistrée en brouillon",
+        "active": "En ligne sur le site",
+        "paused": "En pause",
+        "archived": "Archivée"
+      },
+      "schedule": {
+        "always": "Sans date de fin",
+        "between": "{start} → {end}",
+        "until": "Jusqu’au {end}",
+        "from": "À partir du {start}"
+      },
+      "onPages": "{count, plural, one {# page} other {# pages}}",
+      "stats": {
+        "views": "Vues",
+        "clicks": "Clics",
+        "ctr": "Taux de clic",
+        "period": "30 derniers jours. Compté sans aucune information sur les visiteurs."
+      },
+      "archiveTitle": "Archiver cette campagne ?",
+      "archiveDescription": "« {name} » disparaît du site et de cette liste.",
+      "how": {
+        "title": "Afficher une campagne dans une page",
+        "text": "Choisissez « Dans une page » et donnez un nom d’emplacement. Placez ensuite cet élément à l’endroit voulu (votre développeur ou LevelUp le fait une fois) :"
+      },
+      "preview": {
+        "title": "Aperçu",
+        "label": "Aperçu de la campagne",
+        "cta": "Découvrir",
+        "copy": "Copier",
+        "units": {
+          "0": "j",
+          "1": "h",
+          "2": "min",
+          "3": "s"
+        }
+      },
+      "editor": {
+        "newTitle": "Nouvelle campagne",
+        "editTitle": "Modifier la campagne",
+        "description": "Du texte seulement, pas de code. Les visiteurs voient la langue de la page.",
+        "name": "Nom (pour vous)",
+        "nameHint": "Les visiteurs ne le voient pas.",
+        "kind": "Type",
+        "kindHint": "Bandeau : une bande en haut ou en bas. Pop-up : une fenêtre après quelques secondes. Dans une page : une carte à l’endroit prévu par votre site.",
+        "kinds": {
+          "bar": "Bandeau",
+          "popup": "Pop-up",
+          "slot": "Dans une page"
+        },
+        "live": "Afficher sur le site",
+        "liveHint": "Désactivé : enregistrée en brouillon, personne ne la voit.",
+        "french": "Français",
+        "english": "Anglais",
+        "titleLabel": "Titre",
+        "text": "Texte",
+        "cta": "Texte du bouton",
+        "ctaPlaceholder": "ex. J’en profite",
+        "ctaUrl": "Lien du bouton",
+        "coupon": "Code promo à afficher",
+        "couponHint": "Les visiteurs peuvent le copier. Créez le code lui-même dans Codes promo.",
+        "countdown": "Compte à rebours jusqu’au",
+        "countdownHint": "Facultatif. Affiche les jours, heures, minutes et secondes restants.",
+        "startsAt": "Début",
+        "endsAt": "Fin",
+        "endsAtHint": "Elle disparaît toute seule.",
+        "pages": "Pages",
+        "pagesHint": "Une par ligne, ex. / ou /abonnements. Terminez par * pour toute une rubrique (/blog/*). Vide : toutes les pages.",
+        "slot": "Nom de l’emplacement",
+        "slotHint": "Correspond à <div data-lu-campaign=\"nom\"> sur votre site.",
+        "position": "Position",
+        "positions": {
+          "bottom": "En bas de l’écran",
+          "top": "En haut de l’écran"
+        },
+        "delay": "Afficher après (secondes)",
+        "frequency": "Fréquence",
+        "frequencies": {
+          "session": "Une fois par visite",
+          "once": "Une fois par visiteur",
+          "always": "À chaque page"
+        },
+        "theme": "Style",
+        "themes": {
+          "dark": "Sombre",
+          "light": "Clair",
+          "accent": "Votre couleur"
+        },
+        "accent": "Couleur",
+        "accentHint": "Couleur du bouton, ou du fond avec « Votre couleur ».",
+        "priority": "Priorité",
+        "priorityHint": "De 0 à 100. Si deux campagnes se croisent, la plus haute s’affiche.",
+        "needText": "Ajoutez un titre ou un texte dans au moins une langue.",
+        "httpsOnly": "Utilisez un lien sécurisé (https://).",
+        "endAfterStart": "La fin doit être après le début.",
+        "pagesInvalid": "Un chemin par ligne, commençant par /.",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "saved": "Campagne enregistrée",
+        "savedLive": "Campagne enregistrée et en ligne"
+      }
+    },
+    "promos": {
+      "intro": "Votre site vérifie le code avant la page de paiement. Un code n’est compté que si le paiement aboutit.",
+      "new": "Nouveau code",
+      "edit": "Modifier",
+      "emptyTitle": "Aucun code promo",
+      "emptyDescription": "Créez un code comme BIENVENUE10 pour offrir une réduction pendant un temps ou à quelques personnes.",
+      "state": {
+        "on": "Actif",
+        "off": "Désactivé",
+        "expired": "Expiré",
+        "usedUp": "Épuisé",
+        "scheduled": "Programmé"
+      },
+      "percentOff": "-{value} %",
+      "amountOff": "-{value}",
+      "uses": "{uses, plural, =0 {Pas encore utilisé} one {Utilisé une fois} other {Utilisé # fois}}",
+      "usesOf": "Utilisé {uses} / {max}",
+      "until": "jusqu’au {date}",
+      "onOffers": "{count, plural, one {# offre} other {# offres}}",
+      "newTitle": "Nouveau code promo",
+      "editTitle": "Modifier le code promo",
+      "sheetDescription": "Vos clients le saisissent sur votre site avant de payer. La réduction est appliquée par le serveur de votre site.",
+      "code": "Code",
+      "codeHint": "3 à 32 lettres, chiffres, - ou _. Majuscules ou minuscules, peu importe.",
+      "codeInvalid": "3 à 32 lettres, chiffres, - ou _.",
+      "description": "Note (facultatif)",
+      "kind": "Réduction",
+      "kinds": {
+        "percent": "Pourcentage",
+        "amount": "Montant ({currency})"
+      },
+      "value": "Valeur",
+      "percentInvalid": "Un nombre entier de 1 à 100.",
+      "offers": "Seulement pour ces offres",
+      "offersHint": "Un identifiant d’offre par ligne (ex. accompagnement-voyage). Vide : toutes les offres.",
+      "maxUses": "Utilisations maximum",
+      "maxUsesHint": "Vide : illimité.",
+      "startsAt": "Début",
+      "endsAt": "Fin",
+      "endAfterStart": "La fin doit être après le début.",
+      "active": "Actif",
+      "activeHint": "Désactivé : le code est refusé.",
+      "duplicate": "Ce code existe déjà.",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saved": "Code promo enregistré"
+    },
+    "config": {
+      "publicWarning": "Ces valeurs sont publiques : n’importe qui peut les lire sur votre site. N’y mettez jamais de mot de passe, de clé ni de donnée privée.",
+      "intro": "Changez une date, un prix affiché ou un interrupteur sans modifier le code de votre site.",
+      "new": "Nouvelle valeur",
+      "edit": "Modifier",
+      "delete": "Supprimer {key}",
+      "deleted": "Valeur supprimée",
+      "emptyTitle": "Aucune valeur",
+      "emptyDescription": "Par exemple launch.ends_at : la fin d’une offre, lue par votre site.",
+      "kinds": {
+        "text": "Texte",
+        "number": "Nombre",
+        "boolean": "Oui / non",
+        "date": "Date et heure",
+        "json": "Liste ou objet (JSON)"
+      },
+      "yes": "Oui",
+      "no": "Non",
+      "how": {
+        "title": "Lire une valeur sur votre site",
+        "text": "Dans une page qui a le tag LevelUp :"
+      },
+      "newTitle": "Nouvelle valeur",
+      "editTitle": "Modifier la valeur",
+      "dialogDescription": "Votre site la lit en moins d’une minute.",
+      "key": "Nom",
+      "keyHint": "Lettres minuscules, chiffres, points et _ (ex. launch.ends_at).",
+      "keyInvalid": "Lettres minuscules, chiffres, points et _, en commençant par une lettre.",
+      "kind": "Type",
+      "value": "Valeur",
+      "valueInvalid": "Cette valeur ne correspond pas au type.",
+      "jsonHint": "JSON valide, ex. {\"solo\": 5, \"duo\": 9}",
+      "descriptionLabel": "Note (facultatif)",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "saved": "Valeur enregistrée"
     }
   }
 }

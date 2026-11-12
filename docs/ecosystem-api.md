@@ -66,6 +66,21 @@ await LevelUp.ticketStatus('FS-ABCD1234');
 document.addEventListener('levelup:ready', (e) => console.log(e.detail));
 ```
 
+- **Campaigns** (dashboard → Marketing → Campaigns): announcement bar, pop-up
+  (promo code to copy, countdown) or an inline card where the site places
+  `<div data-lu-campaign="name"></div>`. Text only, https links, schedule and
+  pages set in the dashboard; daily view / click / close totals. Turn them off
+  with `data-campaigns="off"`.
+- **Remote settings** (dashboard → Marketing → Remote settings): public values
+  the site reads with `await LevelUp.config('launch.ends_at')` (or `config` in
+  the site bundle on a server). Never a secret.
+- **Promo codes** (dashboard → Marketing → Promo codes): the site's server
+  calls `site_promo_check(p_key, p_code, p_offer_id, p_amount, p_currency,
+  p_client)` with its payments server key before opening the payment page,
+  charges `final_amount`, and puts `promo_code_id` (and `amount_off`) in the
+  payment metadata it sends to LevelUp; the use is counted when the payment
+  is recorded as paid.
+
 Limits: search engines that run JavaScript (Google) read the tags it adds;
 link previews on Facebook, WhatsApp and LinkedIn only read the original
 HTML, so for those add the same meta tags server-side (WordPress plugin,
