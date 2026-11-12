@@ -20,7 +20,7 @@ describe('online payments switch (disabled by default)', () => {
   });
   test('off when the flag is missing or not "on", even with every key', () => {
     assert.equal(readOnlinePaymentsConfig({ ...KEYS, LEVELUP_ONLINE_PAYMENTS: undefined }), null);
-    assert.equal(readOnlinePaymentsConfig({ ...KEYS, LEVELUP_ONLINE_PAYMENTS: 'true' }), null);
+    assert.equal(readOnlinePaymentsConfig({ ...KEYS, LEVELUP_ONLINE_PAYMENTS: 'maybe' }), null);
     assert.equal(readOnlinePaymentsConfig({ ...KEYS, LEVELUP_ONLINE_PAYMENTS: 'off' }), null);
   });
   test('off when any key is missing or malformed', () => {

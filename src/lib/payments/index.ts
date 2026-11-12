@@ -1,5 +1,6 @@
 import 'server-only';
 import {
+  diagnoseOnlinePayments,
   readOnlinePaymentsConfig,
   type OnlinePaymentsConfig,
   type PaymentMethodChoice,
@@ -10,9 +11,17 @@ import { createSquareProvider } from './square';
 import { createStripeProvider } from './stripe';
 import type { PaymentProvider } from './types';
 
+let warned = false;
+
 /** Server env only (never NEXT_PUBLIC_). Null = online payments are off. */
 export function onlinePaymentsConfig(): OnlinePaymentsConfig | null {
-  return readOnlinePaymentsConfig(process.env);
+  const config = readOnlinePaymentsConfig(process.env);
+  if (!config && !warned && process.env.LEVELUP_ONLINE_PAYMENTS) {
+    // Turned on but refused: say which variables (names only, never values).
+    warned = true;
+    console.warn('billing.online_payments_off', diagnoseOnlinePayments(process.env).join(', '));
+  }
+  return config;
 }
 
 /** True when the "Pay online" button and the payment routes are available. */

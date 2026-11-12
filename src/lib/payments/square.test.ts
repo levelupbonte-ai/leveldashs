@@ -3,7 +3,7 @@
 import { describe, it as test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
-import { readOnlinePaymentsConfig, selectProvider } from './config';
+import { diagnoseOnlinePayments, readOnlinePaymentsConfig, selectProvider } from './config';
 import {
   chargeIdFromNote,
   paymentLinkBody,
@@ -95,7 +95,10 @@ describe('provider selection', () => {
       assert.equal(readOnlinePaymentsConfig({ ...ON, ...SQUARE, [key]: undefined }), null, key);
       assert.equal(readOnlinePaymentsConfig({ ...ON, ...SQUARE, [key]: 'bad value!' }), null, key);
     }
-    assert.equal(readOnlinePaymentsConfig({ ...ON, ...SQUARE, LEVELUP_SQUARE_ENV: 'live' }), null);
+    assert.equal(
+      readOnlinePaymentsConfig({ ...ON, ...SQUARE, LEVELUP_SQUARE_ENV: 'staging' }),
+      null
+    );
     assert.equal(
       readOnlinePaymentsConfig({
         ...ON,
@@ -309,5 +312,35 @@ describe('Square webhook payload mapping', () => {
     );
     assert.equal(m?.amount, null);
     assert.equal(m?.currency, null);
+  });
+});
+
+describe('config as pasted in Vercel', () => {
+  const env = {
+    LEVELUP_ONLINE_PAYMENTS: '"on"',
+    LEVELUP_BILLING_KEY: `'lu_bill_${'0123456789abcdef'.repeat(3)}'`,
+    LEVELUP_PAYMENT_PROVIDER: ' Square ',
+    LEVELUP_SQUARE_ACCESS_TOKEN: 'Bearer EAAA' + 'x'.repeat(40),
+    LEVELUP_SQUARE_LOCATION_ID: '"L8A2BC3D4E5F6"',
+    LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY: 'k'.repeat(22),
+    LEVELUP_SQUARE_ENV: 'Live'
+  };
+  test('quotes, Bearer, case and synonyms are accepted', () => {
+    const c = readOnlinePaymentsConfig(env);
+    assert.equal(c?.provider, 'square');
+    assert.equal(c?.square?.environment, 'production');
+    assert.equal(c?.square?.locationId, 'L8A2BC3D4E5F6');
+    assert.deepEqual(diagnoseOnlinePayments(env), []);
+    assert.equal(
+      readOnlinePaymentsConfig({ ...env, LEVELUP_ONLINE_PAYMENTS: 'true' })?.provider,
+      'square'
+    );
+  });
+  test('the diagnosis names the variables, never their values', () => {
+    const bad = { ...env, LEVELUP_SQUARE_LOCATION_ID: 'L-1 2', LEVELUP_BILLING_KEY: '' };
+    assert.deepEqual(diagnoseOnlinePayments(bad), [
+      'LEVELUP_BILLING_KEY (missing)',
+      'LEVELUP_SQUARE_LOCATION_ID (malformed)'
+    ]);
   });
 });
