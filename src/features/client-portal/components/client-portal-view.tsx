@@ -52,7 +52,10 @@ export function ClientPortalView() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
-  const [trialFor, setTrialFor] = useState<PortalCustomer | null>(null);
+  const [trialFor, setTrialFor] = useState<{
+    customer: PortalCustomer;
+    mode: 'trial' | 'membership';
+  } | null>(null);
   const unread = data.customers.reduce((sum, c) => sum + c.unread, 0);
   const active = data.customers.filter((c) => c.status === 'active').length;
   const thread = data.customers.find((c) => c.id === threadId) ?? null;
@@ -97,7 +100,7 @@ export function ClientPortalView() {
             data={data}
             onThread={setThreadId}
             onPublish={(customerId) => setPublishFor({ customerId })}
-            onTrial={setTrialFor}
+            onTrial={(customer, mode) => setTrialFor({ customer, mode })}
           />
         </TabsContent>
         <TabsContent value='published' className='mt-3'>
@@ -116,7 +119,11 @@ export function ClientPortalView() {
         data={data}
       />
       <ThreadSheet customer={thread} onOpenChange={(open) => !open && setThreadId(null)} />
-      <TrialDialog customer={trialFor} onOpenChange={(open) => !open && setTrialFor(null)} />
+      <TrialDialog
+        customer={trialFor?.customer ?? null}
+        mode={trialFor?.mode ?? 'trial'}
+        onOpenChange={(open) => !open && setTrialFor(null)}
+      />
     </div>
   );
 }
@@ -200,7 +207,7 @@ function CustomerList({
   data: PortalOverview;
   onThread: (id: string) => void;
   onPublish: (id: string) => void;
-  onTrial: (customer: PortalCustomer) => void;
+  onTrial: (customer: PortalCustomer, mode: 'trial' | 'membership') => void;
 }) {
   const t = useTranslations('clientPortal');
   const format = useFormatter();
@@ -306,17 +313,26 @@ function CustomerList({
                       <Icons.send aria-hidden />
                       {t('customers.publish')}
                     </Button>
-                    {c.subscription?.status !== 'active' && (
+                    {c.membership?.monthly && (
                       <Button
                         size='sm'
                         variant='outline'
-                        onClick={() => onTrial(c)}
+                        onClick={() => onTrial(c, 'membership')}
                         disabled={c.status !== 'active'}
                       >
-                        <Icons.clock aria-hidden />
-                        {t('customers.trial')}
+                        <Icons.calendar aria-hidden />
+                        {t('customers.membership')}
                       </Button>
                     )}
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      onClick={() => onTrial(c, 'trial')}
+                      disabled={c.status !== 'active'}
+                    >
+                      <Icons.clock aria-hidden />
+                      {t('customers.trial')}
+                    </Button>
                     <Button size='sm' variant='ghost' onClick={() => setConfirm(c)}>
                       {c.status === 'active' ? t('customers.revoke') : t('customers.restore')}
                     </Button>

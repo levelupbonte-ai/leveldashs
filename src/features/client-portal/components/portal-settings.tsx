@@ -336,7 +336,7 @@ function PlanForm({
                 children={(field) => (
                   <field.TextField
                     label={t('plan.price', { currency: currency.toUpperCase() })}
-                    description={plan && plan.subscribers > 0 ? t('plan.priceHint') : undefined}
+                    description={t('plan.priceHint')}
                     inputMode='decimal'
                     placeholder='15'
                     required

@@ -26,6 +26,25 @@ export interface PortalSubscription {
   canceled_at: string | null;
 }
 
+/** Monthly membership: paid month by month by the member, nothing automatic. */
+export interface PortalMembership {
+  monthly: boolean;
+  until: string | null;
+  active: boolean;
+  reminders: boolean;
+  period_days: number;
+  offer_id: string | null;
+}
+
+/** The member's monthly plan now (or the last one bought). */
+export interface PortalPlanPeriod {
+  plan_name: string | null;
+  level: number;
+  starts_at: string;
+  ends_at: string;
+  active: boolean;
+}
+
 /** A customer of the website's client portal (paid or invited). */
 export interface PortalCustomer {
   id: string;
@@ -39,6 +58,8 @@ export interface PortalCustomer {
   /** What the member can read now: 0 nothing beyond free items, 1-3 a plan level. */
   level: number;
   subscription: PortalSubscription | null;
+  membership: PortalMembership | null;
+  plan: PortalPlanPeriod | null;
   offer_id: string | null;
   offers: string[];
   payments: PortalPayment[];
@@ -141,6 +162,8 @@ export interface PortalSettings {
   contact: { phone?: string; whatsapp?: string; note?: string };
   /** Only admins and owners change the offer, plans and contact numbers. */
   can_admin: boolean;
+  membership_monthly: boolean;
+  period_days: number;
   plans: PortalPlan[];
 }
 

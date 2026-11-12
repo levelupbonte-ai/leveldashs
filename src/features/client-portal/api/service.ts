@@ -57,6 +57,16 @@ export function savePortalPlan(db: SupabaseClient, websiteId: string, plan: Port
   );
 }
 
+/** Moves the end of one member's membership (up to a year ahead, or ends it now). */
+export function setPortalMemberUntil(db: SupabaseClient, customerId: string, until: Date) {
+  return rpc<null>(
+    db.rpc('portal_admin_set_member_until', {
+      p_customer_id: customerId,
+      p_until: until.toISOString()
+    })
+  );
+}
+
 /** Moves the end of one member's free offer (or ends it now). */
 export function setPortalTrial(db: SupabaseClient, customerId: string, endsAt: Date) {
   return rpc<null>(
