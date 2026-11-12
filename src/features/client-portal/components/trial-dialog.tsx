@@ -20,21 +20,25 @@ import { createClient } from '@/lib/supabase/client';
 import { useFields } from '@/lib/validation/use-fields';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalKeys } from '../api/queries';
-import { setPortalTrial } from '../api/service';
+import { setPortalMemberUntil, setPortalTrial } from '../api/service';
 import type { PortalCustomer } from '../api/types';
 
 const DAY = 86400000;
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
 
-/** Extend or end one member's free offer (at most 90 days ahead). */
+type Mode = 'trial' | 'membership';
+
+/** Extend or end one member's free offer (90 days ahead at most) or membership (a year at most). */
 export function TrialDialog({
   customer,
+  mode,
   onOpenChange
 }: {
   customer: PortalCustomer | null;
+  mode: Mode;
   onOpenChange: (open: boolean) => void;
 }) {
-  const t = useTranslations('clientPortal.trial');
+  const t = useTranslations(mode === 'trial' ? 'clientPortal.trial' : 'clientPortal.memberDates');
   return (
     <Dialog open={!!customer} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -44,15 +48,25 @@ export function TrialDialog({
             {t('description', { name: customer?.name || customer?.email || '' })}
           </DialogDescription>
         </DialogHeader>
-        {customer && <TrialForm customer={customer} onDone={() => onOpenChange(false)} />}
+        {customer && (
+          <TrialForm customer={customer} mode={mode} onDone={() => onOpenChange(false)} />
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
-function TrialForm({ customer, onDone }: { customer: PortalCustomer; onDone: () => void }) {
+function TrialForm({
+  customer,
+  mode,
+  onDone
+}: {
+  customer: PortalCustomer;
+  mode: Mode;
+  onDone: () => void;
+}) {
   const scope = useSiteScope();
-  const t = useTranslations('clientPortal.trial');
+  const t = useTranslations(mode === 'trial' ? 'clientPortal.trial' : 'clientPortal.memberDates');
   const tv = useTranslations('validation');
   const f = useFields();
   const errorMessage = useErrorMessage();
@@ -61,14 +75,15 @@ function TrialForm({ customer, onDone }: { customer: PortalCustomer; onDone: () 
     const now = Date.now();
     return {
       today: isoDay(new Date(now)),
-      max: isoDay(new Date(now + 89 * DAY)),
-      suggested: isoDay(new Date(now + 3 * DAY))
+      max: isoDay(new Date(now + (mode === 'trial' ? 89 : 365) * DAY)),
+      suggested: isoDay(new Date(now + (mode === 'trial' ? 3 : 30) * DAY))
     };
   });
 
   const save = async (endsAt: Date) => {
     try {
-      await setPortalTrial(createClient(), customer.id, endsAt);
+      if (mode === 'trial') await setPortalTrial(createClient(), customer.id, endsAt);
+      else await setPortalMemberUntil(createClient(), customer.id, endsAt);
       toast.success(t('saved'));
       void queryClient.invalidateQueries({ queryKey: portalKeys.all(scope.websiteId) });
       onDone();
@@ -86,7 +101,9 @@ function TrialForm({ customer, onDone }: { customer: PortalCustomer; onDone: () 
       }),
     [f, tv, today, max]
   );
-  const current = customer.trial_ends_at ? isoDay(new Date(customer.trial_ends_at)) : '';
+  const currentIso =
+    mode === 'trial' ? customer.trial_ends_at : (customer.membership?.until ?? null);
+  const current = currentIso ? isoDay(new Date(currentIso)) : '';
   const form = useAppForm({
     defaultValues: {
       until: current && current >= today ? current : suggested

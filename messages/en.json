@@ -3914,7 +3914,8 @@
       "restoreTitle": "Give access back?",
       "restoreDescription": "{email} can sign in to the portal again.",
       "statusSaved": "Access updated",
-      "trial": "Free offer"
+      "trial": "Free offer",
+      "membership": "Membership"
     },
     "published": {
       "emptyTitle": "Nothing published yet",
@@ -3996,7 +3997,12 @@
       "planEnds": "{plan} plan · ends {date}",
       "pastDue": "{plan}: payment due",
       "trial": "Free offer until {date}",
-      "none": "No plan"
+      "none": "No plan",
+      "memberUntil": "Member until {date}",
+      "memberCanceled": "Cancelled · until {date}",
+      "memberEnded": "Membership ended {date}",
+      "memberNone": "No membership",
+      "planUntil": "{plan} until {date}"
     },
     "trial": {
       "title": "Free offer",
@@ -4020,7 +4026,7 @@
         "trialTitle": "Free offer",
         "trialText": "For the days you choose, the member reads the information of the level you choose. It ends by itself.",
         "plansTitle": "Monthly plans",
-        "plansText": "Up to three plans, paid automatically every month. Members can cancel or delete their account at any time."
+        "plansText": "Up to three plans, one month at a time, paid by the member when they choose: nothing is charged automatically. Members are reminded before the end and can stop or delete their account at any time."
       },
       "offer": {
         "title": "Free offer for new members",
@@ -4046,10 +4052,10 @@
         "hint3": "Includes everything in plans 1 and 2.",
         "notSet": "Not set",
         "hidden": "Hidden",
-        "subscribers": "{count, plural, =0 {No subscriber} one {# subscriber} other {# subscribers}}",
+        "subscribers": "{count, plural, =0 {Nobody this month} one {# member this month} other {# members this month}}",
         "name": "Name",
         "price": "Price per month ({currency})",
-        "priceHint": "Current subscribers keep the price they signed up at.",
+        "priceHint": "Members pay month by month at the price shown that day. A new price applies to the next month they buy.",
         "minPrice": "At least 1.",
         "description": "Short description",
         "features": "What it includes",
@@ -4059,6 +4065,15 @@
         "save": "Save the plan",
         "saved": "{name} plan saved"
       }
+    },
+    "memberDates": {
+      "title": "Membership",
+      "description": "Choose until when {name} is a member (a year ahead at most). Use it for a gift, a payment made another way, or a correction.",
+      "until": "Member until",
+      "untilHint": "The membership ends at the end of this day.",
+      "endNow": "End it now",
+      "save": "Save",
+      "saved": "Membership updated"
     }
   },
   "siteForms": {

@@ -3914,7 +3914,8 @@
       "restoreTitle": "Rendre l’accès ?",
       "restoreDescription": "{email} peut de nouveau se connecter à l’espace.",
       "statusSaved": "Accès mis à jour",
-      "trial": "Offre gratuite"
+      "trial": "Offre gratuite",
+      "membership": "Adhésion"
     },
     "published": {
       "emptyTitle": "Rien de publié pour l’instant",
@@ -3996,7 +3997,12 @@
       "planEnds": "Forfait {plan} · s’arrête le {date}",
       "pastDue": "{plan} : paiement en attente",
       "trial": "Offre gratuite jusqu’au {date}",
-      "none": "Sans forfait"
+      "none": "Sans forfait",
+      "memberUntil": "Membre jusqu’au {date}",
+      "memberCanceled": "Annulé · jusqu’au {date}",
+      "memberEnded": "Adhésion terminée le {date}",
+      "memberNone": "Pas d’adhésion",
+      "planUntil": "{plan} jusqu’au {date}"
     },
     "trial": {
       "title": "Offre gratuite",
@@ -4020,7 +4026,7 @@
         "trialTitle": "Offre gratuite",
         "trialText": "Pendant le nombre de jours choisi, le membre lit les informations du niveau choisi. Elle se termine toute seule.",
         "plansTitle": "Forfaits mensuels",
-        "plansText": "Jusqu’à trois forfaits, payés automatiquement chaque mois. Les membres peuvent résilier ou supprimer leur compte à tout moment."
+        "plansText": "Jusqu’à trois forfaits, un mois à la fois, payés par le membre quand il le décide : rien n’est prélevé automatiquement. Le membre est prévenu avant la fin et peut arrêter ou supprimer son compte à tout moment."
       },
       "offer": {
         "title": "Offre gratuite des nouveaux membres",
@@ -4046,10 +4052,10 @@
         "hint3": "Inclut tout le contenu des forfaits 1 et 2.",
         "notSet": "Non défini",
         "hidden": "Masqué",
-        "subscribers": "{count, plural, =0 {Aucun abonné} one {# abonné} other {# abonnés}}",
+        "subscribers": "{count, plural, =0 {Personne ce mois-ci} one {# membre ce mois-ci} other {# membres ce mois-ci}}",
         "name": "Nom",
         "price": "Prix par mois ({currency})",
-        "priceHint": "Les abonnés actuels gardent le prix auquel ils ont souscrit.",
+        "priceHint": "Les membres paient mois par mois au prix affiché ce jour-là. Un nouveau prix s’applique au prochain mois qu’ils achètent.",
         "minPrice": "Au moins 1.",
         "description": "Description courte",
         "features": "Ce qu’il inclut",
@@ -4059,6 +4065,15 @@
         "save": "Enregistrer le forfait",
         "saved": "Forfait {name} enregistré"
       }
+    },
+    "memberDates": {
+      "title": "Adhésion",
+      "description": "Choisissez jusqu’à quand {name} est membre (un an maximum). Pour un cadeau, un paiement fait autrement ou une correction.",
+      "until": "Membre jusqu’au",
+      "untilHint": "L’adhésion se termine à la fin de ce jour.",
+      "endNow": "Terminer maintenant",
+      "save": "Enregistrer",
+      "saved": "Adhésion mise à jour"
     }
   },
   "siteForms": {
