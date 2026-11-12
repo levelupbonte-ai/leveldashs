@@ -5,6 +5,7 @@ import {
   getPortalAssistant,
   getPortalOverview,
   getPortalProfile,
+  getPortalQuestionnaires,
   getPortalSettings,
   getPortalThread
 } from './service';
@@ -17,7 +18,8 @@ export const portalKeys = {
     [...portalKeys.all(websiteId), 'thread', customerId] as const,
   profile: (websiteId: string, customerId: string) =>
     [...portalKeys.all(websiteId), 'profile', customerId] as const,
-  assistant: (websiteId: string) => [...portalKeys.all(websiteId), 'assistant'] as const
+  assistant: (websiteId: string) => [...portalKeys.all(websiteId), 'assistant'] as const,
+  questionnaires: (websiteId: string) => [...portalKeys.all(websiteId), 'questionnaires'] as const
 };
 
 export const portalOverviewQueryOptions = (db: SupabaseClient, websiteId: string) =>
@@ -61,4 +63,11 @@ export const portalAssistantQueryOptions = (db: SupabaseClient, websiteId: strin
     queryKey: portalKeys.assistant(websiteId),
     queryFn: () => getPortalAssistant(db, websiteId),
     staleTime: 30 * 1000
+  });
+
+export const portalQuestionnairesQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: portalKeys.questionnaires(websiteId),
+    queryFn: () => getPortalQuestionnaires(db, websiteId),
+    staleTime: 60 * 1000
   });

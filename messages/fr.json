@@ -1110,7 +1110,8 @@
       "payPaypal": "PayPal",
       "payPaypalLabel": "Payer {amount} avec PayPal",
       "paymentPending": "PayPal traite encore votre paiement. La facture passera à payée dès qu’il sera validé.",
-      "paymentFailed": "Le paiement n’a pas abouti. Rien n’a été débité ; réessayez ou choisissez un autre moyen de paiement."
+      "paymentFailed": "Le paiement n’a pas abouti. Rien n’a été débité ; réessayez ou choisissez un autre moyen de paiement.",
+      "payTryOther": "Ce moyen de paiement est indisponible pour le moment. Essayez l’autre :"
     },
     "promo": {
       "title": "Code promo",
@@ -3895,7 +3896,8 @@
       "customers": "Clients",
       "published": "Publié",
       "plans": "Forfaits et offre",
-      "assistant": "Assistant IA"
+      "assistant": "Assistant IA",
+      "questionnaires": "Questionnaires"
     },
     "cancel": "Annuler",
     "kinds": {
@@ -4183,6 +4185,25 @@
       "empty": "Pas encore de dossier : le membre n’a pas rempli le questionnaire du site.",
       "updated": "Rempli le {date}",
       "note": "Avec ses mots"
+    },
+    "questionnaires": {
+      "intro": "Toutes les personnes qui ont rempli le questionnaire sur le site avant de payer, les plus récentes d’abord : les membres, et les prospects qui n’ont pas encore payé (gardés 30 jours). Ouvrez-en un pour lire les réponses.",
+      "search": "Chercher un nom, e-mail, téléphone, pays",
+      "filters": {
+        "all": "Tous",
+        "members": "Membres",
+        "prospects": "Pas encore payé"
+      },
+      "member": "Membre",
+      "memberEnded": "Adhésion terminée",
+      "prospect": "Pas encore payé",
+      "noName": "Sans nom",
+      "open": "Ouvrir le questionnaire de {name}",
+      "filled": "Rempli le {date}",
+      "sheetMember": "Membre",
+      "sheetProspect": "N’a pas encore payé",
+      "emptyTitle": "Aucun questionnaire pour l’instant",
+      "emptyDescription": "Les questionnaires remplis sur le site avant le paiement apparaissent ici."
     }
   },
   "siteForms": {

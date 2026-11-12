@@ -11,6 +11,7 @@ import {
   type PortalOverview,
   type PortalPlanInput,
   type PortalProfile,
+  type PortalQuestionnaire,
   type PortalSettings
 } from './types';
 
@@ -135,6 +136,12 @@ export function answerPortalHandoff(db: SupabaseClient, messageId: string, body:
 
 export function getPortalProfile(db: SupabaseClient, customerId: string) {
   return rpc<PortalProfile>(db.rpc('portal_admin_profile', { p_customer_id: customerId }));
+}
+
+export function getPortalQuestionnaires(db: SupabaseClient, websiteId: string) {
+  return rpc<PortalQuestionnaire[]>(
+    db.rpc('portal_admin_questionnaires', { p_website_id: websiteId })
+  );
 }
 
 export function getPortalAssistant(db: SupabaseClient, websiteId: string) {

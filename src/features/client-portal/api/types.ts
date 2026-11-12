@@ -146,6 +146,17 @@ export interface PortalAssistant {
   notes: PortalKnowledgeNote[];
 }
 
+/** A questionnaire saved on the website before payment (a prospect or a member). */
+export interface PortalQuestionnaire {
+  id: string;
+  created_at: string;
+  email: string | null;
+  profile: Record<string, unknown>;
+  customer_id: string | null;
+  /** The person is a member with an active membership. */
+  member: boolean;
+}
+
 /** Answers the member gave on the website before paying (free-form JSON). */
 export interface PortalProfile {
   profile: Record<string, unknown> | null;
