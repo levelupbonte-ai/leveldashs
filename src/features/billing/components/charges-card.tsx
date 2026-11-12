@@ -295,7 +295,20 @@ export function ChargeActions({
   const pay = useMutation({
     mutationFn: (method: OnlinePaymentMethod) => startOnlinePayment(charge.id, method),
     onSuccess: (url) => window.location.assign(url),
-    onError: (e) => toast.error(errorMessage(e, 'paymentUnavailable'))
+    onError: (e) => {
+      const alternative = (e as { cause?: { alternative?: OnlinePaymentMethod | null } }).cause
+        ?.alternative;
+      if (alternative && onlinePayments.includes(alternative)) {
+        toast.error(t('payTryOther'), {
+          action: {
+            label: alternative === 'paypal' ? t('payPaypal') : t('payCard'),
+            onClick: () => pay.mutate(alternative)
+          }
+        });
+        return;
+      }
+      toast.error(errorMessage(e, 'paymentUnavailable'));
+    }
   });
   const payable =
     onlinePayments.length > 0 && (charge.status === 'due' || charge.status === 'overdue');

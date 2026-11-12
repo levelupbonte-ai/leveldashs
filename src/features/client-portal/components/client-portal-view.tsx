@@ -35,6 +35,7 @@ import { archivePortalItem, portalDocumentUrl, setPortalCustomerStatus } from '.
 import type { PortalCustomer, PortalItem, PortalOverview } from '../api/types';
 import { AssistantPanel } from './assistant-panel';
 import { InviteDialog } from './invite-dialog';
+import { QuestionnairesView } from './questionnaires-view';
 import { PublishSheet } from './publish-sheet';
 import { PortalSettingsPanel } from './portal-settings';
 import { ThreadSheet } from './thread-sheet';
@@ -88,11 +89,12 @@ export function ClientPortalView() {
       </div>
 
       <Tabs defaultValue='customers'>
-        <TabsList>
+        <TabsList className='h-auto flex-wrap'>
           <TabsTrigger value='customers'>
             {t('tabs.customers')}
             {unread > 0 && <Badge className='ml-1.5'>{unread}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value='questionnaires'>{t('tabs.questionnaires')}</TabsTrigger>
           <TabsTrigger value='published'>{t('tabs.published')}</TabsTrigger>
           <TabsTrigger value='plans'>{t('tabs.plans')}</TabsTrigger>
           <TabsTrigger value='assistant'>{t('tabs.assistant')}</TabsTrigger>
@@ -104,6 +106,9 @@ export function ClientPortalView() {
             onPublish={(customerId) => setPublishFor({ customerId })}
             onTrial={(customer, mode) => setTrialFor({ customer, mode })}
           />
+        </TabsContent>
+        <TabsContent value='questionnaires' className='mt-3'>
+          <QuestionnairesView />
         </TabsContent>
         <TabsContent value='published' className='mt-3'>
           <PublishedList data={data} />

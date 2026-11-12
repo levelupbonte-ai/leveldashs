@@ -172,7 +172,16 @@ export async function startOnlinePayment(
   }).catch((cause) => {
     throw new AppError('network', { cause });
   });
-  const json = (await res.json().catch(() => ({}))) as { url?: unknown; error?: string };
+  const json = (await res.json().catch(() => ({}))) as {
+    url?: unknown;
+    error?: string;
+    alternative?: unknown;
+  };
   if (res.ok && typeof json.url === 'string' && json.url.startsWith('https://')) return json.url;
-  throw new AppError(CHECKOUT_ERRORS[json.error ?? ''] ?? 'paymentUnavailable');
+  // The other way to pay, when the server offers one (card down: PayPal, and back).
+  const alternative =
+    json.alternative === 'paypal' || json.alternative === 'card' ? json.alternative : null;
+  throw new AppError(CHECKOUT_ERRORS[json.error ?? ''] ?? 'paymentUnavailable', {
+    cause: { alternative }
+  });
 }

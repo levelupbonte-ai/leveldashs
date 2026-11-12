@@ -151,9 +151,15 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
     // Status and provider code only: never the key, never the request.
     console.error(
       'billing checkout failed',
+      wanted,
       e instanceof PaymentProviderError ? `${e.status} ${e.code ?? ''}` : 'network'
     );
-    return errorResponse(502, 'payment_unavailable');
+    // Smart fallback: when one provider is down, offer the other one.
+    const alternative = config.methods.find((m) => m !== method) ?? null;
+    return NextResponse.json(
+      { error: 'payment_unavailable', alternative },
+      { status: 502, headers: { 'Cache-Control': 'no-store' } }
+    );
   }
 }
 

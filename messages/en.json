@@ -1110,7 +1110,8 @@
       "payPaypal": "PayPal",
       "payPaypalLabel": "Pay {amount} with PayPal",
       "paymentPending": "PayPal is still processing your payment. The invoice will show as paid once it clears.",
-      "paymentFailed": "The payment did not go through. Nothing was charged; try again or choose another way to pay."
+      "paymentFailed": "The payment did not go through. Nothing was charged; try again or choose another way to pay.",
+      "payTryOther": "This way to pay is unavailable right now. Try the other one:"
     },
     "promo": {
       "title": "Promo code",
@@ -3895,7 +3896,8 @@
       "customers": "Customers",
       "published": "Published",
       "plans": "Plans & offer",
-      "assistant": "AI assistant"
+      "assistant": "AI assistant",
+      "questionnaires": "Questionnaires"
     },
     "cancel": "Cancel",
     "kinds": {
@@ -4183,6 +4185,25 @@
       "empty": "No dossier yet: the member has not filled in the questionnaire on the website.",
       "updated": "Filled in {date}",
       "note": "In their own words"
+    },
+    "questionnaires": {
+      "intro": "Everyone who filled in the questionnaire on the website before paying, newest first: members, and prospects who have not paid yet (kept 30 days). Open one to read the answers.",
+      "search": "Search a name, e-mail, phone, country",
+      "filters": {
+        "all": "All",
+        "members": "Members",
+        "prospects": "Not paid yet"
+      },
+      "member": "Member",
+      "memberEnded": "Membership ended",
+      "prospect": "Not paid yet",
+      "noName": "No name",
+      "open": "Open the questionnaire of {name}",
+      "filled": "Filled in {date}",
+      "sheetMember": "Member",
+      "sheetProspect": "Has not paid yet",
+      "emptyTitle": "No questionnaire yet",
+      "emptyDescription": "Questionnaires filled in on the website before payment show here."
     }
   },
   "siteForms": {
