@@ -41,6 +41,7 @@ export function ProfileCard({ customerId }: { customerId: string }) {
   const format = useFormatter();
   const { data } = useQuery(portalProfileQueryOptions(createClient(), scope.websiteId, customerId));
   const profile = data?.profile;
+  const note = data?.note;
   const rows = profile
     ? Object.entries(profile)
         .filter(([k]) => k !== 'updatedAt')
@@ -66,6 +67,12 @@ export function ProfileCard({ customerId }: { customerId: string }) {
         <Icons.chevronDown className='size-4' aria-hidden />
       </CollapsibleTrigger>
       <CollapsibleContent className='max-h-64 overflow-y-auto px-3 pb-3 text-sm'>
+        {note && (
+          <div className='mb-3'>
+            <p className='text-muted-foreground mb-1 text-xs font-medium'>{t('note')}</p>
+            <p className='whitespace-pre-wrap'>{note}</p>
+          </div>
+        )}
         {rows.length === 0 ? (
           <p className='text-muted-foreground'>{t('empty')}</p>
         ) : (

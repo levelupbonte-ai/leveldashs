@@ -19,10 +19,31 @@ export interface AssistantContext {
     level: number;
   };
   profile: Record<string, unknown> | null;
+  /** What the member wrote about their project in their space. */
+  member_note?: string | null;
+  /** Images joined to this question (read once, never stored). */
+  images?: number;
   knowledge: { title: string; body: string }[];
   items: { title: string; body: string; kind: string; published_at: string }[];
   messages: { from: 'customer' | 'owner'; body: string; at: string }[];
   history: { role: 'user' | 'assistant' | 'owner'; body: string }[];
+}
+
+/** What the client website's server adds: how its app works, the dossier in words. */
+export interface SiteContext {
+  guide?: string;
+  dossier?: string;
+}
+
+export interface AssistantImage {
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+  data: string;
+}
+
+/** "data:image/jpeg;base64,..." -> inline image, or null. */
+export function parseImage(dataUrl: string): AssistantImage | null {
+  const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
+  return m ? { mimeType: m[1] as AssistantImage['mimeType'], data: m[2] } : null;
 }
 
 export interface AssistantSource {
@@ -82,7 +103,9 @@ export function assistantSystemPrompt(ctx: AssistantContext): string {
     '',
     'How to answer:',
     `- Answer in the language of the member's question (French or English; if unclear: ${ctx.member.locale === 'fr' ? 'French' : 'English'}).`,
-    "- Use the member's dossier and history so the answer fits their situation (destination, purpose, dates, who travels).",
+    '- Use what the member wrote (dossier, their note about their project, earlier questions and messages) so the answer fits their situation: destination, purpose, dates, who travels. Speak to them as someone who knows their project; when a key fact is missing, ask for it in one short question.',
+    '- When the question is about the member space itself (where to find something, renewing, plans, notifications, the app, documents), answer from the app guide.',
+    '- When the member joined an image, look at it carefully and say what you see that matters (document type, dates, names, missing items). Never repeat full identity numbers.',
     `- ${site}'s own notes come first for how the service works and for its advice.`,
     '- For official rules (visas, permits, fees, documents, deadlines, health or entry requirements) search the web and rely on official sources first: government, embassy, consulate or international-organisation websites. Then well-known reliable sources.',
     '- Never invent a requirement, fee, form name or deadline. If sources disagree or you cannot verify, say so plainly.',
@@ -94,20 +117,23 @@ export function assistantSystemPrompt(ctx: AssistantContext): string {
   ].join('\n');
 }
 
-export function assistantUserPrompt(ctx: AssistantContext): string {
+export function assistantUserPrompt(ctx: AssistantContext, site: SiteContext = {}): string {
   const parts: string[] = [];
+  if (site.guide) parts.push(`<app_guide>\n${site.guide.slice(0, 6000)}\n</app_guide>`);
   const m = ctx.member;
   parts.push(
     `<member>\nname: ${m.name ?? 'unknown'}\nmember since: ${day(m.member_since)}\n` +
       (m.member_until ? `membership paid until: ${day(m.member_until)}\n` : '') +
       `</member>`
   );
-  const profile = profileForAi(ctx.profile);
+  const profile = site.dossier ? site.dossier.slice(0, 8000) : profileForAi(ctx.profile);
   parts.push(
     profile
       ? `<dossier>\n${profile}\n</dossier>`
       : '<dossier>none yet (ask the member for the key facts if needed)</dossier>'
   );
+  if (ctx.member_note)
+    parts.push(`<member_note>\n${ctx.member_note.slice(0, 2000)}\n</member_note>`);
   const notes = fitKnowledge(ctx.knowledge);
   if (notes)
     parts.push(`<notes_from_${slug(ctx.site)}>\n${notes}\n</notes_from_${slug(ctx.site)}>`);
@@ -135,7 +161,9 @@ export function assistantUserPrompt(ctx: AssistantContext): string {
         .join('\n')}\n</earlier_assistant_conversation>`
     );
   }
-  parts.push(`Member's question:\n${ctx.question}`);
+  parts.push(
+    `Member's question${ctx.images ? ` (with ${ctx.images} image${ctx.images > 1 ? 's' : ''} attached)` : ''}:\n${ctx.question}`
+  );
   return parts.join('\n\n');
 }
 

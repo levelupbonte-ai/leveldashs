@@ -4159,12 +4159,22 @@
         "emptyTitle": "No notes yet",
         "emptyDescription": "Add your advice so the assistant answers like you would."
       },
-      "transparency": "Members always see that the answers come from an AI assistant, with the sources and their dates. Your replies to forwarded questions are marked as validated by you."
+      "transparency": "Members always see that the answers come from an AI assistant, with the sources and their dates. Your replies to forwarded questions are marked as validated by you.",
+      "images": "Images per member per day",
+      "imagesHint": "Members can join photos of their documents to a question. The AI reads them once: they are never stored, they stay on the member's phone.",
+      "imagesInvalid": "Between 0 and 50.",
+      "imageLevels": {
+        "base": "Membership",
+        "plan1": "Plan 1",
+        "plan2": "Plan 2",
+        "plan3": "Plan 3"
+      }
     },
     "profile": {
       "title": "Member's dossier",
       "empty": "No dossier yet: the member has not filled in the questionnaire on the website.",
-      "updated": "Filled in {date}"
+      "updated": "Filled in {date}",
+      "note": "In their own words"
     }
   },
   "siteForms": {

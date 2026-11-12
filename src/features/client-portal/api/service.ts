@@ -144,13 +144,14 @@ export function getPortalAssistant(db: SupabaseClient, websiteId: string) {
 export function savePortalAssistantSettings(
   db: SupabaseClient,
   websiteId: string,
-  settings: { enabled: boolean; daily: number }
+  settings: { enabled: boolean; daily: number; images: number[] }
 ) {
   return rpc<{ ok: true }>(
     db.rpc('portal_admin_assistant_settings', {
       p_website_id: websiteId,
       p_enabled: settings.enabled,
-      p_daily: settings.daily
+      p_daily: settings.daily,
+      p_images: settings.images
     })
   );
 }

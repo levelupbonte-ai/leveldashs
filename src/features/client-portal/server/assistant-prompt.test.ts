@@ -7,6 +7,7 @@ import {
   cleanSources,
   fitKnowledge,
   parseHandoff,
+  parseImage,
   profileForAi
 } from './assistant-prompt';
 
@@ -94,5 +95,29 @@ describe('sources and handoff parsing', () => {
     });
     assert.equal(parseHandoff('not json'), null);
     assert.equal(parseHandoff('{"summary": 3}'), null);
+  });
+});
+
+describe('round 2: site context, note, images', () => {
+  test('app guide, readable dossier and note go in the prompt', () => {
+    const p = assistantUserPrompt(
+      { ...ctx, member_note: 'Master à Montréal', images: 1 },
+      { guide: 'Onglet Mon dossier : vos réponses.', dossier: 'Destination : Canada' }
+    );
+    assert.ok(p.includes('<app_guide>'));
+    assert.ok(p.includes('Destination : Canada'));
+    assert.ok(!p.includes('"destinationCountry"'));
+    assert.ok(p.includes('<member_note>\nMaster à Montréal'));
+    assert.ok(p.includes('(with 1 image attached)'));
+  });
+
+  test('only image data URLs pass', () => {
+    assert.deepEqual(parseImage('data:image/jpeg;base64,QUJD'), {
+      mimeType: 'image/jpeg',
+      data: 'QUJD'
+    });
+    assert.equal(parseImage('data:image/svg+xml;base64,QUJD'), null);
+    assert.equal(parseImage('data:text/html;base64,QUJD'), null);
+    assert.equal(parseImage('https://example.com/a.jpg'), null);
   });
 });
