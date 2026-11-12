@@ -4042,7 +4042,7 @@
         "trialTitle": "Offre gratuite",
         "trialText": "Pendant le nombre de jours choisi, le membre lit les informations du niveau choisi. Elle se termine toute seule.",
         "plansTitle": "Forfaits mensuels",
-        "plansText": "Jusqu’à trois forfaits, un mois à la fois, payés par le membre quand il le décide : rien n’est prélevé automatiquement. Le membre est prévenu avant la fin et peut arrêter ou supprimer son compte à tout moment."
+        "plansText": "Jusqu’à trois forfaits. Un forfait remplace l’adhésion de base pour son mois (un seul paiement, pas les deux) et inclut tout ce qu’elle donne. Payé par le membre quand il le décide : rien n’est prélevé automatiquement."
       },
       "offer": {
         "title": "Offre gratuite des nouveaux membres",
@@ -4063,7 +4063,7 @@
       },
       "plan": {
         "title": "Forfait {level}",
-        "hint1": "Le forfait d’entrée.",
+        "hint1": "Remplace l’adhésion de base pour le mois et inclut tout ce qu’elle donne.",
         "hint2": "Inclut tout le forfait 1.",
         "hint3": "Inclut tout le contenu des forfaits 1 et 2.",
         "notSet": "Non défini",

@@ -4042,7 +4042,7 @@
         "trialTitle": "Free offer",
         "trialText": "For the days you choose, the member reads the information of the level you choose. It ends by itself.",
         "plansTitle": "Monthly plans",
-        "plansText": "Up to three plans, one month at a time, paid by the member when they choose: nothing is charged automatically. Members are reminded before the end and can stop or delete their account at any time."
+        "plansText": "Up to three plans. A plan replaces the base membership for its month (one payment, not both) and includes everything the base gives. Paid by the member when they choose; nothing is charged automatically."
       },
       "offer": {
         "title": "Free offer for new members",
@@ -4063,7 +4063,7 @@
       },
       "plan": {
         "title": "Plan {level}",
-        "hint1": "The entry plan.",
+        "hint1": "Replaces the base membership for the month and includes everything it gives.",
         "hint2": "Includes everything in plan 1.",
         "hint3": "Includes everything in plans 1 and 2.",
         "notSet": "Not set",
