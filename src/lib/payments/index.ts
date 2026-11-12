@@ -16,10 +16,10 @@ let warned = false;
 /** Server env only (never NEXT_PUBLIC_). Null = online payments are off. */
 export function onlinePaymentsConfig(): OnlinePaymentsConfig | null {
   const config = readOnlinePaymentsConfig(process.env);
-  if (!config && !warned && process.env.LEVELUP_ONLINE_PAYMENTS) {
-    // Turned on but refused: say which variables (names only, never values).
+  if (!config && !warned) {
+    // Off: say which variables are missing or refused (names only, never values).
     warned = true;
-    console.warn('billing.online_payments_off', diagnoseOnlinePayments(process.env).join(', '));
+    console.error('billing.online_payments_off', diagnoseOnlinePayments(process.env).join(', '));
   }
   return config;
 }
