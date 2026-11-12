@@ -3868,7 +3868,8 @@
     },
     "tabs": {
       "customers": "Customers",
-      "published": "Published"
+      "published": "Published",
+      "plans": "Plans & offer"
     },
     "cancel": "Cancel",
     "kinds": {
@@ -3912,7 +3913,8 @@
       "revokeDescription": "{email} is signed out everywhere and can no longer sign in. Their payments are not changed.",
       "restoreTitle": "Give access back?",
       "restoreDescription": "{email} can sign in to the portal again.",
-      "statusSaved": "Access updated"
+      "statusSaved": "Access updated",
+      "trial": "Free offer"
     },
     "published": {
       "emptyTitle": "Nothing published yet",
@@ -3920,7 +3922,8 @@
       "reads": "{count, plural, =0 {not read yet} one {read by #} other {read by #}}",
       "open": "Open",
       "archive": "Archive",
-      "archived": "Archived: customers no longer see it"
+      "archived": "Archived: customers no longer see it",
+      "level": "{level, select, 1 {Plan 1+} 2 {Plan 2+} other {Plan 3}}"
     },
     "publish": {
       "title": "Publish to the portal",
@@ -3947,7 +3950,11 @@
       "notifyHint": "The website sends a short e-mail with a link to the space (never the content itself).",
       "cancel": "Cancel",
       "submit": "Publish",
-      "published": "{count, plural, =0 {Published} one {Published, # e-mail on its way} other {Published, # e-mails on their way}}"
+      "published": "{count, plural, =0 {Published} one {Published, # e-mail on its way} other {Published, # e-mails on their way}}",
+      "level": "Who can read it",
+      "levelHint": "Members on the free offer read what its level includes. Others see the title and are invited to take a plan.",
+      "levelFree": "Every member (free)",
+      "levelPlan": "{plan} plan and above"
     },
     "invite": {
       "title": "Invite to portal",
@@ -3968,7 +3975,90 @@
       "empty": "No message yet.",
       "you": "You",
       "reply": "Reply",
-      "send": "Send"
+      "send": "Send",
+      "today": "Today",
+      "seen": "Seen",
+      "sent": "Sent",
+      "shortcut": "Ctrl + Enter to send. The member gets an e-mail.",
+      "quickLabel": {
+        "received": "Received",
+        "published": "Published",
+        "call": "Let's talk"
+      },
+      "quick": {
+        "received": "Thank you for your message, I have received it and will get back to you shortly.",
+        "published": "I have just published the information in your space, under Info.",
+        "call": "Let's talk about it: write me when you are available."
+      }
+    },
+    "access": {
+      "plan": "{plan} plan",
+      "planEnds": "{plan} plan · ends {date}",
+      "pastDue": "{plan}: payment due",
+      "trial": "Free offer until {date}",
+      "none": "No plan"
+    },
+    "trial": {
+      "title": "Free offer",
+      "description": "Choose until when {name} reads the free information. It can be at most 90 days ahead.",
+      "until": "Free until",
+      "untilHint": "The offer ends at the end of this day.",
+      "endNow": "End it now",
+      "save": "Save",
+      "saved": "Free offer updated"
+    },
+    "settings": {
+      "adminOnly": "Only the organization's admins can change the offer, the plans and the contact numbers.",
+      "levelN": "Level {level}",
+      "saved": "Saved",
+      "save": "Save",
+      "model": {
+        "title": "How membership works",
+        "description": "Members first pay once to join, then get a free offer, then choose a monthly plan.",
+        "joinTitle": "Join",
+        "joinText": "The one-time payment on your website makes the person a member: they get their space and the conversation with you.",
+        "trialTitle": "Free offer",
+        "trialText": "For the days you choose, the member reads the information of the level you choose. It ends by itself.",
+        "plansTitle": "Monthly plans",
+        "plansText": "Up to three plans, paid automatically every month. Members can cancel or delete their account at any time."
+      },
+      "offer": {
+        "title": "Free offer for new members",
+        "description": "Applies to members who join from now on. You can also change it for one member from the Customers tab.",
+        "days": "Length (days)",
+        "daysHint": "0 to 60. 0 means no free offer.",
+        "level": "What it includes",
+        "levelHint": "The information published for this plan (and the free information).",
+        "levelOption": "Same as the {name} plan"
+      },
+      "contact": {
+        "title": "Contact numbers for members",
+        "description": "Shown only to signed-in members in their space, never on the public website.",
+        "phone": "Phone",
+        "whatsapp": "WhatsApp",
+        "note": "Note (optional)",
+        "noteHint": "e.g. Available Monday to Friday, 9 am to 6 pm."
+      },
+      "plan": {
+        "title": "Plan {level}",
+        "hint1": "The entry plan.",
+        "hint2": "Includes everything in plan 1.",
+        "hint3": "Includes everything in plans 1 and 2.",
+        "notSet": "Not set",
+        "hidden": "Hidden",
+        "subscribers": "{count, plural, =0 {No subscriber} one {# subscriber} other {# subscribers}}",
+        "name": "Name",
+        "price": "Price per month ({currency})",
+        "priceHint": "Current subscribers keep the price they signed up at.",
+        "minPrice": "At least 1.",
+        "description": "Short description",
+        "features": "What it includes",
+        "featuresHint": "One line per point, 8 at most.",
+        "active": "Offered to members",
+        "activeHint": "Turn off to stop offering it. Current subscribers keep it until they cancel.",
+        "save": "Save the plan",
+        "saved": "{name} plan saved"
+      }
     }
   },
   "siteForms": {
