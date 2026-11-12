@@ -1031,7 +1031,7 @@
     },
     "plans": {
       "title": "Plans",
-      "description": "Compare plans. Asking for a change sends a request to LevelUp; nothing is charged online.",
+      "description": "Compare plans and change yours. A plan with a price is paid online; the change applies as soon as the payment is received.",
       "current": "Current plan",
       "requested": "Requested",
       "upgrade": "Upgrade",
@@ -1047,7 +1047,15 @@
       "cancel": "Cancel",
       "sent": "Request sent. LevelUp will get back to you.",
       "alreadySent": "This request was already sent.",
-      "empty": "No plans are available right now."
+      "empty": "No plans are available right now.",
+      "payTitle": "Switch to {plan}",
+      "payDescription": "You pay the first month now on a secure payment page. Your plan changes as soon as the payment is received.",
+      "payAmount": "{price} / month",
+      "payCard": "Pay by card",
+      "payPaypal": "Pay with PayPal",
+      "payNote": "Card, Apple Pay, Google Pay and Cash App Pay are accepted on the payment page.",
+      "payTryOther": "This payment method is unavailable right now. Try another one.",
+      "descriptionRequest": "Compare plans. Asking for a change sends a request to LevelUp; nothing is charged online."
     },
     "tagline": {
       "free": "To get started with your website.",

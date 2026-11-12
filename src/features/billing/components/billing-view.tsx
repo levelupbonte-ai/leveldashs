@@ -35,7 +35,11 @@ export function BillingView({
       </div>
       <UsagePanel usage={usage} />
       {summary.money && <ChargesCard money={summary.money} onlinePayments={onlinePayments} />}
-      <PlanComparison summary={summary} organizationId={organizationId} />
+      <PlanComparison
+        summary={summary}
+        organizationId={organizationId}
+        onlinePayments={onlinePayments}
+      />
       {summary.can_manage && (
         <div className='max-w-xl'>
           <PromoCodeCard organizationId={organizationId} />

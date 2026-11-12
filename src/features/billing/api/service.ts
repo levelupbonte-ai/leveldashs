@@ -103,6 +103,24 @@ export async function redeemDiscountCode(
 }
 
 /**
+ * Owners and admins: the charge for the first month of a priced plan (the same
+ * one again while it waits for payment). Paying it moves the organization to the
+ * plan (database trigger); the payment itself goes through startOnlinePayment.
+ */
+export async function createPlanCharge(
+  db: SupabaseClient,
+  organizationId: string,
+  planKey: string
+): Promise<{ charge_id: string; amount: number; currency: string; already: boolean }> {
+  const { data, error } = await db.rpc('billing_plan_charge', {
+    p_org: organizationId,
+    p_plan_key: planKey
+  });
+  if (error) throw billingError(error, 'paymentUnavailable');
+  return data as { charge_id: string; amount: number; currency: string; already: boolean };
+}
+
+/**
  * Owners and admins ask LevelUp for another plan. The route handler stores it
  * and e-mails the LevelUp team; nothing is paid here.
  */
