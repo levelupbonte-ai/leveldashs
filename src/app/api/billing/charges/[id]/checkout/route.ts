@@ -31,6 +31,8 @@ interface Prepared {
   expires_at: string;
   session_id: string | null;
   previous_session_id: string | null;
+  buyer_email?: string | null;
+  support_email?: string | null;
 }
 
 const CODES: Record<string, [number, string]> = {
@@ -110,6 +112,9 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
       organizationId: prep.organization_id,
       invoiceNumber: prep.invoice_number,
       description: `${prep.invoice_number} · ${prep.label}`,
+      productName: `LevelUp Ecosystem — ${prep.label} (${prep.invoice_number})`,
+      buyerEmail: prep.buyer_email ?? null,
+      supportEmail: prep.support_email ?? null,
       amount: prep.amount,
       currency: prep.currency,
       idempotencyKey: `levelup-charge-${prep.charge_id}-${prep.attempt}`,

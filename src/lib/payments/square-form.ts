@@ -29,9 +29,23 @@ export interface SquarePaymentLinkBody {
     price_money: { amount: number; currency: string };
     location_id: string;
   };
-  checkout_options: { redirect_url: string; allow_tipping: false };
+  checkout_options: {
+    redirect_url: string;
+    allow_tipping: false;
+    merchant_support_email?: string;
+    accepted_payment_methods: {
+      apple_pay: true;
+      google_pay: true;
+      cash_app_pay: true;
+      afterpay_clearpay: false;
+    };
+  };
+  pre_populated_data?: { buyer_email: string };
   payment_note: string;
 }
+
+const EMAIL = /^[^\s@<>]{1,64}@[^\s@<>]{1,190}\.[A-Za-z]{2,24}$/;
+const cleanEmail = (v: string | null | undefined) => (v && EMAIL.test(v) ? v : null);
 
 /**
  * The CreatePaymentLink body. Deterministic for one attempt (no clock, no user
@@ -42,15 +56,29 @@ export function paymentLinkBody(
   request: CheckoutRequest,
   locationId: string
 ): SquarePaymentLinkBody {
+  const buyer = cleanEmail(request.buyerEmail);
+  const support = cleanEmail(request.supportEmail);
   return {
     idempotency_key: request.idempotencyKey.slice(0, 192),
     description: request.description.slice(0, 255),
     quick_pay: {
-      name: request.description.slice(0, 255),
+      name: (request.productName || request.description).slice(0, 255),
       price_money: { amount: request.amount, currency: request.currency.toUpperCase() },
       location_id: locationId
     },
-    checkout_options: { redirect_url: request.successUrl, allow_tipping: false },
+    checkout_options: {
+      redirect_url: request.successUrl,
+      allow_tipping: false,
+      ...(support ? { merchant_support_email: support } : {}),
+      // Wallets on the page (each shows only where the device and Square allow it).
+      accepted_payment_methods: {
+        apple_pay: true,
+        google_pay: true,
+        cash_app_pay: true,
+        afterpay_clearpay: false
+      }
+    },
+    ...(buyer ? { pre_populated_data: { buyer_email: buyer } } : {}),
     payment_note: squarePaymentNote(request)
   };
 }

@@ -281,6 +281,16 @@ redeploy. To go back to Stripe: set `LEVELUP_PAYMENT_PROVIDER=stripe` with the S
 keep the Square keys until open Square links are paid or deleted, so their webhooks are
 still recorded.
 
+### What the payment page shows
+
+The item reads `LevelUp Ecosystem — <label> (<invoice number>)`; the signed-in payer's
+e-mail is pre-filled (Square `pre_populated_data`, PayPal `email_address`); LevelUp's
+billing e-mail (*Billing → business details*, `billing_issuers.email`) is shown as the
+support address on Square; Apple Pay, Google Pay and Cash App Pay are offered on Square
+(each appears only where the device and the Square account allow it). Logo and brand
+colour are set in the providers' own dashboards (Square: *Settings → Account &
+Settings → Business → Brand*; PayPal: business profile), not in code.
+
 ### PayPal (beside the card provider, or alone)
 
 When the PayPal keys are set, the charge shows **Pay by card** (Stripe or Square) and

@@ -73,6 +73,7 @@ the schema from application code or by hand in the dashboard.
 | `20261113150000` | portal_set_locale (the language chosen in the member space or app becomes the member's `locale`: e-mails and push notifications follow it) | **Applied** (`portal_set_locale`) |
 | `20261113170000` | billing_paypal (PayPal for LevelUp's invoices: `private.billing_paypal_orders`, `billing_checkout_record_paypal` (session id `pp_<order>`), `billing_paypal_order_check` (billing key: capture only while the charge is due), `billing_checkout_restart` (switch card ↔ PayPal); `billing_ingest_stripe_event` accepts `provider: 'paypal'` captures; method/provider/event constraints allow PayPal) | **Applied** (`billing_paypal`) |
 | `20261113190000` | portal_questionnaires (`portal_admin_questionnaires`: every questionnaire saved before payment, newest first, members and prospects who have not paid; dashboard *Client portal → Questionnaires*) | **Applied** (`portal_questionnaires`) |
+| `20261113210000` | billing_checkout_contacts (`billing_checkout_prepare` also returns `buyer_email`, the signed-in payer, and `support_email`, LevelUp's billing e-mail, for the payment page) | **Applied** (`billing_checkout_contacts`) |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
