@@ -50,6 +50,7 @@ export interface PayPalOrderBody {
   }[];
   payment_source: {
     paypal: {
+      email_address?: string;
       experience_context: {
         brand_name: string;
         user_action: 'PAY_NOW';
@@ -74,7 +75,7 @@ export function orderBody(request: CheckoutRequest, returnUrl: string): PayPalOr
         reference_id: request.chargeId,
         custom_id: request.chargeId,
         invoice_id: request.invoiceNumber.slice(0, 127),
-        description: request.description.slice(0, 127),
+        description: (request.productName || request.description).slice(0, 127),
         amount: {
           currency_code: request.currency.toUpperCase(),
           value: toPayPalValue(request.amount, request.currency)
@@ -83,6 +84,11 @@ export function orderBody(request: CheckoutRequest, returnUrl: string): PayPalOr
     ],
     payment_source: {
       paypal: {
+        // The payer's e-mail pre-filled on PayPal's sign-in.
+        ...(request.buyerEmail &&
+        /^[^\s@<>]{1,64}@[^\s@<>]{1,190}\.[A-Za-z]{2,24}$/.test(request.buyerEmail)
+          ? { email_address: request.buyerEmail }
+          : {}),
         experience_context: {
           brand_name: 'LevelUp Ecosystem',
           user_action: 'PAY_NOW',

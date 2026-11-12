@@ -209,6 +209,33 @@ describe('Square payment link body', () => {
     assert.equal(body.checkout_options.allow_tipping, false);
     assert.equal(chargeIdFromNote(body.payment_note), CHARGE);
   });
+  test('clear product name, wallets, pre-filled payer e-mail and support e-mail', () => {
+    const body = paymentLinkBody(
+      {
+        ...REQUEST,
+        productName: 'LevelUp Ecosystem — Website setup (LU-2026-0007)',
+        buyerEmail: 'owner@client.example',
+        supportEmail: 'billing@levelup-ecosystem.com'
+      },
+      'L1'
+    );
+    assert.equal(body.quick_pay.name, 'LevelUp Ecosystem — Website setup (LU-2026-0007)');
+    assert.deepEqual(body.pre_populated_data, { buyer_email: 'owner@client.example' });
+    assert.equal(body.checkout_options.merchant_support_email, 'billing@levelup-ecosystem.com');
+    assert.deepEqual(body.checkout_options.accepted_payment_methods, {
+      apple_pay: true,
+      google_pay: true,
+      cash_app_pay: true,
+      afterpay_clearpay: false
+    });
+    // Missing or malformed e-mails are left out, never sent.
+    const bare = paymentLinkBody(
+      { ...REQUEST, buyerEmail: 'not an email', supportEmail: null },
+      'L1'
+    );
+    assert.equal(bare.pre_populated_data, undefined);
+    assert.equal(bare.checkout_options.merchant_support_email, undefined);
+  });
   test('deterministic: the same attempt sends the same bytes', () => {
     assert.equal(
       JSON.stringify(paymentLinkBody(REQUEST, 'L1')),

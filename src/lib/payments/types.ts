@@ -19,6 +19,12 @@ export interface CheckoutRequest {
   expiresAt: Date;
   successUrl: string;
   cancelUrl: string;
+  /** What the payer sees as the item, e.g. "LevelUp Ecosystem — Website setup (invoice LU-2026-0001)". */
+  productName?: string;
+  /** The signed-in payer's e-mail, pre-filled on the payment page. */
+  buyerEmail?: string | null;
+  /** LevelUp's billing e-mail, shown as the support address. */
+  supportEmail?: string | null;
 }
 
 export type CheckoutStatus = 'open' | 'complete' | 'expired';
