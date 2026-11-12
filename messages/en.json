@@ -3886,7 +3886,8 @@
     "tabs": {
       "customers": "Customers",
       "published": "Published",
-      "plans": "Plans & offer"
+      "plans": "Plans & offer",
+      "assistant": "AI assistant"
     },
     "cancel": "Cancel",
     "kinds": {
@@ -4007,6 +4008,20 @@
         "received": "Thank you for your message, I have received it and will get back to you shortly.",
         "published": "I have just published the information in your space, under Info.",
         "call": "Let's talk about it: write me when you are available."
+      },
+      "viaAssistant": "Sent from the AI assistant",
+      "validated": "Validated",
+      "answering": "Answering: {question}",
+      "answeringCancel": "Reply normally instead",
+      "handoff": {
+        "waiting": "Waiting for your answer",
+        "answered": "Answered",
+        "private": "Only your team sees this.",
+        "summary": "Summary:",
+        "aiAnswer": "What the assistant answered",
+        "draft": "Prepared reply",
+        "useDraft": "Use and edit",
+        "answer": "Answer"
       }
     },
     "access": {
@@ -4091,6 +4106,65 @@
       "endNow": "End it now",
       "save": "Save",
       "saved": "Membership updated"
+    },
+    "assistant": {
+      "title": "AI assistant for members",
+      "description": "Members ask their questions in their private space. The assistant answers with their dossier, your notes and official sources searched live, each with its date. It always says it is an AI.",
+      "on": "On",
+      "off": "Off",
+      "how": {
+        "dossierTitle": "Knows the member",
+        "dossierText": "Their dossier from the website, what you published for them and your recent messages.",
+        "sourcesTitle": "Checks official sources",
+        "sourcesText": "Searches the web live, prefers government and embassy websites, and shows each source.",
+        "handoffTitle": "Hands over to you",
+        "handoffText": "The member can send a question to you. You get a summary and a prepared reply to edit."
+      },
+      "enabled": "Assistant on",
+      "enabledHint": "Shown to members whose membership is active.",
+      "daily": "Questions per member per day",
+      "dailyHint": "Between 1 and 200. Unanswered questions do not count.",
+      "dailyInvalid": "Enter a number between 1 and 200.",
+      "save": "Save",
+      "saved": "Assistant settings saved.",
+      "cancel": "Cancel",
+      "stats": {
+        "today": "Questions in the last 24 hours",
+        "month": "Questions in the last 30 days",
+        "handoffs": "Questions waiting for you"
+      },
+      "notes": {
+        "title": "Your notes",
+        "description": "Your advice and how your service works. The assistant uses them first, before the web.",
+        "new": "New note",
+        "newTitle": "New note",
+        "editTitle": "Edit note",
+        "sheetDescription": "Write as you would explain it to a member. Never put passwords or private data here.",
+        "titleLabel": "Title",
+        "titlePlaceholder": "Student visa for Canada: my advice",
+        "bodyLabel": "Note",
+        "bodyHint": "Up to 8,000 characters. The newest notes count first.",
+        "active": "Used by the assistant",
+        "activeHint": "Turn off to keep the note without the assistant using it.",
+        "save": "Save note",
+        "saved": "Note saved.",
+        "off": "Not used",
+        "updated": "Updated {date}",
+        "edit": "Edit",
+        "delete": "Delete note {title}",
+        "deleteTitle": "Delete this note?",
+        "deleteDescription": "“{title}” will no longer be used by the assistant. This cannot be undone.",
+        "deleteConfirm": "Delete",
+        "deleted": "Note deleted.",
+        "emptyTitle": "No notes yet",
+        "emptyDescription": "Add your advice so the assistant answers like you would."
+      },
+      "transparency": "Members always see that the answers come from an AI assistant, with the sources and their dates. Your replies to forwarded questions are marked as validated by you."
+    },
+    "profile": {
+      "title": "Member's dossier",
+      "empty": "No dossier yet: the member has not filled in the questionnaire on the website.",
+      "updated": "Filled in {date}"
     }
   },
   "siteForms": {
@@ -4638,7 +4712,7 @@
       "kind": "Type",
       "value": "Value",
       "valueInvalid": "This value does not match the type.",
-      "jsonHint": "Valid JSON, e.g. {\"solo\": 5, \"duo\": 9}",
+      "jsonHint": "Valid JSON, e.g. '{'\"solo\": 5, \"duo\": 9'}'",
       "descriptionLabel": "Note (optional)",
       "cancel": "Cancel",
       "save": "Save",

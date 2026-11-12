@@ -3886,7 +3886,8 @@
     "tabs": {
       "customers": "Clients",
       "published": "Publié",
-      "plans": "Forfaits et offre"
+      "plans": "Forfaits et offre",
+      "assistant": "Assistant IA"
     },
     "cancel": "Annuler",
     "kinds": {
@@ -4007,6 +4008,20 @@
         "received": "Merci pour votre message, je l’ai bien reçu et je reviens vers vous rapidement.",
         "published": "Je viens de publier l’information dans votre espace, rubrique Infos.",
         "call": "Parlons-en : écrivez-moi quand vous êtes disponible."
+      },
+      "viaAssistant": "Envoyé depuis l’assistant IA",
+      "validated": "Validé",
+      "answering": "Réponse à : {question}",
+      "answeringCancel": "Répondre normalement",
+      "handoff": {
+        "waiting": "En attente de votre réponse",
+        "answered": "Répondu",
+        "private": "Visible seulement par votre équipe.",
+        "summary": "Résumé :",
+        "aiAnswer": "Ce que l’assistant a répondu",
+        "draft": "Réponse préparée",
+        "useDraft": "Utiliser et modifier",
+        "answer": "Répondre"
       }
     },
     "access": {
@@ -4091,6 +4106,65 @@
       "endNow": "Terminer maintenant",
       "save": "Enregistrer",
       "saved": "Adhésion mise à jour"
+    },
+    "assistant": {
+      "title": "Assistant IA pour les membres",
+      "description": "Les membres posent leurs questions dans leur espace privé. L’assistant répond avec leur dossier, vos notes et des sources officielles cherchées en direct, chacune avec sa date. Il indique toujours qu’il est une IA.",
+      "on": "Activé",
+      "off": "Désactivé",
+      "how": {
+        "dossierTitle": "Connaît le membre",
+        "dossierText": "Son dossier rempli sur le site, ce que vous lui avez publié et vos derniers messages.",
+        "sourcesTitle": "Vérifie les sources officielles",
+        "sourcesText": "Cherche sur le web en direct, privilégie les sites des gouvernements et des ambassades, et affiche chaque source.",
+        "handoffTitle": "Vous passe la main",
+        "handoffText": "Le membre peut vous transmettre une question. Vous recevez un résumé et une réponse préparée à modifier."
+      },
+      "enabled": "Assistant activé",
+      "enabledHint": "Visible par les membres dont l’abonnement est actif.",
+      "daily": "Questions par membre et par jour",
+      "dailyHint": "Entre 1 et 200. Les questions restées sans réponse ne comptent pas.",
+      "dailyInvalid": "Saisissez un nombre entre 1 et 200.",
+      "save": "Enregistrer",
+      "saved": "Réglages de l’assistant enregistrés.",
+      "cancel": "Annuler",
+      "stats": {
+        "today": "Questions des dernières 24 heures",
+        "month": "Questions des 30 derniers jours",
+        "handoffs": "Questions qui vous attendent"
+      },
+      "notes": {
+        "title": "Vos notes",
+        "description": "Vos conseils et le fonctionnement de votre service. L’assistant s’en sert en premier, avant le web.",
+        "new": "Nouvelle note",
+        "newTitle": "Nouvelle note",
+        "editTitle": "Modifier la note",
+        "sheetDescription": "Écrivez comme vous l’expliqueriez à un membre. N’y mettez jamais de mot de passe ni de donnée privée.",
+        "titleLabel": "Titre",
+        "titlePlaceholder": "Visa étudiant pour le Canada : mes conseils",
+        "bodyLabel": "Note",
+        "bodyHint": "Jusqu’à 8 000 caractères. Les notes les plus récentes comptent en premier.",
+        "active": "Utilisée par l’assistant",
+        "activeHint": "Désactivez-la pour la garder sans que l’assistant l’utilise.",
+        "save": "Enregistrer la note",
+        "saved": "Note enregistrée.",
+        "off": "Non utilisée",
+        "updated": "Modifiée le {date}",
+        "edit": "Modifier",
+        "delete": "Supprimer la note {title}",
+        "deleteTitle": "Supprimer cette note ?",
+        "deleteDescription": "« {title} » ne sera plus utilisée par l’assistant. Action définitive.",
+        "deleteConfirm": "Supprimer",
+        "deleted": "Note supprimée.",
+        "emptyTitle": "Aucune note pour l’instant",
+        "emptyDescription": "Ajoutez vos conseils pour que l’assistant réponde comme vous le feriez."
+      },
+      "transparency": "Les membres voient toujours que les réponses viennent d’un assistant IA, avec les sources et leurs dates. Vos réponses aux questions transmises sont marquées comme validées par vous."
+    },
+    "profile": {
+      "title": "Dossier du membre",
+      "empty": "Pas encore de dossier : le membre n’a pas rempli le questionnaire du site.",
+      "updated": "Rempli le {date}"
     }
   },
   "siteForms": {
@@ -4638,7 +4712,7 @@
       "kind": "Type",
       "value": "Valeur",
       "valueInvalid": "Cette valeur ne correspond pas au type.",
-      "jsonHint": "JSON valide, ex. {\"solo\": 5, \"duo\": 9}",
+      "jsonHint": "JSON valide, ex. '{'\"solo\": 5, \"duo\": 9'}'",
       "descriptionLabel": "Note (facultatif)",
       "cancel": "Annuler",
       "save": "Enregistrer",

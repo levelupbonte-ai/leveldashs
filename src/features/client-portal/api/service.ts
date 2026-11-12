@@ -5,10 +5,12 @@ import { rpc } from '@/lib/supabase/rpc-error';
 import {
   PORTAL_DOCUMENT_MAX_BYTES,
   PORTAL_DOCUMENT_TYPES,
+  type PortalAssistant,
   type PortalItemInput,
   type PortalMessage,
   type PortalOverview,
   type PortalPlanInput,
+  type PortalProfile,
   type PortalSettings
 } from './types';
 
@@ -123,6 +125,55 @@ export function replyToPortalCustomer(db: SupabaseClient, customerId: string, bo
   return rpc<{ ok: true; id: string }>(
     db.rpc('portal_admin_reply', { p_customer_id: customerId, p_body: body })
   );
+}
+
+export function answerPortalHandoff(db: SupabaseClient, messageId: string, body: string) {
+  return rpc<{ ok: true; id: string }>(
+    db.rpc('portal_admin_answer_handoff', { p_message_id: messageId, p_body: body })
+  );
+}
+
+export function getPortalProfile(db: SupabaseClient, customerId: string) {
+  return rpc<PortalProfile>(db.rpc('portal_admin_profile', { p_customer_id: customerId }));
+}
+
+export function getPortalAssistant(db: SupabaseClient, websiteId: string) {
+  return rpc<PortalAssistant>(db.rpc('portal_admin_assistant', { p_website_id: websiteId }));
+}
+
+export function savePortalAssistantSettings(
+  db: SupabaseClient,
+  websiteId: string,
+  settings: { enabled: boolean; daily: number }
+) {
+  return rpc<{ ok: true }>(
+    db.rpc('portal_admin_assistant_settings', {
+      p_website_id: websiteId,
+      p_enabled: settings.enabled,
+      p_daily: settings.daily
+    })
+  );
+}
+
+export function savePortalKnowledgeNote(
+  db: SupabaseClient,
+  websiteId: string,
+  id: string | null,
+  note: { title: string; body: string; active: boolean }
+) {
+  return rpc<{ ok: true; id: string }>(
+    db.rpc('portal_admin_knowledge_save', {
+      p_website_id: websiteId,
+      p_id: id,
+      p_title: note.title,
+      p_body: note.body,
+      p_active: note.active
+    })
+  );
+}
+
+export function deletePortalKnowledgeNote(db: SupabaseClient, id: string) {
+  return rpc<{ ok: true }>(db.rpc('portal_admin_knowledge_delete', { p_id: id }));
 }
 
 const EXTENSIONS: Record<string, string> = {

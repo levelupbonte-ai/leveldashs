@@ -129,6 +129,16 @@ functions from their own code:
   - the dashboard only queues the e-mails, then pokes the site
     (`/api/portal/outbox`, HMAC-signed with `PORTAL_NOTIFY_SECRET`, same value on
     both projects). A daily Vercel cron retries.
+  - **AI assistant for members** (2026-11-12, migration `20261113090000`): the site's
+    server forwards a member's question to `https://dashboard.levelup-ecosystem.com/api/portal/assistant`
+    with `Authorization: Bearer <portal key>` + the member session; the database checks
+    both, the membership and the daily quota. Gemini answers with Google Search
+    grounding (sources + dates), from the member's dossier (questionnaire saved before
+    payment), the owner's notes (dashboard > Client portal > AI assistant) and recent
+    messages. "Ask Black Pater" sends the question to the owner's messages with a
+    private summary and a prepared reply; the owner's answer is shown as validated.
+    AI keys stay on the dashboard project (`GEMINI_API_KEYS`, router keys; optional
+    `PORTAL_ASSISTANT_MODELS`). Off until the owner turns it on.
 
 ## 5b. Security watch, logs, AI (2026-11-03)
 
