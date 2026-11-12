@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { SitePage } from '@/features/site/components/site-page';
 import { ClientPortalView } from '@/features/client-portal/components/client-portal-view';
 import {
+  portalAssistantQueryOptions,
   portalOverviewQueryOptions,
   portalSettingsQueryOptions
 } from '@/features/client-portal/api/queries';
@@ -22,6 +23,7 @@ export default async function Page() {
       prefetch={(qc, db, websiteId) => {
         void qc.prefetchQuery(portalOverviewQueryOptions(db, websiteId));
         void qc.prefetchQuery(portalSettingsQueryOptions(db, websiteId));
+        void qc.prefetchQuery(portalAssistantQueryOptions(db, websiteId));
       }}
     >
       <ClientPortalView />

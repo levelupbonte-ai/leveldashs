@@ -33,6 +33,7 @@ import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalKeys, portalOverviewQueryOptions } from '../api/queries';
 import { archivePortalItem, portalDocumentUrl, setPortalCustomerStatus } from '../api/service';
 import type { PortalCustomer, PortalItem, PortalOverview } from '../api/types';
+import { AssistantPanel } from './assistant-panel';
 import { InviteDialog } from './invite-dialog';
 import { PublishSheet } from './publish-sheet';
 import { PortalSettingsPanel } from './portal-settings';
@@ -94,6 +95,7 @@ export function ClientPortalView() {
           </TabsTrigger>
           <TabsTrigger value='published'>{t('tabs.published')}</TabsTrigger>
           <TabsTrigger value='plans'>{t('tabs.plans')}</TabsTrigger>
+          <TabsTrigger value='assistant'>{t('tabs.assistant')}</TabsTrigger>
         </TabsList>
         <TabsContent value='customers' className='mt-3'>
           <CustomerList
@@ -108,6 +110,9 @@ export function ClientPortalView() {
         </TabsContent>
         <TabsContent value='plans' className='mt-3'>
           <PortalSettingsPanel />
+        </TabsContent>
+        <TabsContent value='assistant' className='mt-3'>
+          <AssistantPanel />
         </TabsContent>
       </Tabs>
 

@@ -117,6 +117,37 @@ export interface PortalMessage {
   body: string;
   created_at: string;
   read_at: string | null;
+  /** 'assistant': the member sent it with "Ask …" from the AI assistant. */
+  via: 'assistant' | null;
+  /** Prepared by the assistant for the team only (never shown to the member). */
+  brief: { summary?: string; draft?: string; answer?: string } | null;
+  /** Owner reply to an assistant question: shown as validated to the member. */
+  reply_to: string | null;
+  answered: boolean;
+}
+
+export interface PortalKnowledgeNote {
+  id: string;
+  title: string;
+  body: string;
+  active: boolean;
+  updated_at: string;
+}
+
+/** AI assistant of the member space: switch, daily limit, usage, notes. */
+export interface PortalAssistant {
+  enabled: boolean;
+  daily: number;
+  questions_today: number;
+  questions_month: number;
+  handoffs_open: number;
+  notes: PortalKnowledgeNote[];
+}
+
+/** Answers the member gave on the website before paying (free-form JSON). */
+export interface PortalProfile {
+  profile: Record<string, unknown> | null;
+  updated_at: string | null;
 }
 
 /** What the publish form sends (validated again by portal_admin_publish). */
