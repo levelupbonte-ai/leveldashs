@@ -178,6 +178,19 @@ export const navGroups: NavGroup[] = [
         access: { requireWebsite: true }
       },
       {
+        // Shown on the website by the LevelUp tag; no code change on the site.
+        title: 'marketing',
+        url: '#',
+        icon: 'speakerphone',
+        isActive: false,
+        access: { requireWebsite: true },
+        items: [
+          { title: 'campaigns', url: '/dashboard/site/campaigns', icon: 'speakerphone' },
+          { title: 'promoCodes', url: '/dashboard/site/promo-codes', icon: 'discount' },
+          { title: 'siteConfig', url: '/dashboard/site/site-config', icon: 'adjustments' }
+        ]
+      },
+      {
         title: 'assistant',
         url: '/dashboard/site/assistant',
         icon: 'starMark',

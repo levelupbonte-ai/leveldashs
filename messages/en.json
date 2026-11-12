@@ -113,7 +113,11 @@
       "emailCampaigns": "Email campaigns",
       "clientPortal": "Client portal",
       "activity": "Activity log",
-      "forms": "Forms"
+      "forms": "Forms",
+      "marketing": "Marketing",
+      "campaigns": "Campaigns",
+      "promoCodes": "Promo codes",
+      "siteConfig": "Remote settings"
     }
   },
   "admin": {
@@ -1825,6 +1829,18 @@
       "forms": {
         "title": "Forms",
         "description": "Forms LevelUp hosts for your website: build them here, answers arrive in Requests"
+      },
+      "campaigns": {
+        "title": "Campaigns",
+        "description": "Announcement bars, pop-ups and countdowns shown on your website"
+      },
+      "promoCodes": {
+        "title": "Promo codes",
+        "description": "Discount codes your customers enter before paying"
+      },
+      "siteConfig": {
+        "title": "Remote settings",
+        "description": "Values your website reads, changed here without touching its code"
       }
     },
     "unavailable": {
@@ -4423,6 +4439,209 @@
           "any": "Photos or documents, up to {max}, 10 MB each"
         }
       }
+    }
+  },
+  "engage": {
+    "campaigns": {
+      "intro": "Your website shows these automatically through the LevelUp tag. Changes reach visitors within a minute.",
+      "new": "New campaign",
+      "edit": "Edit",
+      "pause": "Pause",
+      "activate": "Show on the site",
+      "archive": "Archive",
+      "emptyTitle": "No campaign yet",
+      "emptyDescription": "Announce an offer with a bar, a pop-up with a promo code, or a countdown inside a page.",
+      "status": {
+        "draft": "Draft",
+        "active": "Live",
+        "paused": "Paused",
+        "archived": "Archived"
+      },
+      "statusSaved": {
+        "draft": "Saved as draft",
+        "active": "Now live on the site",
+        "paused": "Paused",
+        "archived": "Archived"
+      },
+      "schedule": {
+        "always": "No end date",
+        "between": "{start} → {end}",
+        "until": "Until {end}",
+        "from": "From {start}"
+      },
+      "onPages": "{count, plural, one {# page} other {# pages}}",
+      "stats": {
+        "views": "Views",
+        "clicks": "Clicks",
+        "ctr": "Click rate",
+        "period": "Last 30 days. Counted without any information about visitors."
+      },
+      "archiveTitle": "Archive this campaign?",
+      "archiveDescription": "“{name}” disappears from the website and from this list.",
+      "how": {
+        "title": "Show a campaign inside a page",
+        "text": "Choose “Inside a page” and give it a place name. Then put this element where it should appear (your developer or LevelUp does it once):"
+      },
+      "preview": {
+        "title": "Preview",
+        "label": "Preview of the campaign",
+        "cta": "Learn more",
+        "copy": "Copy",
+        "units": {
+          "0": "d",
+          "1": "h",
+          "2": "min",
+          "3": "s"
+        }
+      },
+      "editor": {
+        "newTitle": "New campaign",
+        "editTitle": "Edit the campaign",
+        "description": "Text only, no code. Visitors see the language of the page.",
+        "name": "Name (for you)",
+        "nameHint": "Visitors do not see it.",
+        "kind": "Type",
+        "kindHint": "Bar: a strip at the top or bottom. Pop-up: a window after a few seconds. Inside a page: a card where your site placed it.",
+        "kinds": {
+          "bar": "Bar",
+          "popup": "Pop-up",
+          "slot": "Inside a page"
+        },
+        "live": "Show on the site",
+        "liveHint": "Off: saved as a draft, nobody sees it.",
+        "french": "French",
+        "english": "English",
+        "titleLabel": "Title",
+        "text": "Text",
+        "cta": "Button text",
+        "ctaPlaceholder": "e.g. I want it",
+        "ctaUrl": "Button link",
+        "coupon": "Promo code to show",
+        "couponHint": "Visitors can copy it. Create the code itself in Promo codes.",
+        "countdown": "Countdown to",
+        "countdownHint": "Optional. Shows days, hours, minutes and seconds left.",
+        "startsAt": "Start",
+        "endsAt": "End",
+        "endsAtHint": "It disappears by itself.",
+        "pages": "Pages",
+        "pagesHint": "One per line, e.g. / or /offers. End with * for a whole section (/blog/*). Empty: every page.",
+        "slot": "Place name",
+        "slotHint": "Matches <div data-lu-campaign=\"name\"> on your site.",
+        "position": "Position",
+        "positions": {
+          "bottom": "Bottom of the screen",
+          "top": "Top of the screen"
+        },
+        "delay": "Show after (seconds)",
+        "frequency": "How often",
+        "frequencies": {
+          "session": "Once per visit",
+          "once": "Once per visitor",
+          "always": "On every page"
+        },
+        "theme": "Style",
+        "themes": {
+          "dark": "Dark",
+          "light": "Light",
+          "accent": "Your color"
+        },
+        "accent": "Color",
+        "accentHint": "Button color, or the background with “Your color”.",
+        "priority": "Priority",
+        "priorityHint": "0 to 100. When two campaigns compete, the higher one shows.",
+        "needText": "Add a title or a text in at least one language.",
+        "httpsOnly": "Use a secure link (https://).",
+        "endAfterStart": "The end must be after the start.",
+        "pagesInvalid": "One path per line, starting with /.",
+        "cancel": "Cancel",
+        "save": "Save",
+        "saved": "Campaign saved",
+        "savedLive": "Campaign saved and live"
+      }
+    },
+    "promos": {
+      "intro": "Your website checks the code before the payment page. A code counts only when the payment goes through.",
+      "new": "New code",
+      "edit": "Edit",
+      "emptyTitle": "No promo code yet",
+      "emptyDescription": "Create a code like WELCOME10 to give a discount for a while or to a few people.",
+      "state": {
+        "on": "Active",
+        "off": "Off",
+        "expired": "Expired",
+        "usedUp": "Used up",
+        "scheduled": "Scheduled"
+      },
+      "percentOff": "{value} % off",
+      "amountOff": "{value} off",
+      "uses": "{uses, plural, =0 {Not used yet} one {Used once} other {Used # times}}",
+      "usesOf": "Used {uses} / {max}",
+      "until": "until {date}",
+      "onOffers": "{count, plural, one {# offer} other {# offers}}",
+      "newTitle": "New promo code",
+      "editTitle": "Edit the promo code",
+      "sheetDescription": "Customers type it on your site before paying. The discount is applied by your site's server.",
+      "code": "Code",
+      "codeHint": "3 to 32 letters, digits, - or _. Not case sensitive.",
+      "codeInvalid": "3 to 32 letters, digits, - or _.",
+      "description": "Note (optional)",
+      "kind": "Discount",
+      "kinds": {
+        "percent": "Percentage",
+        "amount": "Amount ({currency})"
+      },
+      "value": "Value",
+      "percentInvalid": "A whole number from 1 to 100.",
+      "offers": "Only for these offers",
+      "offersHint": "One offer id per line (e.g. accompagnement-voyage). Empty: every offer.",
+      "maxUses": "Maximum uses",
+      "maxUsesHint": "Empty: unlimited.",
+      "startsAt": "Start",
+      "endsAt": "End",
+      "endAfterStart": "The end must be after the start.",
+      "active": "Active",
+      "activeHint": "Off: the code is refused.",
+      "duplicate": "This code already exists.",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Promo code saved"
+    },
+    "config": {
+      "publicWarning": "These values are public: anyone can read them on your website. Never put a password, a key or private data here.",
+      "intro": "Change a date, a price shown or a switch without changing your website's code.",
+      "new": "New value",
+      "edit": "Edit",
+      "delete": "Delete {key}",
+      "deleted": "Value deleted",
+      "emptyTitle": "No value yet",
+      "emptyDescription": "For example launch.ends_at: the end of an offer, read by your site.",
+      "kinds": {
+        "text": "Text",
+        "number": "Number",
+        "boolean": "Yes / no",
+        "date": "Date and time",
+        "json": "List or object (JSON)"
+      },
+      "yes": "Yes",
+      "no": "No",
+      "how": {
+        "title": "Read a value on your site",
+        "text": "In a page with the LevelUp tag:"
+      },
+      "newTitle": "New value",
+      "editTitle": "Edit the value",
+      "dialogDescription": "Your website reads it within a minute.",
+      "key": "Name",
+      "keyHint": "Lowercase letters, digits, dots and _ (e.g. launch.ends_at).",
+      "keyInvalid": "Lowercase letters, digits, dots and _, starting with a letter.",
+      "kind": "Type",
+      "value": "Value",
+      "valueInvalid": "This value does not match the type.",
+      "jsonHint": "Valid JSON, e.g. {\"solo\": 5, \"duo\": 9}",
+      "descriptionLabel": "Note (optional)",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saved": "Value saved"
     }
   }
 }
