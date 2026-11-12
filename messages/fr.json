@@ -1031,7 +1031,7 @@
     },
     "plans": {
       "title": "Forfaits",
-      "description": "Comparez les forfaits. Demander un changement envoie une demande à LevelUp ; rien n’est payé en ligne.",
+      "description": "Comparez les forfaits et changez le vôtre. Un forfait avec un prix se paie en ligne ; le changement s’applique dès que le paiement est reçu.",
       "current": "Forfait actuel",
       "requested": "Demandé",
       "upgrade": "Passer à ce forfait",
@@ -1047,7 +1047,15 @@
       "cancel": "Annuler",
       "sent": "Demande envoyée. LevelUp vous répondra.",
       "alreadySent": "Cette demande a déjà été envoyée.",
-      "empty": "Aucun forfait n’est disponible pour le moment."
+      "empty": "Aucun forfait n’est disponible pour le moment.",
+      "payTitle": "Passer au forfait {plan}",
+      "payDescription": "Vous payez le premier mois maintenant sur une page de paiement sécurisée. Votre forfait change dès que le paiement est reçu.",
+      "payAmount": "{price} / mois",
+      "payCard": "Payer par carte",
+      "payPaypal": "Payer avec PayPal",
+      "payNote": "Carte, Apple Pay, Google Pay et Cash App Pay sont acceptés sur la page de paiement.",
+      "payTryOther": "Ce moyen de paiement est indisponible pour le moment. Essayez-en un autre.",
+      "descriptionRequest": "Comparez les forfaits. Demander un changement envoie une demande à LevelUp ; rien n’est payé en ligne."
     },
     "tagline": {
       "free": "Pour démarrer avec votre site.",

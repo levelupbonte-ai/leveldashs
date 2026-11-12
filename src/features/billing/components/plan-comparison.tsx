@@ -28,22 +28,37 @@ import { useErrorMessage } from '@/hooks/use-error-message';
 import { useAppForm } from '@/lib/form';
 import { cn } from '@/lib/utils';
 import { billingKeys } from '../api/queries';
-import { requestPlanUpgrade } from '../api/service';
-import { LIMIT_KEYS, type BillingSummary, type PlanSummary } from '../api/types';
+import { createClient } from '@/lib/supabase/client';
+import { createPlanCharge, requestPlanUpgrade, startOnlinePayment } from '../api/service';
+import {
+  LIMIT_KEYS,
+  type BillingSummary,
+  type OnlinePaymentMethod,
+  type PlanSummary
+} from '../api/types';
 import { formatMoney } from '../lib/format';
 import { taglineFor } from './plan-card';
 
-/** Plan cards with limits and features. "Upgrade" asks LevelUp; it is not a payment. */
+/**
+ * Plan cards with limits and features. A plan with a price is paid online (the
+ * first month; the plan changes once the payment is received); a plan without a
+ * price, or when online payment is off, is asked of LevelUp.
+ */
 export function PlanComparison({
   summary,
-  organizationId
+  organizationId,
+  onlinePayments = []
 }: {
   summary: BillingSummary;
   organizationId: string;
+  onlinePayments?: OnlinePaymentMethod[];
 }) {
   const t = useTranslations('billing');
   const format = useFormatter();
   const [asking, setAsking] = useState<PlanSummary | null>(null);
+  const [paying, setPaying] = useState<PlanSummary | null>(null);
+  const payable = (p: PlanSummary) =>
+    onlinePayments.length > 0 && p.price_state === 'set' && !!p.price && !!p.currency;
   const currentIndex = summary.plans.findIndex((p) => p.key === summary.plan.key);
 
   const limitValue = (key: (typeof LIMIT_KEYS)[number], v: number | null | undefined) => {
@@ -68,7 +83,9 @@ export function PlanComparison({
         <h2 id='plans-title' className='text-lg font-semibold'>
           {t('plans.title')}
         </h2>
-        <p className='text-muted-foreground text-sm'>{t('plans.description')}</p>
+        <p className='text-muted-foreground text-sm'>
+          {onlinePayments.length ? t('plans.description') : t('plans.descriptionRequest')}
+        </p>
       </div>
       {summary.plans.length === 0 ? (
         <p className='text-muted-foreground text-sm'>{t('plans.empty')}</p>
@@ -146,7 +163,7 @@ export function PlanComparison({
                     <Button
                       className='w-full'
                       variant={i > currentIndex ? 'default' : 'outline'}
-                      onClick={() => setAsking(p)}
+                      onClick={() => (payable(p) ? setPaying(p) : setAsking(p))}
                     >
                       {i > currentIndex ? t('plans.upgrade') : t('plans.switch')}
                     </Button>
@@ -159,12 +176,91 @@ export function PlanComparison({
           })}
         </div>
       )}
+      <PayPlanDialog
+        plan={paying}
+        organizationId={organizationId}
+        methods={onlinePayments}
+        onOpenChange={(open) => !open && setPaying(null)}
+      />
       <UpgradeDialog
         plan={asking}
         organizationId={organizationId}
         onOpenChange={(open) => !open && setAsking(null)}
       />
     </section>
+  );
+}
+
+/** First month of a priced plan, paid on the secure payment page (card or PayPal). */
+function PayPlanDialog({
+  plan,
+  organizationId,
+  methods,
+  onOpenChange
+}: {
+  plan: PlanSummary | null;
+  organizationId: string;
+  methods: OnlinePaymentMethod[];
+  onOpenChange: (open: boolean) => void;
+}) {
+  const t = useTranslations('billing.plans');
+  const format = useFormatter();
+  const errorMessage = useErrorMessage();
+  const queryClient = useQueryClient();
+  const pay = useMutation({
+    mutationFn: async (method: OnlinePaymentMethod) => {
+      if (!plan) throw new Error('no plan');
+      const charge = await createPlanCharge(createClient(), organizationId, plan.key);
+      void queryClient.invalidateQueries({ queryKey: billingKeys.org(organizationId) });
+      return startOnlinePayment(charge.charge_id, method);
+    },
+    onSuccess: (url) => window.location.assign(url),
+    onError: (e) => {
+      const alternative = (e as { cause?: { alternative?: OnlinePaymentMethod | null } }).cause
+        ?.alternative;
+      if (alternative && methods.includes(alternative)) {
+        toast.error(t('payTryOther'), {
+          action: {
+            label: alternative === 'paypal' ? t('payPaypal') : t('payCard'),
+            onClick: () => pay.mutate(alternative)
+          }
+        });
+        return;
+      }
+      toast.error(errorMessage(e, 'paymentUnavailable'));
+    }
+  });
+
+  return (
+    <Dialog open={!!plan} onOpenChange={onOpenChange}>
+      <DialogContent className='sm:max-w-md'>
+        <DialogHeader>
+          <DialogTitle>{t('payTitle', { plan: plan?.name ?? '' })}</DialogTitle>
+          <DialogDescription>{t('payDescription')}</DialogDescription>
+        </DialogHeader>
+        {plan?.price && plan.currency && (
+          <p className='text-2xl font-semibold tabular-nums'>
+            {t('payAmount', { price: formatMoney(format.number, plan.price, plan.currency) })}
+          </p>
+        )}
+        <div className='grid gap-2'>
+          {methods.map((method) => (
+            <LoadingButton
+              key={method}
+              variant={method === methods[0] ? 'default' : 'outline'}
+              loading={pay.isPending && pay.variables === method}
+              disabled={pay.isPending}
+              onClick={() => pay.mutate(method)}
+            >
+              {method === 'paypal' ? t('payPaypal') : t('payCard')}
+            </LoadingButton>
+          ))}
+        </div>
+        {methods.includes('card') && (
+          <p className='text-muted-foreground text-xs'>{t('payNote')}</p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

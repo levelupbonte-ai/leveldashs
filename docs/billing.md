@@ -57,6 +57,22 @@ Clients download them from **Billing → What you owe** (Invoice / Receipt per c
 and admins only: the database never returns charges to editors and viewers). Staff use
 the buttons in the organization's billing sheet.
 
+## Changing plan: paid online
+
+In Billing → Plans, an owner or admin who picks a plan **with a price**
+(`plans.price_monthly` > 0, set by LevelUp in HQ) while online payments are on
+gets a dialog with the monthly price and one button per payment method (card,
+PayPal). `billing_plan_charge(org, plan)` creates the charge for the first month
+(`kind` subscription, `plan_key` set, best discount applied; the same charge is
+reused while it waits for payment, and an unpaid charge for another plan is
+voided), then the usual checkout opens the payment page. When the payment is
+recorded, the trigger `billing_charges_plan_paid` moves the organization to the
+plan (`organization_billing`: plan, status active, next due date in one month,
+custom price cleared) and approves a pending upgrade request.
+
+A plan without a price (`Price set by LevelUp`), the free plan, or online
+payments off keep the request flow (`request_plan_upgrade`, e-mail to the team).
+
 ## Storage limit (plan `limits.media_mb`)
 
 One number for the meter, the usage panel and the checks: `private.org_storage(org)` now
