@@ -161,11 +161,14 @@ const CHECKOUT_ERRORS: Record<string, ErrorCode> = {
  * server takes the amount from the database; the browser only names the charge.
  * Returns the payment page URL.
  */
-export async function startOnlinePayment(chargeId: string): Promise<string> {
+export async function startOnlinePayment(
+  chargeId: string,
+  method: 'card' | 'paypal' = 'card'
+): Promise<string> {
   const res = await fetch(`/api/billing/charges/${encodeURIComponent(chargeId)}/checkout`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: '{}'
+    body: JSON.stringify({ method })
   }).catch((cause) => {
     throw new AppError('network', { cause });
   });

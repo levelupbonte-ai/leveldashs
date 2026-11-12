@@ -546,7 +546,8 @@
           "cash": "Espèces",
           "mobile_money": "Paiement mobile",
           "card": "Carte",
-          "other": "Autre"
+          "other": "Autre",
+          "paypal": "PayPal"
         },
         "invoice": "Facture",
         "receipt": "Reçu",
@@ -672,7 +673,8 @@
         "provider": "Fournisseur des nouveaux paiements : {name}",
         "providers": {
           "stripe": "Stripe",
-          "square": "Square"
+          "square": "Square",
+          "paypal": "PayPal"
         }
       }
     },
@@ -1103,7 +1105,12 @@
       "number": "N° {number}",
       "paymentSuccess": "Merci. Votre paiement est en cours de confirmation et apparaîtra ici dans un instant.",
       "paymentCancelled": "Paiement annulé. Rien n’a été débité.",
-      "howToPayOnline": "Payez un montant par carte avec « Payer en ligne », ou utilisez les informations de paiement envoyées par LevelUp. Une question ? Écrivez à <email></email>."
+      "howToPayOnline": "Payez un montant par carte avec « Payer en ligne », ou utilisez les informations de paiement envoyées par LevelUp. Une question ? Écrivez à <email></email>.",
+      "payCard": "Payer par carte",
+      "payPaypal": "PayPal",
+      "payPaypalLabel": "Payer {amount} avec PayPal",
+      "paymentPending": "PayPal traite encore votre paiement. La facture passera à payée dès qu’il sera validé.",
+      "paymentFailed": "Le paiement n’a pas abouti. Rien n’a été débité ; réessayez ou choisissez un autre moyen de paiement."
     },
     "promo": {
       "title": "Code promo",
@@ -1353,7 +1360,8 @@
         "cash": "Espèces",
         "mobile_money": "Paiement mobile",
         "card": "Carte",
-        "other": "Autre"
+        "other": "Autre",
+        "paypal": "PayPal"
       },
       "kind": {
         "setup": "Mise en place",

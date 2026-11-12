@@ -11,7 +11,7 @@ import {
 } from '@/features/billing/api/queries';
 import { BillingView } from '@/features/billing/components/billing-view';
 import { requireDashboardSession } from '@/lib/auth/session';
-import { onlinePaymentsEnabled } from '@/lib/payments';
+import { onlinePaymentMethods } from '@/lib/payments';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
 
@@ -54,7 +54,7 @@ export default async function BillingPage() {
       {activeOrg ? (
         <HydrationBoundary state={dehydrate(queryClient)}>
           <Suspense fallback={<BillingSkeleton />}>
-            <BillingView organizationId={activeOrg.id} onlinePayments={onlinePaymentsEnabled()} />
+            <BillingView organizationId={activeOrg.id} onlinePayments={onlinePaymentMethods()} />
           </Suspense>
         </HydrationBoundary>
       ) : (

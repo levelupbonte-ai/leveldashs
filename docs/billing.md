@@ -280,3 +280,56 @@ To switch off: remove `LEVELUP_ONLINE_PAYMENTS` (or set it to anything but `on`)
 redeploy. To go back to Stripe: set `LEVELUP_PAYMENT_PROVIDER=stripe` with the Stripe keys;
 keep the Square keys until open Square links are paid or deleted, so their webhooks are
 still recorded.
+
+### PayPal (beside the card provider, or alone)
+
+When the PayPal keys are set, the charge shows **Pay by card** (Stripe or Square) and
+**PayPal**; with PayPal alone, only **PayPal**. Code: `src/lib/payments/paypal.ts` (Orders
+v2 over `fetch`), `paypal-form.ts` (pure, tested), `paypal-capture.ts`, routes
+`/api/billing/paypal/return` and `/api/billing/paypal/webhook`; database
+`20261113170000_billing_paypal`.
+
+Flow: the checkout route creates a PayPal order for the charge's current attempt
+(`billing_checkout_record_paypal`, session id `pp_<order id>`, `invoice_id` = invoice
+number, so PayPal refuses to be paid twice for one invoice). The payer approves on PayPal
+and comes back to `/api/billing/paypal/return`, which **captures** the order and records
+it. A payer who closes the tab is covered by the `CHECKOUT.ORDER.APPROVED` webhook, which
+captures too. An order is only captured while its charge is still due
+(`billing_paypal_order_check`, billing key), so an old order approved late never takes
+money for a paid invoice. The capture goes through `billing_ingest_stripe_event`
+(`provider: 'paypal'`): the charge comes from our own record of the order, the amount and
+currency must match, duplicates (return page + webhook) are ignored. The charge becomes
+**Paid** with method *PayPal*.
+
+Switching between card and PayPal on one charge closes the other attempt first
+(`billing_checkout_restart`).
+
+### Turning on PayPal
+
+1. **PayPal Developer Dashboard** (<https://developer.paypal.com/dashboard/>, log in with
+   the PayPal **Business** account that receives the money) → *Apps & Credentials* →
+   **Live** → *Create App* (type *Merchant*, e.g. "LevelUp invoices"). Copy the **Client ID**
+   and the **Secret**.
+2. In the app → *Webhooks* → *Add webhook*:
+   - URL `https://dashboard.levelup-ecosystem.com/api/billing/paypal/webhook`
+   - events: `Checkout order approved`, `Payment capture completed`,
+     `Payment capture pending`, `Payment capture denied`
+   - save and copy the webhook's **ID**.
+3. **Vercel** (project *leveldashs*, Production, **not** `NEXT_PUBLIC_`, *Sensitive*):
+
+   ```env
+   LEVELUP_ONLINE_PAYMENTS=on
+   LEVELUP_BILLING_KEY=lu_bill_...        # same key as for cards
+   LEVELUP_PAYPAL_CLIENT_ID=...
+   LEVELUP_PAYPAL_CLIENT_SECRET=...
+   LEVELUP_PAYPAL_WEBHOOK_ID=...
+   LEVELUP_PAYPAL_ENV=production
+   # LEVELUP_PAYMENT_PROVIDER=square       # the card provider (or 'paypal' for PayPal only)
+   ```
+
+4. Redeploy. Owners and admins see **Pay by card** and **PayPal** on charges due.
+
+**Sandbox first**: the same steps under *Sandbox* in the Developer Dashboard (sandbox
+app, sandbox webhook on the preview deployment's URL), `LEVELUP_PAYPAL_ENV=sandbox` in
+Vercel's **Preview** environment, and pay with a *Sandbox → Accounts* personal test
+account.

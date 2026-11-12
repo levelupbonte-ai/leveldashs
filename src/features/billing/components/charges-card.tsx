@@ -1,4 +1,5 @@
 'use client';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { parseAsStringLiteral, useQueryState } from 'nuqs';
@@ -28,6 +29,7 @@ import { useErrorMessage } from '@/hooks/use-error-message';
 import { cn } from '@/lib/utils';
 import { billingKeys } from '../api/queries';
 import { chargeDocumentUrl, startOnlinePayment } from '../api/service';
+import type { OnlinePaymentMethod } from '../api/types';
 import type { BillingMoney, ChargeRow, ChargeStatus } from '../api/types';
 import { formatMoney } from '../lib/format';
 
@@ -49,7 +51,7 @@ export const dayDate = (day: string) => new Date(`${day}T12:00:00`);
 interface ChargesCardProps {
   money: BillingMoney;
   /** Online payment switched on by the server (LEVELUP_ONLINE_PAYMENTS + keys). */
-  onlinePayments?: boolean;
+  onlinePayments?: OnlinePaymentMethod[];
 }
 
 /**
@@ -57,7 +59,7 @@ interface ChargesCardProps {
  * and final amount, the total due, and per charge the invoice / receipt PDFs
  * (once LevelUp's business details are complete) and "Pay online" when it is on.
  */
-export function ChargesCard({ money, onlinePayments = false }: ChargesCardProps) {
+export function ChargesCard({ money, onlinePayments = [] }: ChargesCardProps) {
   const t = useTranslations('billing.owe');
   const format = useFormatter();
   usePaymentReturn();
@@ -231,7 +233,7 @@ export function ChargesCard({ money, onlinePayments = false }: ChargesCardProps)
             </div>
           </>
         )}
-        <HowToPay online={onlinePayments} />
+        <HowToPay online={onlinePayments.length > 0} />
       </CardContent>
     </Card>
   );
@@ -278,24 +280,25 @@ export function HowToPay({ online = false }: { online?: boolean }) {
 export function ChargeActions({
   charge,
   documents,
-  onlinePayments = false,
+  onlinePayments = [],
   className
 }: {
   charge: ChargeRow;
   /** LevelUp's business details are complete (documents can be downloaded). */
   documents: boolean;
-  onlinePayments?: boolean;
+  onlinePayments?: OnlinePaymentMethod[];
   className?: string;
 }) {
   const t = useTranslations('billing.owe');
   const format = useFormatter();
   const errorMessage = useErrorMessage();
   const pay = useMutation({
-    mutationFn: () => startOnlinePayment(charge.id),
+    mutationFn: (method: OnlinePaymentMethod) => startOnlinePayment(charge.id, method),
     onSuccess: (url) => window.location.assign(url),
     onError: (e) => toast.error(errorMessage(e, 'paymentUnavailable'))
   });
-  const payable = onlinePayments && (charge.status === 'due' || charge.status === 'overdue');
+  const payable =
+    onlinePayments.length > 0 && (charge.status === 'due' || charge.status === 'overdue');
   if (!documents && !payable) return null;
   const link = buttonVariants({ size: 'sm', variant: 'outline', className: 'h-8 gap-1.5' });
 
@@ -323,24 +326,33 @@ export function ChargeActions({
           {t('receipt')}
         </a>
       )}
-      {payable && (
-        <Button
-          size='sm'
-          className='h-8 gap-1.5'
-          disabled={pay.isPending}
-          onClick={() => pay.mutate()}
-          aria-label={t('payOnlineLabel', {
-            amount: formatMoney(format.number, charge.amount, charge.currency)
-          })}
-        >
-          {pay.isPending ? (
-            <Icons.spinner className='size-4 animate-spin' aria-hidden />
-          ) : (
-            <Icons.creditCard className='size-4' aria-hidden />
-          )}
-          {t('payOnline')}
-        </Button>
-      )}
+      {payable &&
+        onlinePayments.map((method) => (
+          <Button
+            key={method}
+            size='sm'
+            variant={method === 'paypal' && onlinePayments.length > 1 ? 'outline' : 'default'}
+            className='h-8 gap-1.5'
+            disabled={pay.isPending}
+            onClick={() => pay.mutate(method)}
+            aria-label={t(method === 'paypal' ? 'payPaypalLabel' : 'payOnlineLabel', {
+              amount: formatMoney(format.number, charge.amount, charge.currency)
+            })}
+          >
+            {pay.isPending && pay.variables === method ? (
+              <Icons.spinner className='size-4 animate-spin' aria-hidden />
+            ) : method === 'paypal' ? (
+              <Icons.paypal className='size-4' aria-hidden />
+            ) : (
+              <Icons.creditCard className='size-4' aria-hidden />
+            )}
+            {method === 'paypal'
+              ? t('payPaypal')
+              : onlinePayments.length > 1
+                ? t('payCard')
+                : t('payOnline')}
+          </Button>
+        ))}
     </div>
   );
 }
@@ -351,7 +363,7 @@ function usePaymentReturn() {
   const queryClient = useQueryClient();
   const [payment, setPayment] = useQueryState(
     'payment',
-    parseAsStringLiteral(['success', 'cancelled'] as const)
+    parseAsStringLiteral(['success', 'pending', 'failed', 'cancelled'] as const)
   );
   useEffect(() => {
     if (!payment) return;
@@ -360,6 +372,16 @@ function usePaymentReturn() {
       // The webhook usually lands within seconds (clearing the param re-renders,
       // so the timer is not tied to this effect).
       setTimeout(() => void queryClient.invalidateQueries({ queryKey: billingKeys.all }), 4000);
+      void setPayment(null);
+      return;
+    }
+    if (payment === 'pending') {
+      toast.info(t('paymentPending'));
+      void setPayment(null);
+      return;
+    }
+    if (payment === 'failed') {
+      toast.error(t('paymentFailed'));
       void setPayment(null);
       return;
     }

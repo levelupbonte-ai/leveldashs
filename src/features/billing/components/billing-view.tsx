@@ -1,4 +1,6 @@
 'use client';
+
+import type { OnlinePaymentMethod } from '../api/types';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { billingSummaryQueryOptions, billingUsageQueryOptions } from '../api/queries';
@@ -15,11 +17,11 @@ import { LimitMeters, UsagePanel } from './usage-cards';
  */
 export function BillingView({
   organizationId,
-  onlinePayments = false
+  onlinePayments = []
 }: {
   organizationId: string;
   /** Online payment switched on by the server (never the keys, only this flag). */
-  onlinePayments?: boolean;
+  onlinePayments?: OnlinePaymentMethod[];
 }) {
   const db = createClient();
   const { data: summary } = useSuspenseQuery(billingSummaryQueryOptions(db, organizationId));

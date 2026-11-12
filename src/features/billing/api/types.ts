@@ -33,8 +33,18 @@ export type ChargeKind = 'setup' | 'subscription' | 'one_off';
 export type ChargeStatus = 'due' | 'paid' | 'void' | 'overdue';
 export type DiscountKind = 'percent' | 'fixed';
 /** How a charge was paid (recorded by staff, or `card` for an online payment). */
-export const PAYMENT_METHODS = ['bank_transfer', 'cash', 'mobile_money', 'card', 'other'] as const;
+export const PAYMENT_METHODS = [
+  'bank_transfer',
+  'cash',
+  'mobile_money',
+  'card',
+  'paypal',
+  'other'
+] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** How a charge can be paid online (set up on the server): card, PayPal. */
+export type OnlinePaymentMethod = 'card' | 'paypal';
 export type ChargeDocumentKind = 'invoice' | 'receipt';
 export type DiscountScope = 'subscription' | 'setup' | 'all';
 
