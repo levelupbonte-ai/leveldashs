@@ -85,7 +85,26 @@ const SQUARE_SIGNATURE_KEY = /^[A-Za-z0-9_+/=-]{10,255}$/;
 const PAYPAL_CLIENT = /^[A-Za-z0-9_-]{20,128}$/;
 const PAYPAL_WEBHOOK_ID = /^[A-Z0-9]{8,64}$/;
 
-const read = (env: Env, key: string) => (env[key] ?? '').trim();
+/**
+ * A value as pasted in the Vercel screen: trimmed, without surrounding quotes
+ * and without a leading "Bearer " (copied from an API example).
+ */
+const read = (env: Env, key: string) => {
+  let v = (env[key] ?? '').trim();
+  while (v.length >= 2 && /^(["'`])[^]*\1$/.test(v)) v = v.slice(1, -1).trim();
+  return v.replace(/^Bearer\s+/i, '').trim();
+};
+
+/** on / true / 1 / yes / oui (any case). */
+const isOn = (value: string) => ['on', 'true', '1', 'yes', 'oui'].includes(value.toLowerCase());
+
+/** sandbox / production, with the usual synonyms (live, prod, test). */
+function readEnvironment(value: string): 'sandbox' | 'production' | null {
+  const v = value.toLowerCase();
+  if (['production', 'prod', 'live'].includes(v)) return 'production';
+  if (['sandbox', 'test'].includes(v)) return 'sandbox';
+  return null;
+}
 
 export function readStripeConfig(env: Env): StripeConfig | null {
   const secretKey = read(env, 'LEVELUP_STRIPE_SECRET_KEY');
@@ -108,11 +127,11 @@ export function readSquareConfig(env: Env): SquareConfig | null {
   const accessToken = read(env, 'LEVELUP_SQUARE_ACCESS_TOKEN');
   const locationId = read(env, 'LEVELUP_SQUARE_LOCATION_ID');
   const webhookSignatureKey = read(env, 'LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY');
-  const environment = read(env, 'LEVELUP_SQUARE_ENV').toLowerCase();
+  const environment = readEnvironment(read(env, 'LEVELUP_SQUARE_ENV'));
   const webhookUrl = readWebhookUrl(read(env, 'LEVELUP_SQUARE_WEBHOOK_URL'));
   if (!SQUARE_TOKEN.test(accessToken) || !SQUARE_LOCATION.test(locationId)) return null;
   if (!SQUARE_SIGNATURE_KEY.test(webhookSignatureKey)) return null;
-  if (environment !== 'sandbox' && environment !== 'production') return null;
+  if (!environment) return null;
   if (webhookUrl === undefined) return null;
   return { accessToken, locationId, webhookSignatureKey, environment, webhookUrl };
 }
@@ -121,10 +140,10 @@ export function readPayPalConfig(env: Env): PayPalConfig | null {
   const clientId = read(env, 'LEVELUP_PAYPAL_CLIENT_ID');
   const clientSecret = read(env, 'LEVELUP_PAYPAL_CLIENT_SECRET');
   const webhookId = read(env, 'LEVELUP_PAYPAL_WEBHOOK_ID');
-  const environment = read(env, 'LEVELUP_PAYPAL_ENV').toLowerCase();
+  const environment = readEnvironment(read(env, 'LEVELUP_PAYPAL_ENV'));
   if (!PAYPAL_CLIENT.test(clientId) || !PAYPAL_CLIENT.test(clientSecret)) return null;
   if (!PAYPAL_WEBHOOK_ID.test(webhookId)) return null;
-  if (environment !== 'sandbox' && environment !== 'production') return null;
+  if (!environment) return null;
   return { clientId, clientSecret, webhookId, environment };
 }
 
@@ -142,7 +161,7 @@ export function selectProvider(
 }
 
 export function readOnlinePaymentsConfig(env: Env): OnlinePaymentsConfig | null {
-  if (read(env, 'LEVELUP_ONLINE_PAYMENTS').toLowerCase() !== 'on') return null;
+  if (!isOn(read(env, 'LEVELUP_ONLINE_PAYMENTS'))) return null;
   const billingKey = read(env, 'LEVELUP_BILLING_KEY');
   if (!BILLING_KEY.test(billingKey)) return null;
   const stripe = readStripeConfig(env);
@@ -165,4 +184,45 @@ export function readOnlinePaymentsConfig(env: Env): OnlinePaymentsConfig | null 
     square,
     paypal
   };
+}
+
+/**
+ * Why online payments are off: the names of the variables that are missing or
+ * malformed (never their values), for the server log. Empty when they are on.
+ */
+export function diagnoseOnlinePayments(env: Env): string[] {
+  if (readOnlinePaymentsConfig(env)) return [];
+  const problems: string[] = [];
+  const check = (key: string, ok: boolean) => {
+    if (!ok) problems.push(read(env, key) ? `${key} (malformed)` : `${key} (missing)`);
+  };
+  check('LEVELUP_ONLINE_PAYMENTS', isOn(read(env, 'LEVELUP_ONLINE_PAYMENTS')));
+  check('LEVELUP_BILLING_KEY', BILLING_KEY.test(read(env, 'LEVELUP_BILLING_KEY')));
+  const wanted = read(env, 'LEVELUP_PAYMENT_PROVIDER').toLowerCase();
+  check('LEVELUP_PAYMENT_PROVIDER', ['', 'stripe', 'square', 'paypal'].includes(wanted));
+  if (wanted === 'square' || (!wanted && !readStripeConfig(env))) {
+    check(
+      'LEVELUP_SQUARE_ACCESS_TOKEN',
+      SQUARE_TOKEN.test(read(env, 'LEVELUP_SQUARE_ACCESS_TOKEN'))
+    );
+    check(
+      'LEVELUP_SQUARE_LOCATION_ID',
+      SQUARE_LOCATION.test(read(env, 'LEVELUP_SQUARE_LOCATION_ID'))
+    );
+    check(
+      'LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY',
+      SQUARE_SIGNATURE_KEY.test(read(env, 'LEVELUP_SQUARE_WEBHOOK_SIGNATURE_KEY'))
+    );
+    check('LEVELUP_SQUARE_ENV', readEnvironment(read(env, 'LEVELUP_SQUARE_ENV')) !== null);
+    const url = read(env, 'LEVELUP_SQUARE_WEBHOOK_URL');
+    if (url) check('LEVELUP_SQUARE_WEBHOOK_URL', readWebhookUrl(url) !== undefined);
+  }
+  if (wanted === 'stripe') {
+    check('LEVELUP_STRIPE_SECRET_KEY', SECRET_KEY.test(read(env, 'LEVELUP_STRIPE_SECRET_KEY')));
+    check(
+      'LEVELUP_STRIPE_WEBHOOK_SECRET',
+      WEBHOOK_SECRET.test(read(env, 'LEVELUP_STRIPE_WEBHOOK_SECRET'))
+    );
+  }
+  return problems.length ? problems : ['incomplete provider keys'];
 }

@@ -51,7 +51,12 @@ describe('PayPal config', () => {
     for (const key of Object.keys(PAYPAL)) {
       assert.equal(readOnlinePaymentsConfig({ ...ON, ...PAYPAL, [key]: '' }), null, key);
     }
-    const c = readOnlinePaymentsConfig({ ...ON, ...SQUARE, ...PAYPAL, LEVELUP_PAYPAL_ENV: 'live' });
+    const c = readOnlinePaymentsConfig({
+      ...ON,
+      ...SQUARE,
+      ...PAYPAL,
+      LEVELUP_PAYPAL_ENV: 'staging'
+    });
     assert.deepEqual(c?.methods, ['card']);
   });
   test('LEVELUP_PAYMENT_PROVIDER=paypal: PayPal only, even with card keys', () => {
