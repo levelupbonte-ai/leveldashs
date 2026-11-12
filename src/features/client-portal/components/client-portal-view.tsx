@@ -35,7 +35,9 @@ import { archivePortalItem, portalDocumentUrl, setPortalCustomerStatus } from '.
 import type { PortalCustomer, PortalItem, PortalOverview } from '../api/types';
 import { InviteDialog } from './invite-dialog';
 import { PublishSheet } from './publish-sheet';
+import { PortalSettingsPanel } from './portal-settings';
 import { ThreadSheet } from './thread-sheet';
+import { TrialDialog } from './trial-dialog';
 
 /**
  * Client portal of the active website: customers (paid or invited) with their
@@ -50,6 +52,7 @@ export function ClientPortalView() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(null);
   const [threadId, setThreadId] = useState<string | null>(null);
+  const [trialFor, setTrialFor] = useState<PortalCustomer | null>(null);
   const unread = data.customers.reduce((sum, c) => sum + c.unread, 0);
   const active = data.customers.filter((c) => c.status === 'active').length;
   const thread = data.customers.find((c) => c.id === threadId) ?? null;
@@ -87,16 +90,21 @@ export function ClientPortalView() {
             {unread > 0 && <Badge className='ml-1.5'>{unread}</Badge>}
           </TabsTrigger>
           <TabsTrigger value='published'>{t('tabs.published')}</TabsTrigger>
+          <TabsTrigger value='plans'>{t('tabs.plans')}</TabsTrigger>
         </TabsList>
         <TabsContent value='customers' className='mt-3'>
           <CustomerList
             data={data}
             onThread={setThreadId}
             onPublish={(customerId) => setPublishFor({ customerId })}
+            onTrial={setTrialFor}
           />
         </TabsContent>
         <TabsContent value='published' className='mt-3'>
           <PublishedList data={data} />
+        </TabsContent>
+        <TabsContent value='plans' className='mt-3'>
+          <PortalSettingsPanel />
         </TabsContent>
       </Tabs>
 
@@ -108,6 +116,7 @@ export function ClientPortalView() {
         data={data}
       />
       <ThreadSheet customer={thread} onOpenChange={(open) => !open && setThreadId(null)} />
+      <TrialDialog customer={trialFor} onOpenChange={(open) => !open && setTrialFor(null)} />
     </div>
   );
 }
@@ -148,14 +157,50 @@ function offerLabel(data: PortalOverview, id: string) {
   return data.offers.find((o) => o.id === id)?.name ?? id;
 }
 
+/** What a member can read now: plan, payment due, free offer, or nothing more. */
+function AccessBadge({ customer }: { customer: PortalCustomer }) {
+  const t = useTranslations('clientPortal.access');
+  const format = useFormatter();
+  const sub = customer.subscription;
+  const [now] = useState(() => Date.now());
+  if (sub?.status === 'past_due')
+    return <Badge variant='destructive'>{t('pastDue', { plan: sub.plan_name })}</Badge>;
+  if (sub?.status === 'active') {
+    return (
+      <Badge variant='secondary'>
+        <Icons.star aria-hidden />
+        {sub.cancel_at_period_end && sub.current_period_end
+          ? t('planEnds', {
+              plan: sub.plan_name,
+              date: format.dateTime(new Date(sub.current_period_end), { dateStyle: 'medium' })
+            })
+          : t('plan', { plan: sub.plan_name })}
+      </Badge>
+    );
+  }
+  if (customer.trial_ends_at && new Date(customer.trial_ends_at).getTime() > now) {
+    return (
+      <Badge variant='outline'>
+        <Icons.clock aria-hidden />
+        {t('trial', {
+          date: format.dateTime(new Date(customer.trial_ends_at), { dateStyle: 'medium' })
+        })}
+      </Badge>
+    );
+  }
+  return <Badge variant='outline'>{t('none')}</Badge>;
+}
+
 function CustomerList({
   data,
   onThread,
-  onPublish
+  onPublish,
+  onTrial
 }: {
   data: PortalOverview;
   onThread: (id: string) => void;
   onPublish: (id: string) => void;
+  onTrial: (customer: PortalCustomer) => void;
 }) {
   const t = useTranslations('clientPortal');
   const format = useFormatter();
@@ -212,6 +257,7 @@ function CustomerList({
                 </CardHeader>
                 <CardContent className='space-y-3 px-4 text-sm'>
                   <div className='flex flex-wrap gap-1'>
+                    <AccessBadge customer={c} />
                     <Badge variant='outline'>{t(`customers.source.${c.source}`)}</Badge>
                     {c.offers.map((o) => (
                       <Badge key={o} variant='outline'>
@@ -260,6 +306,17 @@ function CustomerList({
                       <Icons.send aria-hidden />
                       {t('customers.publish')}
                     </Button>
+                    {c.subscription?.status !== 'active' && (
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() => onTrial(c)}
+                        disabled={c.status !== 'active'}
+                      >
+                        <Icons.clock aria-hidden />
+                        {t('customers.trial')}
+                      </Button>
+                    )}
                     <Button size='sm' variant='ghost' onClick={() => setConfirm(c)}>
                       {c.status === 'active' ? t('customers.revoke') : t('customers.restore')}
                     </Button>
@@ -358,6 +415,12 @@ function PublishedList({ data }: { data: PortalOverview }) {
               <div className='min-w-0 flex-1'>
                 <div className='flex flex-wrap items-center gap-1.5'>
                   <Badge variant='secondary'>{t(`kinds.${item.kind}`)}</Badge>
+                  {item.min_level > 0 && (
+                    <Badge variant='outline'>
+                      <Icons.lock aria-hidden />
+                      {t('published.level', { level: item.min_level })}
+                    </Badge>
+                  )}
                   <span className='truncate font-medium'>{item.title}</span>
                 </div>
                 <p className='text-muted-foreground mt-1 text-xs'>

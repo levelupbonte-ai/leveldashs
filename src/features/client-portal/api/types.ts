@@ -14,6 +14,18 @@ export interface PortalPayment {
   occurred_at: string;
 }
 
+/** A member's monthly plan, as Stripe last reported it. */
+export interface PortalSubscription {
+  plan_name: string;
+  level: number;
+  amount: number;
+  currency: string;
+  status: 'active' | 'past_due' | 'canceled' | 'incomplete';
+  current_period_end: string | null;
+  cancel_at_period_end: boolean;
+  canceled_at: string | null;
+}
+
 /** A customer of the website's client portal (paid or invited). */
 export interface PortalCustomer {
   id: string;
@@ -22,6 +34,11 @@ export interface PortalCustomer {
   source: 'payment' | 'invite';
   status: 'active' | 'revoked';
   locale: 'en' | 'fr';
+  /** End of the free offer (null: none). */
+  trial_ends_at: string | null;
+  /** What the member can read now: 0 nothing beyond free items, 1-3 a plan level. */
+  level: number;
+  subscription: PortalSubscription | null;
   offer_id: string | null;
   offers: string[];
   payments: PortalPayment[];
@@ -61,6 +78,8 @@ export interface PortalItem {
   status: 'published' | 'archived';
   published_at: string;
   reads: number;
+  /** 0: every member; 1-3: members whose plan (or free offer) reaches this level. */
+  min_level: number;
 }
 
 export interface PortalOverview {
@@ -97,6 +116,42 @@ export interface PortalItemInput {
   checklist?: string[];
   document_path?: string;
   document_name?: string;
+  min_level?: number;
+}
+
+export const PORTAL_PLAN_LEVELS = [1, 2, 3] as const;
+
+/** One of the three monthly plans the owner sets (portal_admin_settings). */
+export interface PortalPlan {
+  id: string;
+  level: number;
+  name: string;
+  description: string | null;
+  features: string[];
+  /** Smallest currency unit (cents). */
+  amount: number;
+  currency: string;
+  active: boolean;
+  subscribers: number;
+}
+
+export interface PortalSettings {
+  trial_days: number;
+  trial_level: number;
+  contact: { phone?: string; whatsapp?: string; note?: string };
+  /** Only admins and owners change the offer, plans and contact numbers. */
+  can_admin: boolean;
+  plans: PortalPlan[];
+}
+
+export interface PortalPlanInput {
+  level: number;
+  name: string;
+  description: string;
+  features: string[];
+  amount: number;
+  currency: string;
+  active: boolean;
 }
 
 export const PORTAL_DOCUMENT_TYPES = [

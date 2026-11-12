@@ -1,6 +1,6 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -21,7 +21,7 @@ import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { useFields } from '@/lib/validation/use-fields';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
-import { portalKeys } from '../api/queries';
+import { portalKeys, portalSettingsQueryOptions } from '../api/queries';
 import { publishPortalItem, uploadPortalDocument } from '../api/service';
 import {
   PORTAL_DOCUMENT_TYPES,
@@ -89,6 +89,9 @@ function PublishForm({
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const customers = data.customers.filter((c) => c.status === 'active');
+  const { data: settings } = useQuery(portalSettingsQueryOptions(createClient(), scope.websiteId));
+  const planName = (level: number) =>
+    settings?.plans.find((p) => p.level === level)?.name ?? tk('settings.levelN', { level });
 
   const schema = useMemo(
     () =>
@@ -106,6 +109,7 @@ function PublishForm({
           meetingTime: f.text(40),
           steps: f.text(6000, { multiline: true }),
           checklist: f.text(6000, { multiline: true }),
+          minLevel: f.oneOf(['0', '1', '2', '3']),
           notify: z.boolean()
         })
         .superRefine((v, ctx) => {
@@ -136,6 +140,7 @@ function PublishForm({
       meetingTime: '',
       steps: '',
       checklist: '',
+      minLevel: '0',
       notify: true
     },
     validators: { onSubmit: schema },
@@ -150,7 +155,8 @@ function PublishForm({
           kind: v.kind,
           audience: v.audience,
           title: v.title,
-          body: v.body || undefined
+          body: v.body || undefined,
+          min_level: Number(v.minLevel)
         };
         if (v.audience === 'customer') item.customer_id = v.customerId;
         if (v.audience === 'offer') item.offer_id = v.offerId;
@@ -333,6 +339,22 @@ function PublishForm({
             </>
           )}
         </form.Subscribe>
+        <form.AppField
+          name='minLevel'
+          children={(field) => (
+            <field.SelectField
+              label={t('level')}
+              description={t('levelHint')}
+              options={[
+                { value: '0', label: t('levelFree') },
+                ...([1, 2, 3] as const).map((l) => ({
+                  value: String(l),
+                  label: t('levelPlan', { plan: planName(l) })
+                }))
+              ]}
+            />
+          )}
+        />
         <form.AppField
           name='notify'
           children={(field) => (

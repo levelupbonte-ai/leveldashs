@@ -7,7 +7,9 @@ import {
   PORTAL_DOCUMENT_TYPES,
   type PortalItemInput,
   type PortalMessage,
-  type PortalOverview
+  type PortalOverview,
+  type PortalPlanInput,
+  type PortalSettings
 } from './types';
 
 // Client portal (feature `client_portal`): every read and write goes through the
@@ -17,6 +19,49 @@ import {
 
 export function getPortalOverview(db: SupabaseClient, websiteId: string) {
   return rpc<PortalOverview>(db.rpc('portal_admin_overview', { p_website_id: websiteId }));
+}
+
+export function getPortalSettings(db: SupabaseClient, websiteId: string) {
+  return rpc<PortalSettings>(db.rpc('portal_admin_settings', { p_website_id: websiteId }));
+}
+
+/** Free offer (length and level) and the members-only contact numbers. Admins only. */
+export function savePortalSettings(
+  db: SupabaseClient,
+  websiteId: string,
+  input: { trialDays: number; trialLevel: number; contact: PortalSettings['contact'] }
+) {
+  return rpc<null>(
+    db.rpc('portal_admin_save_settings', {
+      p_website_id: websiteId,
+      p_trial_days: input.trialDays,
+      p_trial_level: input.trialLevel,
+      p_contact: input.contact
+    })
+  );
+}
+
+/** One of the three monthly plans. Members already subscribed keep their price. Admins only. */
+export function savePortalPlan(db: SupabaseClient, websiteId: string, plan: PortalPlanInput) {
+  return rpc<string>(
+    db.rpc('portal_admin_save_plan', {
+      p_website_id: websiteId,
+      p_level: plan.level,
+      p_name: plan.name,
+      p_description: plan.description || null,
+      p_features: plan.features,
+      p_amount: plan.amount,
+      p_currency: plan.currency,
+      p_active: plan.active
+    })
+  );
+}
+
+/** Moves the end of one member's free offer (or ends it now). */
+export function setPortalTrial(db: SupabaseClient, customerId: string, endsAt: Date) {
+  return rpc<null>(
+    db.rpc('portal_admin_set_trial', { p_customer_id: customerId, p_ends_at: endsAt.toISOString() })
+  );
 }
 
 export function invitePortalCustomer(

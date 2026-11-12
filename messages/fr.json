@@ -3868,7 +3868,8 @@
     },
     "tabs": {
       "customers": "Clients",
-      "published": "Publié"
+      "published": "Publié",
+      "plans": "Forfaits et offre"
     },
     "cancel": "Annuler",
     "kinds": {
@@ -3912,7 +3913,8 @@
       "revokeDescription": "{email} est déconnecté partout et ne peut plus se connecter. Ses paiements ne changent pas.",
       "restoreTitle": "Rendre l’accès ?",
       "restoreDescription": "{email} peut de nouveau se connecter à l’espace.",
-      "statusSaved": "Accès mis à jour"
+      "statusSaved": "Accès mis à jour",
+      "trial": "Offre gratuite"
     },
     "published": {
       "emptyTitle": "Rien de publié pour l’instant",
@@ -3920,7 +3922,8 @@
       "reads": "{count, plural, =0 {pas encore lu} one {lu par #} other {lu par #}}",
       "open": "Ouvrir",
       "archive": "Archiver",
-      "archived": "Archivé : les clients ne le voient plus"
+      "archived": "Archivé : les clients ne le voient plus",
+      "level": "{level, select, 1 {Forfait 1+} 2 {Forfait 2+} other {Forfait 3}}"
     },
     "publish": {
       "title": "Publier dans l’espace client",
@@ -3947,7 +3950,11 @@
       "notifyHint": "Le site envoie un court e-mail avec un lien vers l’espace (jamais le contenu lui-même).",
       "cancel": "Annuler",
       "submit": "Publier",
-      "published": "{count, plural, =0 {Publié} one {Publié, # e-mail en route} other {Publié, # e-mails en route}}"
+      "published": "{count, plural, =0 {Publié} one {Publié, # e-mail en route} other {Publié, # e-mails en route}}",
+      "level": "Qui peut le lire",
+      "levelHint": "Les membres en offre gratuite lisent ce que son niveau inclut. Les autres voient le titre et sont invités à prendre un forfait.",
+      "levelFree": "Tous les membres (gratuit)",
+      "levelPlan": "Forfait {plan} et plus"
     },
     "invite": {
       "title": "Inviter dans l’espace",
@@ -3968,7 +3975,90 @@
       "empty": "Aucun message pour l’instant.",
       "you": "Vous",
       "reply": "Répondre",
-      "send": "Envoyer"
+      "send": "Envoyer",
+      "today": "Aujourd’hui",
+      "seen": "Vu",
+      "sent": "Envoyé",
+      "shortcut": "Ctrl + Entrée pour envoyer. Le membre reçoit un e-mail.",
+      "quickLabel": {
+        "received": "Bien reçu",
+        "published": "Publié",
+        "call": "On en parle"
+      },
+      "quick": {
+        "received": "Merci pour votre message, je l’ai bien reçu et je reviens vers vous rapidement.",
+        "published": "Je viens de publier l’information dans votre espace, rubrique Infos.",
+        "call": "Parlons-en : écrivez-moi quand vous êtes disponible."
+      }
+    },
+    "access": {
+      "plan": "Forfait {plan}",
+      "planEnds": "Forfait {plan} · s’arrête le {date}",
+      "pastDue": "{plan} : paiement en attente",
+      "trial": "Offre gratuite jusqu’au {date}",
+      "none": "Sans forfait"
+    },
+    "trial": {
+      "title": "Offre gratuite",
+      "description": "Choisissez jusqu’à quand {name} lit les informations gratuites. 90 jours maximum.",
+      "until": "Gratuit jusqu’au",
+      "untilHint": "L’offre se termine à la fin de ce jour.",
+      "endNow": "Terminer maintenant",
+      "save": "Enregistrer",
+      "saved": "Offre gratuite mise à jour"
+    },
+    "settings": {
+      "adminOnly": "Seuls les administrateurs de l’organisation peuvent modifier l’offre, les forfaits et les numéros.",
+      "levelN": "Niveau {level}",
+      "saved": "Enregistré",
+      "save": "Enregistrer",
+      "model": {
+        "title": "Comment fonctionne l’adhésion",
+        "description": "Les membres paient d’abord une fois pour rejoindre, profitent d’une offre gratuite, puis choisissent un forfait mensuel.",
+        "joinTitle": "Adhésion",
+        "joinText": "Le paiement unique sur votre site fait de la personne un membre : elle reçoit son espace et la messagerie avec vous.",
+        "trialTitle": "Offre gratuite",
+        "trialText": "Pendant le nombre de jours choisi, le membre lit les informations du niveau choisi. Elle se termine toute seule.",
+        "plansTitle": "Forfaits mensuels",
+        "plansText": "Jusqu’à trois forfaits, payés automatiquement chaque mois. Les membres peuvent résilier ou supprimer leur compte à tout moment."
+      },
+      "offer": {
+        "title": "Offre gratuite des nouveaux membres",
+        "description": "S’applique aux membres qui rejoignent à partir de maintenant. Vous pouvez aussi la modifier pour un membre depuis l’onglet Clients.",
+        "days": "Durée (jours)",
+        "daysHint": "De 0 à 60. 0 : pas d’offre gratuite.",
+        "level": "Ce qu’elle inclut",
+        "levelHint": "Les informations publiées pour ce forfait (et les informations gratuites).",
+        "levelOption": "Comme le forfait {name}"
+      },
+      "contact": {
+        "title": "Numéros pour les membres",
+        "description": "Visibles uniquement par les membres connectés dans leur espace, jamais sur le site public.",
+        "phone": "Téléphone",
+        "whatsapp": "WhatsApp",
+        "note": "Note (facultatif)",
+        "noteHint": "Ex. : Disponible du lundi au vendredi, de 9 h à 18 h."
+      },
+      "plan": {
+        "title": "Forfait {level}",
+        "hint1": "Le forfait d’entrée.",
+        "hint2": "Inclut tout le forfait 1.",
+        "hint3": "Inclut tout le contenu des forfaits 1 et 2.",
+        "notSet": "Non défini",
+        "hidden": "Masqué",
+        "subscribers": "{count, plural, =0 {Aucun abonné} one {# abonné} other {# abonnés}}",
+        "name": "Nom",
+        "price": "Prix par mois ({currency})",
+        "priceHint": "Les abonnés actuels gardent le prix auquel ils ont souscrit.",
+        "minPrice": "Au moins 1.",
+        "description": "Description courte",
+        "features": "Ce qu’il inclut",
+        "featuresHint": "Une ligne par point, 8 au maximum.",
+        "active": "Proposé aux membres",
+        "activeHint": "Désactivez pour ne plus le proposer. Les abonnés actuels le gardent jusqu’à leur résiliation.",
+        "save": "Enregistrer le forfait",
+        "saved": "Forfait {name} enregistré"
+      }
     }
   },
   "siteForms": {
