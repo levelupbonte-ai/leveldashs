@@ -75,6 +75,7 @@ the schema from application code or by hand in the dashboard.
 | `20261113190000` | portal_questionnaires (`portal_admin_questionnaires`: every questionnaire saved before payment, newest first, members and prospects who have not paid; dashboard *Client portal → Questionnaires*) | **Applied** (`portal_questionnaires`) |
 | `20261113210000` | billing_checkout_contacts (`billing_checkout_prepare` also returns `buyer_email`, the signed-in payer, and `support_email`, LevelUp's billing e-mail, for the payment page) | **Applied** (`billing_checkout_contacts`) |
 | `20261113230000` | billing_plan_checkout (`billing_charges.plan_key`, `billing_plan_charge`, trigger `billing_charges_plan_paid`: a priced plan is paid online and applied on payment) | **Applied** |
+| `20261114090000` | portal_profile_save (`portal_profile_save(key, session, profile)`: a member saves their own questionnaire into their dossier — recovery for members who paid before the dossier was sent, refill from the member space) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /
