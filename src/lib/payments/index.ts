@@ -11,14 +11,11 @@ import { createSquareProvider } from './square';
 import { createStripeProvider } from './stripe';
 import type { PaymentProvider } from './types';
 
-let warned = false;
-
 /** Server env only (never NEXT_PUBLIC_). Null = online payments are off. */
 export function onlinePaymentsConfig(): OnlinePaymentsConfig | null {
   const config = readOnlinePaymentsConfig(process.env);
-  if (!config && !warned) {
+  if (!config) {
     // Off: say which variables are missing or refused (names only, never values).
-    warned = true;
     console.error('billing.online_payments_off', diagnoseOnlinePayments(process.env).join(', '));
   }
   return config;
