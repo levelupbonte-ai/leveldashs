@@ -1119,7 +1119,9 @@
       "payPaypalLabel": "Payer {amount} avec PayPal",
       "paymentPending": "PayPal traite encore votre paiement. La facture passera à payée dès qu’il sera validé.",
       "paymentFailed": "Le paiement n’a pas abouti. Rien n’a été débité ; réessayez ou choisissez un autre moyen de paiement.",
-      "payTryOther": "Ce moyen de paiement est indisponible pour le moment. Essayez l’autre :"
+      "payTryOther": "Ce moyen de paiement est indisponible pour le moment. Essayez l’autre :",
+      "staffOffTitle": "Réservé à l’équipe LevelUp : le paiement en ligne est désactivé",
+      "staffOffText": "Corrigez ces variables Vercel du dashboard (Production), puis redéployez. Les clients ne voient pas ce message."
     },
     "promo": {
       "title": "Code promo",
