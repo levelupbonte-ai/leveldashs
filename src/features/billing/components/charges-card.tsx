@@ -52,6 +52,8 @@ interface ChargesCardProps {
   money: BillingMoney;
   /** Online payment switched on by the server (LEVELUP_ONLINE_PAYMENTS + keys). */
   onlinePayments?: OnlinePaymentMethod[];
+  /** LevelUp staff only: why online payment is off (variable names). */
+  staffPaymentProblems?: string[];
 }
 
 /**
@@ -59,7 +61,11 @@ interface ChargesCardProps {
  * and final amount, the total due, and per charge the invoice / receipt PDFs
  * (once LevelUp's business details are complete) and "Pay online" when it is on.
  */
-export function ChargesCard({ money, onlinePayments = [] }: ChargesCardProps) {
+export function ChargesCard({
+  money,
+  onlinePayments = [],
+  staffPaymentProblems = []
+}: ChargesCardProps) {
   const t = useTranslations('billing.owe');
   const format = useFormatter();
   usePaymentReturn();
@@ -234,6 +240,20 @@ export function ChargesCard({ money, onlinePayments = [] }: ChargesCardProps) {
           </>
         )}
         <HowToPay online={onlinePayments.length > 0} />
+        {staffPaymentProblems.length > 0 && (
+          <div
+            role='note'
+            className='rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm'
+          >
+            <p className='font-medium'>{t('staffOffTitle')}</p>
+            <p className='text-muted-foreground'>{t('staffOffText')}</p>
+            <ul className='mt-1 list-disc pl-5 font-mono text-xs'>
+              {staffPaymentProblems.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

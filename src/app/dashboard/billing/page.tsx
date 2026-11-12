@@ -11,7 +11,7 @@ import {
 } from '@/features/billing/api/queries';
 import { BillingView } from '@/features/billing/components/billing-view';
 import { requireDashboardSession } from '@/lib/auth/session';
-import { onlinePaymentMethods } from '@/lib/payments';
+import { onlinePaymentMethods, onlinePaymentsProblems } from '@/lib/payments';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
 
@@ -39,6 +39,14 @@ export default async function BillingPage() {
   const { activeOrg } = await requireDashboardSession();
   const t = await getTranslations('billing');
   const queryClient = getQueryClient();
+  const onlinePayments = onlinePaymentMethods();
+  // LevelUp staff see why online payment is off (variable names only), clients never.
+  let staffPaymentProblems: string[] = [];
+  if (!onlinePayments.length) {
+    const db = await createClient();
+    const { data: staff } = await db.rpc('billing_viewer_is_staff');
+    if (staff === true) staffPaymentProblems = onlinePaymentsProblems();
+  }
   if (activeOrg) {
     const db = await createClient();
     void queryClient.prefetchQuery(billingSummaryQueryOptions(db, activeOrg.id));
@@ -54,7 +62,11 @@ export default async function BillingPage() {
       {activeOrg ? (
         <HydrationBoundary state={dehydrate(queryClient)}>
           <Suspense fallback={<BillingSkeleton />}>
-            <BillingView organizationId={activeOrg.id} onlinePayments={onlinePaymentMethods()} />
+            <BillingView
+              organizationId={activeOrg.id}
+              onlinePayments={onlinePayments}
+              staffPaymentProblems={staffPaymentProblems}
+            />
           </Suspense>
         </HydrationBoundary>
       ) : (

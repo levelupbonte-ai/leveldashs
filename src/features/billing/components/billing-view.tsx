@@ -17,11 +17,14 @@ import { LimitMeters, UsagePanel } from './usage-cards';
  */
 export function BillingView({
   organizationId,
-  onlinePayments = []
+  onlinePayments = [],
+  staffPaymentProblems = []
 }: {
   organizationId: string;
   /** Online payment switched on by the server (never the keys, only this flag). */
   onlinePayments?: OnlinePaymentMethod[];
+  /** LevelUp staff only: why online payment is off (variable names). */
+  staffPaymentProblems?: string[];
 }) {
   const db = createClient();
   const { data: summary } = useSuspenseQuery(billingSummaryQueryOptions(db, organizationId));
@@ -34,7 +37,13 @@ export function BillingView({
         <LimitMeters usage={summary.usage} />
       </div>
       <UsagePanel usage={usage} />
-      {summary.money && <ChargesCard money={summary.money} onlinePayments={onlinePayments} />}
+      {summary.money && (
+        <ChargesCard
+          money={summary.money}
+          onlinePayments={onlinePayments}
+          staffPaymentProblems={staffPaymentProblems}
+        />
+      )}
       <PlanComparison
         summary={summary}
         organizationId={organizationId}

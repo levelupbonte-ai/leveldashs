@@ -26,6 +26,11 @@ export function onlinePaymentsEnabled(): boolean {
   return onlinePaymentsConfig() !== null;
 }
 
+/** LevelUp staff only: why online payments are off (variable names, never values). */
+export function onlinePaymentsProblems(): string[] {
+  return diagnoseOnlinePayments(process.env);
+}
+
 /** What the payer can choose (card, PayPal), empty when online payments are off. */
 export function onlinePaymentMethods(): PaymentMethodChoice[] {
   return onlinePaymentsConfig()?.methods ?? [];
