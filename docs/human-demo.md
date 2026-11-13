@@ -1,4 +1,9 @@
-# Human demo (19 USD, non-refundable)
+# Human demo (19 USD, non-refundable) — retired
+
+> **Retired** (see `offer.md`): new project requests no longer offer a paid
+> demo, and `/api/demo/checkout` only sends the visitor back to their tracking
+> page. Demos already paid keep their tracking page and dashboard steps. The
+> rest of this page describes how those existing demos work.
 
 A visitor who describes a project on levelup-ecosystem.com ("Start a project")
 chooses at the end between:

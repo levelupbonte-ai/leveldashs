@@ -115,7 +115,7 @@ functions from their own code:
 ## 5. Billing, campaigns, portal (all live)
 
 - **Billing** (`docs/billing.md`):
-  - plans Free / Starter / Pro / Business with limits;
+  - plans Free / Essential (`starter`, 39 USD) / Pro (99 USD) / Business (unlisted) with limits — the offer is in `docs/offer.md`;
   - invoices numbered `LU-<year>-<0001>`, discounts and promo codes;
   - online payments are off by default (`LEVELUP_ONLINE_PAYMENTS`); Stripe and Square
     providers exist. LevelUp's own Stripe account is blocked ("high risk").
@@ -228,7 +228,7 @@ functions from their own code:
   - `RESEND_WEBHOOK_SECRET`, for campaigns.
 - Google Search Console for levelup-ecosystem.com, blackpater.com and finalstop.org.
 - Billing:
-  - set the Starter / Pro / Business prices and the issuer details;
+  - set the plan prices (see `docs/offer.md`) and the issuer details;
   - assign plans to clients.
 - Re-run `supabase/tests/tenant_isolation.sql` and confirm 0 failed.
 - The tag on other sites: the owner said they pasted it on some sites but sees no
