@@ -14,7 +14,8 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/ecosystem-api.md](./docs/ecosystem-api.md)** — LevelUp tag (`levelup.js`), public API, client onboarding, security model
 - **[docs/i18n.md](./docs/i18n.md)** — i18n with next-intl: English default, French translation, `messages/*.json`, how to add strings
 - **[docs/chat.md](./docs/chat.md)** — Messages: team / direct / visitor conversations, RPC-only writes, encryption status, Realtime
-- **[docs/human-demo.md](./docs/human-demo.md)** — Paid human demo (19 USD): tracking code, steps, Square payment, tracking page
+- **[docs/offer.md](./docs/offer.md)** — THE offer: what LevelUp sells, the only prices and where each lives
+- **[docs/human-demo.md](./docs/human-demo.md)** — Retired paid human demo (19 USD): how existing demos are tracked
 - **[docs/studio-credits.md](./docs/studio-credits.md)** — LevelStudio credits: welcome credits once, Square top-ups
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
