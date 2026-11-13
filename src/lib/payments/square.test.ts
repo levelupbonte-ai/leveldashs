@@ -210,19 +210,21 @@ describe('Square payment link body', () => {
     });
     assert.equal(body.checkout_options.redirect_url, REQUEST.successUrl);
     assert.equal(body.checkout_options.allow_tipping, false);
+    assert.equal(body.checkout_options.enable_coupon, false);
+    assert.equal(body.checkout_options.enable_loyalty, false);
     assert.equal(chargeIdFromNote(body.payment_note), CHARGE);
   });
   test('clear product name, wallets, pre-filled payer e-mail and support e-mail', () => {
     const body = paymentLinkBody(
       {
         ...REQUEST,
-        productName: 'LevelUp Ecosystem — Website setup (LU-2026-0007)',
+        productName: 'Website setup',
         buyerEmail: 'owner@client.example',
         supportEmail: 'billing@levelup-ecosystem.com'
       },
       'L1'
     );
-    assert.equal(body.quick_pay.name, 'LevelUp Ecosystem — Website setup (LU-2026-0007)');
+    assert.equal(body.quick_pay.name, 'Website setup');
     assert.deepEqual(body.pre_populated_data, { buyer_email: 'owner@client.example' });
     assert.equal(body.checkout_options.merchant_support_email, 'billing@levelup-ecosystem.com');
     assert.deepEqual(body.checkout_options.accepted_payment_methods, {

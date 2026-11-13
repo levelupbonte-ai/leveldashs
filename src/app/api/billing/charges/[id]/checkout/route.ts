@@ -112,7 +112,8 @@ export async function POST(request: NextRequest, ctx: { params: Promise<{ id: st
       organizationId: prep.organization_id,
       invoiceNumber: prep.invoice_number,
       description: `${prep.invoice_number} · ${prep.label}`,
-      productName: `LevelUp Ecosystem — ${prep.label} (${prep.invoice_number})`,
+      // What the payer sees: the item only (the invoice number is on the receipt).
+      productName: prep.label,
       buyerEmail: prep.buyer_email ?? null,
       supportEmail: prep.support_email ?? null,
       amount: prep.amount,

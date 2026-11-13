@@ -1049,7 +1049,7 @@
       "alreadySent": "This request was already sent.",
       "empty": "No plans are available right now.",
       "payTitle": "Switch to {plan}",
-      "payDescription": "You pay the first month now on a secure payment page. Your plan changes as soon as the payment is received.",
+      "payDescription": "You pay the first month now. Your plan changes as soon as the payment is received.",
       "payAmount": "{price} / month",
       "payCard": "Pay by card",
       "payPaypal": "Pay with PayPal",

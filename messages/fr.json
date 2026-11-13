@@ -1049,7 +1049,7 @@
       "alreadySent": "Cette demande a déjà été envoyée.",
       "empty": "Aucun forfait n’est disponible pour le moment.",
       "payTitle": "Passer au forfait {plan}",
-      "payDescription": "Vous payez le premier mois maintenant sur une page de paiement sécurisée. Votre forfait change dès que le paiement est reçu.",
+      "payDescription": "Vous payez le premier mois maintenant. Votre forfait change dès que le paiement est reçu.",
       "payAmount": "{price} / mois",
       "payCard": "Payer par carte",
       "payPaypal": "Payer avec PayPal",
