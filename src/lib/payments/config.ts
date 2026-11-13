@@ -95,6 +95,12 @@ const read = (env: Env, key: string) => {
   return v.replace(/^Bearer\s+/i, '').trim();
 };
 
+/** LevelUp's server key (billing key), also used by background workers such as the news. */
+export function readBillingKey(env: Env): string | null {
+  const key = read(env, 'LEVELUP_BILLING_KEY');
+  return BILLING_KEY.test(key) ? key : null;
+}
+
 /** on / true / 1 / yes / oui (any case). */
 const isOn = (value: string) => ['on', 'true', '1', 'yes', 'oui'].includes(value.toLowerCase());
 
