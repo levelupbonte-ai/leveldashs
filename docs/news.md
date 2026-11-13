@@ -28,3 +28,12 @@ space for the country of their dossier.
 - **Members**: `POST /api/portal/news` from the client website's server
   (portal key + member session), `list` or `guide`. Paid month
   (`member_until > now()`): full feed; trial or ended: a 3-article preview.
+- **Images**: each article keeps its own image, from the feed (media/enclosure)
+  or the article page's share image (`og:image`), https only, loaded from the
+  official site. No image is invented.
+- **Votes and reads**: "useful" / "not useful" (`portal_news_react`) and
+  "opened the article" (`portal_news_read`), counted per website. Names are
+  never shown: members are private clients preparing a move.
+- **Freshness**: besides the daily cron, a member opening news older than 8
+  hours starts a refresh in the background (`after()`), still limited to one
+  run per 5 hours by the database. `updated_at` is shown in the member space.
