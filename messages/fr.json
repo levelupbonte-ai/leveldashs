@@ -917,7 +917,9 @@
     "invalidImage": "Choisissez une image de votre médiathèque.",
     "emailSendFailed": "L’e-mail n’a pas pu être envoyé. Réessayez dans un instant.",
     "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place.",
-    "mediaKindNotAllowed": "Les vidéos ne sont pas encore activées pour votre compte. Demandez à LevelUp de les activer."
+    "mediaKindNotAllowed": "Les vidéos ne sont pas encore activées pour votre compte. Demandez à LevelUp de les activer.",
+    "demoNotPaid": "Cette démo n’est pas encore payée.",
+    "demoUrlRequired": "Ajoutez le lien de la démo avant de la marquer prête."
   },
   "workspaces": {
     "title": "Organisations",
@@ -1384,6 +1386,45 @@
       "reason": "Vous recevez cet e-mail parce que vous vous êtes inscrit sur {site}.",
       "unsubscribe": "Se désabonner",
       "addressMissing": "Adresse postale manquante : ajoutez-la dans Expéditeur"
+    },
+    "demoPaid": {
+      "subject": "Votre projet {code} est chez LevelUp",
+      "title": "Paiement reçu, votre projet est en route",
+      "hello": "Bonjour {name},",
+      "line1": "Nous avons reçu votre paiement de {amount} pour la démo de {business}. Votre projet est maintenant entre les mains de l’équipe LevelUp.",
+      "line2": "Délai estimé : {min} à {max} jours. Au plus tôt le {date}.",
+      "line3": "Suivez chaque étape sur votre page de suivi (code {code}). Nous vous écrivons aussi à chaque avancée.",
+      "cta": "Suivre mon projet",
+      "footnote": "Le paiement de la démo n’est pas remboursable. Gardez cet e-mail : le lien ouvre votre page de suivi."
+    },
+    "demoPaidTeam": {
+      "subject": "Démo payée {code} : {business}",
+      "title": "Nouvelle démo humaine payée",
+      "business": "Projet : {value}",
+      "type": "Type : {value}",
+      "contact": "Client : {value}",
+      "estimate": "Estimation IA : {min}–{max} jours, au plus tôt le {date}",
+      "cta": "Ouvrir la demande"
+    },
+    "demoStatus": {
+      "subject": "Votre projet {code} : {status}",
+      "title": "Votre projet avance",
+      "hello": "Bonjour {name},",
+      "line": "Nouvelle étape pour {business} : {status}.",
+      "message": "Message de LevelUp : {value}",
+      "ready": "Votre démo est prête. Ouvrez-la depuis votre page de suivi.",
+      "date": "Prévu pour le {date}.",
+      "cta": "Suivre mon projet"
+    },
+    "demoStatuses": {
+      "awaiting_payment": "En attente de paiement",
+      "paid": "Reçu",
+      "analysis": "Étude de votre projet",
+      "design": "Maquette en cours",
+      "build": "Construction",
+      "final_check": "Dernières vérifications",
+      "ready": "Démo prête",
+      "cancelled": "Annulé"
     }
   },
   "brandImage": {
@@ -3119,6 +3160,37 @@
         "qualified": "Qualifiée",
         "review": "À examiner",
         "rejected": "Non pertinente"
+      },
+      "demo": {
+        "title": "Démo humaine",
+        "paid": "Payée {amount} · {date}",
+        "awaiting": "En attente de paiement ({amount}). Le projet arrive à l’équipe une fois payé.",
+        "code": "Code de suivi",
+        "readyBy": "Au plus tôt",
+        "estimate": "Estimation IA : {min}–{max} jours",
+        "status": "Étape",
+        "message": "Message au client (facultatif)",
+        "messagePlaceholder": "Ce que vous avez fait, la suite…",
+        "url": "Lien de la démo",
+        "urlHint": "Obligatoire pour « Démo prête » : affiché sur la page de suivi du client.",
+        "date": "Date prévue",
+        "notify": "Prévenir le client par e-mail",
+        "save": "Mettre à jour l’étape",
+        "saved": "Étape mise à jour",
+        "savedEmailed": "Étape mise à jour, le client a été prévenu",
+        "timeline": "Historique",
+        "badgePaid": "Démo payée",
+        "badgeAwaiting": "Paiement en attente",
+        "statuses": {
+          "awaiting_payment": "En attente de paiement",
+          "paid": "Reçu",
+          "analysis": "Étude du projet",
+          "design": "Maquette en cours",
+          "build": "Construction",
+          "final_check": "Dernières vérifications",
+          "ready": "Démo prête",
+          "cancelled": "Annulé"
+        }
       }
     },
     "log": {

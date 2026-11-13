@@ -14,6 +14,18 @@ export function squarePaymentNote(request: Pick<CheckoutRequest, 'chargeId' | 'i
   return `LevelUp ${request.invoiceNumber} charge ${request.chargeId}`.slice(0, 500);
 }
 
+/** The note of a human demo's payment (levelup-ecosystem.com "Start a project"). */
+export function demoPaymentNote(code: string, requestId: string) {
+  return `LevelUp demo ${code} request ${requestId}`.slice(0, 500);
+}
+
+/** The demo tracking code written by `demoPaymentNote`, or null. */
+export function demoCodeFromNote(note: unknown): string | null {
+  if (typeof note !== 'string' || note.length > 500) return null;
+  const match = /^LevelUp demo (LU-[A-HJ-NP-Z2-9]{6}) request [0-9a-f-]{36}$/.exec(note);
+  return match ? match[1] : null;
+}
+
 /** The charge id written by `squarePaymentNote`, or null. */
 export function chargeIdFromNote(note: unknown): string | null {
   if (typeof note !== 'string' || note.length > 500) return null;
@@ -84,7 +96,7 @@ export function paymentLinkBody(
       }
     },
     ...(buyer ? { pre_populated_data: { buyer_email: buyer } } : {}),
-    payment_note: squarePaymentNote(request)
+    payment_note: request.paymentNote ?? squarePaymentNote(request)
   };
 }
 
@@ -139,5 +151,55 @@ export function toSquarePaymentEvent(
     currency: currency && /^[A-Za-z]{3}$/.test(currency) ? currency.toLowerCase() : null,
     payment_status: str(payment.status, 32),
     livemode: options.livemode
+  };
+}
+
+/** What a verified Square payment of a human demo passes to public.demo_ingest_square. */
+export interface SquareDemoEvent {
+  event_id: string;
+  order_id: string;
+  payment_id: string;
+  code: string;
+  payment_status: string | null;
+  amount: number | null;
+  currency: string | null;
+}
+
+/**
+ * A verified Square event to the demo payload, or null when it is not a payment
+ * of a human demo's link at this location (the note names the demo).
+ */
+export function toSquareDemoEvent(
+  event: unknown,
+  options: { locationId: string }
+): SquareDemoEvent | null {
+  if (!event || typeof event !== 'object') return null;
+  const e = event as {
+    type?: unknown;
+    event_id?: unknown;
+    data?: { object?: { payment?: Record<string, unknown> } };
+  };
+  const type = str(e.type);
+  if (!type || !(SQUARE_HANDLED_EVENTS as readonly string[]).includes(type)) return null;
+  const eventId = str(e.event_id);
+  const payment = e.data?.object?.payment;
+  if (!eventId || !SQUARE_ID.test(eventId) || !payment || typeof payment !== 'object') return null;
+  const paymentId = str(payment.id);
+  const orderId = str(payment.order_id);
+  if (!paymentId || !orderId || !SQUARE_ID.test(paymentId) || !SQUARE_ID.test(orderId)) return null;
+  if (payment.location_id !== options.locationId) return null;
+  const code = demoCodeFromNote(payment.note);
+  if (!code) return null;
+  const money = (payment.amount_money ?? {}) as { amount?: unknown; currency?: unknown };
+  const currency = str(money.currency, 3);
+  return {
+    event_id: eventId,
+    order_id: orderId,
+    payment_id: paymentId,
+    code,
+    payment_status: str(payment.status, 32),
+    amount:
+      typeof money.amount === 'number' && Number.isSafeInteger(money.amount) ? money.amount : null,
+    currency: currency && /^[A-Za-z]{3}$/.test(currency) ? currency.toLowerCase() : null
   };
 }

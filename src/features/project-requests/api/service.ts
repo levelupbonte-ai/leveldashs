@@ -1,10 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { AppError } from '@/lib/errors';
+import { AppError, type ErrorCode } from '@/lib/errors';
 import { rpc } from '@/lib/supabase/rpc-error';
 import { sanitizeNotes } from '@/features/site/api/service';
 import {
   PROJECT_REQUEST_STATUSES,
   type ProjectRequestFilters,
+  type DemoStep,
   type ProjectRequestPage,
   type ProjectRequestStatus
 } from './types';
@@ -53,4 +54,45 @@ export async function updateProjectRequest(
       p_notes: patch.notes === undefined ? null : (notes ?? '')
     })
   );
+}
+
+/**
+ * Owners / admins move a paid human demo to its next step; the route e-mails the
+ * client (tracking link) when `notify` is set. Returns whether the e-mail left.
+ */
+export async function updateProjectDemo(input: {
+  websiteId: string;
+  id: string;
+  status: DemoStep;
+  message?: string;
+  demoUrl?: string;
+  readyBy?: string;
+  notify: boolean;
+}): Promise<{ emailed: boolean }> {
+  const res = await fetch('/api/project-requests/demo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input)
+  }).catch((cause) => {
+    throw new AppError('network', { cause });
+  });
+  const json = (await res.json().catch(() => ({}))) as {
+    ok?: boolean;
+    emailed?: boolean;
+    error?: string;
+  };
+  if (!res.ok || !json.ok) {
+    const known: ErrorCode[] = [
+      'demoNotPaid',
+      'demoUrlRequired',
+      'invalidValues',
+      'forbidden',
+      'notFound',
+      'mfaRequired'
+    ];
+    throw new AppError(
+      known.includes(json.error as ErrorCode) ? (json.error as ErrorCode) : 'saveFailed'
+    );
+  }
+  return { emailed: json.emailed === true };
 }

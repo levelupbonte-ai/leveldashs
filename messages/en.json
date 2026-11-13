@@ -917,7 +917,9 @@
     "invalidImage": "Choose an image from your media library.",
     "emailSendFailed": "The email could not be sent. Try again in a moment.",
     "emailNotConfigured": "Sending emails is not available yet. LevelUp is setting it up.",
-    "mediaKindNotAllowed": "Videos are not turned on for your account yet. Ask LevelUp to enable them."
+    "mediaKindNotAllowed": "Videos are not turned on for your account yet. Ask LevelUp to enable them.",
+    "demoNotPaid": "This demo is not paid yet.",
+    "demoUrlRequired": "Add the demo link before marking it ready."
   },
   "workspaces": {
     "title": "Organizations",
@@ -1384,6 +1386,45 @@
       "reason": "You’re receiving this email because you subscribed on {site}.",
       "unsubscribe": "Unsubscribe",
       "addressMissing": "Postal address missing: add it in Sender details"
+    },
+    "demoPaid": {
+      "subject": "Your project {code} is with LevelUp",
+      "title": "Payment received — your project is on its way",
+      "hello": "Hello {name},",
+      "line1": "We received your payment of {amount} for the demo of {business}. Your project is now with the LevelUp team.",
+      "line2": "Estimated time: {min} to {max} days. Earliest date: {date}.",
+      "line3": "Follow each step on your tracking page (code {code}). We also e-mail you when it moves.",
+      "cta": "Follow my project",
+      "footnote": "The demo payment is non-refundable. Keep this e-mail: the link opens your tracking page."
+    },
+    "demoPaidTeam": {
+      "subject": "Paid demo {code}: {business}",
+      "title": "New paid human demo",
+      "business": "Project: {value}",
+      "type": "Type: {value}",
+      "contact": "Client: {value}",
+      "estimate": "AI estimate: {min}–{max} days, earliest {date}",
+      "cta": "Open the request"
+    },
+    "demoStatus": {
+      "subject": "Your project {code}: {status}",
+      "title": "Your project moved forward",
+      "hello": "Hello {name},",
+      "line": "New step for {business}: {status}.",
+      "message": "Message from LevelUp: {value}",
+      "ready": "Your demo is ready. Open it from your tracking page.",
+      "date": "Planned for {date}.",
+      "cta": "Follow my project"
+    },
+    "demoStatuses": {
+      "awaiting_payment": "Awaiting payment",
+      "paid": "Received",
+      "analysis": "Studying your project",
+      "design": "Designing",
+      "build": "Building",
+      "final_check": "Final checks",
+      "ready": "Demo ready",
+      "cancelled": "Cancelled"
     }
   },
   "brandImage": {
@@ -3119,6 +3160,37 @@
         "qualified": "Qualified",
         "review": "To review",
         "rejected": "Not a fit"
+      },
+      "demo": {
+        "title": "Human demo",
+        "paid": "Paid {amount} · {date}",
+        "awaiting": "Awaiting payment ({amount}). The project is sent to the team once paid.",
+        "code": "Tracking code",
+        "readyBy": "Earliest date",
+        "estimate": "AI estimate: {min}–{max} days",
+        "status": "Step",
+        "message": "Message to the client (optional)",
+        "messagePlaceholder": "What you did, what comes next…",
+        "url": "Demo link",
+        "urlHint": "Required for “Demo ready”: shown on the client’s tracking page.",
+        "date": "Planned date",
+        "notify": "E-mail the client",
+        "save": "Update the step",
+        "saved": "Step updated",
+        "savedEmailed": "Step updated, the client was e-mailed",
+        "timeline": "Timeline",
+        "badgePaid": "Demo paid",
+        "badgeAwaiting": "Awaiting payment",
+        "statuses": {
+          "awaiting_payment": "Awaiting payment",
+          "paid": "Received",
+          "analysis": "Studying the project",
+          "design": "Designing",
+          "build": "Building",
+          "final_check": "Final checks",
+          "ready": "Demo ready",
+          "cancelled": "Cancelled"
+        }
       }
     },
     "log": {
