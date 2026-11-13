@@ -154,6 +154,61 @@ export function toSquarePaymentEvent(
   };
 }
 
+/** A verified Square payment at this location: the fields every LevelUp record needs. */
+interface SquarePaymentFacts {
+  event_id: string;
+  order_id: string;
+  payment_id: string;
+  note: unknown;
+  payment_status: string | null;
+  amount: number | null;
+  currency: string | null;
+}
+
+function readSquarePayment(event: unknown, locationId: string): SquarePaymentFacts | null {
+  if (!event || typeof event !== 'object') return null;
+  const e = event as {
+    type?: unknown;
+    event_id?: unknown;
+    data?: { object?: { payment?: Record<string, unknown> } };
+  };
+  const type = str(e.type);
+  if (!type || !(SQUARE_HANDLED_EVENTS as readonly string[]).includes(type)) return null;
+  const eventId = str(e.event_id);
+  const payment = e.data?.object?.payment;
+  if (!eventId || !SQUARE_ID.test(eventId) || !payment || typeof payment !== 'object') return null;
+  const paymentId = str(payment.id);
+  const orderId = str(payment.order_id);
+  if (!paymentId || !orderId || !SQUARE_ID.test(paymentId) || !SQUARE_ID.test(orderId)) return null;
+  if (payment.location_id !== locationId) return null;
+  const money = (payment.amount_money ?? {}) as { amount?: unknown; currency?: unknown };
+  const currency = str(money.currency, 3);
+  return {
+    event_id: eventId,
+    order_id: orderId,
+    payment_id: paymentId,
+    note: payment.note,
+    payment_status: str(payment.status, 32),
+    amount:
+      typeof money.amount === 'number' && Number.isSafeInteger(money.amount) ? money.amount : null,
+    currency: currency && /^[A-Za-z]{3}$/.test(currency) ? currency.toLowerCase() : null
+  };
+}
+
+/** The note of a LevelStudio credit top-up's payment. */
+export function creditPaymentNote(orderId: string) {
+  return `LevelUp credits ${orderId}`.slice(0, 500);
+}
+
+/** A LevelStudio credit top-up paid at this location, or null. */
+export function toSquareCreditEvent(event: unknown, options: { locationId: string }) {
+  const p = readSquarePayment(event, options.locationId);
+  if (!p || typeof p.note !== 'string' || !/^LevelUp credits [0-9a-f-]{36}$/.test(p.note))
+    return null;
+  const { note: _note, ...rest } = p;
+  return rest;
+}
+
 /** What a verified Square payment of a human demo passes to public.demo_ingest_square. */
 export interface SquareDemoEvent {
   event_id: string;
@@ -173,33 +228,9 @@ export function toSquareDemoEvent(
   event: unknown,
   options: { locationId: string }
 ): SquareDemoEvent | null {
-  if (!event || typeof event !== 'object') return null;
-  const e = event as {
-    type?: unknown;
-    event_id?: unknown;
-    data?: { object?: { payment?: Record<string, unknown> } };
-  };
-  const type = str(e.type);
-  if (!type || !(SQUARE_HANDLED_EVENTS as readonly string[]).includes(type)) return null;
-  const eventId = str(e.event_id);
-  const payment = e.data?.object?.payment;
-  if (!eventId || !SQUARE_ID.test(eventId) || !payment || typeof payment !== 'object') return null;
-  const paymentId = str(payment.id);
-  const orderId = str(payment.order_id);
-  if (!paymentId || !orderId || !SQUARE_ID.test(paymentId) || !SQUARE_ID.test(orderId)) return null;
-  if (payment.location_id !== options.locationId) return null;
-  const code = demoCodeFromNote(payment.note);
-  if (!code) return null;
-  const money = (payment.amount_money ?? {}) as { amount?: unknown; currency?: unknown };
-  const currency = str(money.currency, 3);
-  return {
-    event_id: eventId,
-    order_id: orderId,
-    payment_id: paymentId,
-    code,
-    payment_status: str(payment.status, 32),
-    amount:
-      typeof money.amount === 'number' && Number.isSafeInteger(money.amount) ? money.amount : null,
-    currency: currency && /^[A-Za-z]{3}$/.test(currency) ? currency.toLowerCase() : null
-  };
+  const p = readSquarePayment(event, options.locationId);
+  const code = p ? demoCodeFromNote(p.note) : null;
+  if (!p || !code) return null;
+  const { note: _note, ...rest } = p;
+  return { ...rest, code };
 }

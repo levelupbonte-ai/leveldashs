@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { onlinePaymentsConfig } from '@/lib/payments';
-import { toSquareDemoEvent, toSquarePaymentEvent } from '@/lib/payments/square-form';
+import {
+  toSquareCreditEvent,
+  toSquareDemoEvent,
+  toSquarePaymentEvent
+} from '@/lib/payments/square-form';
 import { sendDemoPaidEmails, type DemoPaid } from '@/lib/demo/emails';
 import { verifySquareSignature } from '@/lib/payments/square-signature';
 import { createAnonClient } from '@/lib/supabase/anon';
@@ -53,7 +57,20 @@ export async function POST(request: NextRequest) {
   if (!payload) {
     // A human demo's payment (levelup-ecosystem.com "Start a project").
     const demo = toSquareDemoEvent(event, { locationId: square.locationId });
-    if (!demo) return received('ignored');
+    if (!demo) {
+      // A LevelStudio credit top-up: the credits are granted to the buyer's account.
+      const credit = toSquareCreditEvent(event, { locationId: square.locationId });
+      if (!credit) return received('ignored');
+      const out = await createAnonClient().rpc('studio_credit_ingest_square', {
+        p_key: config.billingKey,
+        p_event: credit
+      });
+      if (out.error) {
+        console.error('studio credits not recorded', out.error.code ?? '');
+        return errorResponse(500, 'not_recorded');
+      }
+      return received((out.data as { status?: string } | null)?.status ?? 'recorded');
+    }
     const { data, error } = await createAnonClient().rpc('demo_ingest_square', {
       p_key: config.billingKey,
       p_event: demo
