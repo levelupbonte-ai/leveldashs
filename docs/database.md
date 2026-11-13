@@ -78,6 +78,7 @@ the schema from application code or by hand in the dashboard.
 | `20261114090000` | portal_profile_save (`portal_profile_save(key, session, profile)`: a member saves their own questionnaire into their dossier — recovery for members who paid before the dossier was sent, refill from the member space) | **Applied** |
 | `20261114100000` | billing_viewer_is_staff (LevelUp staff see why online payment is off) | **Applied** |
 | `20261114120000` | human_demo (paid human demo: tracking code, steps, Square payment, AI estimate; see docs/human-demo.md) | **Applied** |
+| `20261114140000` | studio_credits (LevelStudio: 60 welcome credits once, 5 USD top-ups paid on Square; see docs/studio-credits.md) | **Applied** |
 
 Versions applied through the Supabase MCP were recorded with their apply
 timestamp; align the history once with `supabase migration list` /

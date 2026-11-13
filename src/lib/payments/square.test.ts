@@ -6,6 +6,8 @@ import { createHmac } from 'node:crypto';
 import { diagnoseOnlinePayments, readOnlinePaymentsConfig, selectProvider } from './config';
 import {
   chargeIdFromNote,
+  creditPaymentNote,
+  toSquareCreditEvent,
   demoCodeFromNote,
   demoPaymentNote,
   paymentLinkBody,
@@ -393,5 +395,42 @@ describe('human demo payments', () => {
   test('the demo link carries its own note', () => {
     const body = paymentLinkBody({ ...REQUEST, paymentNote: note }, 'L88917AVBK2S5');
     assert.equal(body.payment_note, note);
+  });
+});
+
+describe('LevelStudio credit top-ups', () => {
+  const ORDER = '0b6f4c1e-2d3a-4b5c-8d7e-9f0a1b2c3d4e';
+  const event = (note: unknown) => ({
+    type: 'payment.updated',
+    event_id: 'evt-credit-0000001',
+    data: {
+      object: {
+        payment: {
+          id: 'PAYMENT0000002',
+          order_id: 'ORDER00000002',
+          location_id: 'L88917AVBK2S5',
+          status: 'COMPLETED',
+          note,
+          amount_money: { amount: 500, currency: 'USD' }
+        }
+      }
+    }
+  });
+  test('only a credit note is a top-up, never a charge or a demo', () => {
+    const opts = { locationId: 'L88917AVBK2S5' };
+    assert.deepEqual(toSquareCreditEvent(event(creditPaymentNote(ORDER)), opts), {
+      event_id: 'evt-credit-0000001',
+      order_id: 'ORDER00000002',
+      payment_id: 'PAYMENT0000002',
+      payment_status: 'COMPLETED',
+      amount: 500,
+      currency: 'usd'
+    });
+    assert.equal(toSquareCreditEvent(event('LevelUp demo LU-7K3F9Q request ' + ORDER), opts), null);
+    assert.equal(
+      toSquarePaymentEvent(event(creditPaymentNote(ORDER)), { ...opts, livemode: true }),
+      null
+    );
+    assert.equal(toSquareDemoEvent(event(creditPaymentNote(ORDER)), opts), null);
   });
 });
