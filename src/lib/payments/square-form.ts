@@ -32,6 +32,8 @@ export interface SquarePaymentLinkBody {
   checkout_options: {
     redirect_url: string;
     allow_tipping: false;
+    enable_coupon: false;
+    enable_loyalty: false;
     merchant_support_email?: string;
     accepted_payment_methods: {
       apple_pay: true;
@@ -69,6 +71,9 @@ export function paymentLinkBody(
     checkout_options: {
       redirect_url: request.successUrl,
       allow_tipping: false,
+      // A LevelUp invoice has its own discounts: no Square coupon or loyalty box.
+      enable_coupon: false,
+      enable_loyalty: false,
       ...(support ? { merchant_support_email: support } : {}),
       // Wallets on the page (each shows only where the device and Square allow it).
       accepted_payment_methods: {

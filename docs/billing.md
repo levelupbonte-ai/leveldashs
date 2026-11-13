@@ -299,13 +299,17 @@ still recorded.
 
 ### What the payment page shows
 
-The item reads `LevelUp Ecosystem — <label> (<invoice number>)`; the signed-in payer's
+The item reads just the charge label (e.g. `Plan Pro`; the business name comes from
+the Square account, the invoice number is on the receipt); no coupon or loyalty box
+(`enable_coupon` / `enable_loyalty` false); the signed-in payer's
 e-mail is pre-filled (Square `pre_populated_data`, PayPal `email_address`); LevelUp's
 billing e-mail (*Billing → business details*, `billing_issuers.email`) is shown as the
 support address on Square; Apple Pay, Google Pay and Cash App Pay are offered on Square
 (each appears only where the device and the Square account allow it). Logo and brand
 colour are set in the providers' own dashboards (Square: *Settings → Account &
-Settings → Business → Brand*; PayPal: business profile), not in code.
+Settings → Business → Brand*; PayPal: business profile), not in code. A refund is made
+in the provider's dashboard (Square: *Transactions → the payment → Issue refund*); it
+does not change the LevelUp charge, which stays paid (void it in HQ if needed).
 
 ### PayPal (beside the card provider, or alone)
 
