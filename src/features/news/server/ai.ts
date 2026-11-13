@@ -60,10 +60,11 @@ export async function summarize(
       '"summary_fr": "the same in natural French", "topics": subset of ' +
       JSON.stringify(TOPICS) +
       ', "important": true only when it changes rules, fees, deadlines, processing or entry conditions, ' +
-      '"relevant": true only if these readers need it for their visa, permit, studies, work, family or arrival ' +
-      "(false for budgets, politics, diplomacy, court cases, ministers' agendas or news for the country's own citizens)}. JSON array only.",
+      '"relevant": true when it concerns immigration, visas, permits, studies, work permits, residence, citizenship, ' +
+      'family reunion, entry rules, processing, fees or official scam warnings for foreigners; ' +
+      "false for budgets, culture, diplomacy, court cases and arrests, ministers' agendas or news only for the country's own citizens}. JSON array only.",
     maxTokens: 1800,
-    temperature: 0.2
+    temperature: 0
   });
   for (const row of parseJsonArray(text) ?? []) {
     if (!row || typeof row !== 'object') continue;
