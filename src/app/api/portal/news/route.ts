@@ -1,6 +1,7 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { after, NextResponse, type NextRequest } from 'next/server';
 import * as z from 'zod';
 import { countryGuide } from '@/features/news/server/ai';
+import { runNewsRefresh } from '@/features/news/server/refresh';
 import { readBillingKey } from '@/lib/payments/config';
 import { createAnonClient } from '@/lib/supabase/anon';
 import { readJsonBody } from '@/lib/validation/http';
@@ -13,8 +14,14 @@ import { readJsonBody } from '@/lib/validation/http';
 //   POST { action: 'guide', session, country, lang? }  -> official links of a country
 //     (cached 30 days for everyone; a new country is looked up by AI, each link
 //      opened before it is kept; paid members only, 5 new countries a day)
+//   POST { action: 'react', session, item, helpful: true | false | null }  -> "useful" vote
+//   POST { action: 'read', session, item }             -> the member opened the article
 
-export const maxDuration = 30;
+export const maxDuration = 60;
+
+// News older than this when a member opens it: a refresh starts in the
+// background (the database still allows one run per 5 hours).
+const STALE_MS = 8 * 3600 * 1000;
 
 const KEY = /^lu_(live|test)_[0-9a-f]{48}$/;
 const SESSION = z.string().regex(/^[0-9a-f]{64}$/);
@@ -32,13 +39,21 @@ const Body = z.discriminatedUnion('action', [
     session: SESSION,
     country: COUNTRY,
     lang: z.enum(['en', 'fr']).optional()
-  })
+  }),
+  z.strictObject({
+    action: z.literal('react'),
+    session: SESSION,
+    item: z.uuid(),
+    helpful: z.boolean().nullable()
+  }),
+  z.strictObject({ action: z.literal('read'), session: SESSION, item: z.uuid() })
 ]);
 
 const STATUS: Record<string, [number, string]> = {
   PT401: [401, 'unauthorized'],
   PT402: [402, 'membership_required'],
   PT403: [403, 'forbidden'],
+  PT404: [404, 'not_found'],
   PT429: [429, 'rate_limited'],
   '22023': [400, 'invalid_request']
 };
@@ -66,7 +81,35 @@ export async function POST(request: NextRequest) {
       p_country: body.country?.toUpperCase() ?? null,
       p_lang: body.lang ?? 'fr'
     });
+    if (error) return dbError(error);
+    // Stale news: refresh in the background, after this answer is sent.
+    const updatedAt = Date.parse((data as { updated_at?: string | null })?.updated_at ?? '');
+    const serverKey = readBillingKey(process.env);
+    if (serverKey && !(updatedAt > Date.now() - STALE_MS)) {
+      after(async () => {
+        await runNewsRefresh(serverKey).catch(() => undefined);
+      });
+    }
+    return json(200, data);
+  }
+
+  if (body.action === 'react') {
+    const { data, error } = await db.rpc('portal_news_react', {
+      p_key: key,
+      p_session: body.session,
+      p_item: body.item,
+      p_helpful: body.helpful
+    });
     return error ? dbError(error) : json(200, data);
+  }
+
+  if (body.action === 'read') {
+    const { error } = await db.rpc('portal_news_read', {
+      p_key: key,
+      p_session: body.session,
+      p_item: body.item
+    });
+    return error ? dbError(error) : json(200, { ok: true });
   }
 
   const country = body.country.toUpperCase();

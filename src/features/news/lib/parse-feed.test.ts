@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { decodeText, parseFeed } from './parse-feed';
+import { decodeText, pageImage, parseFeed } from './parse-feed';
 
 const RSS = `<?xml version="1.0"?><rss><channel><title>T</title>
 <item><title><![CDATA[New rules for <b>student</b> visas]]></title><link>https://www.example.gov/news/1</link>
-<pubDate>Tue, 10 Nov 2026 10:00:00 GMT</pubDate><description>Fees &amp; deadlines change.</description></item>
+<pubDate>Tue, 10 Nov 2026 10:00:00 GMT</pubDate><description>Fees &amp; deadlines change.</description>
+<media:content url="https://www.example.gov/img/visa.jpg" medium="image"/></item>
 <item><title>Insecure link</title><link>http://www.example.gov/news/2</link></item>
 <item><title>x</title><link>https://www.example.gov/news/3</link></item>
 </channel></rss>`;
@@ -21,6 +22,21 @@ describe('news feeds', () => {
     assert.equal(items[0].url, 'https://www.example.gov/news/1');
     assert.equal(items[0].publishedAt, '2026-11-10T10:00:00.000Z');
     assert.equal(items[0].description, 'Fees & deadlines change.');
+    assert.equal(items[0].image, 'https://www.example.gov/img/visa.jpg');
+  });
+
+  it('finds the share image of an article page (relative, https only)', () => {
+    const html =
+      '<head><meta property="og:image" content="/media/news.png"><title>x</title></head>';
+    assert.equal(
+      pageImage(html, 'https://www.example.gov/news/1'),
+      'https://www.example.gov/media/news.png'
+    );
+    assert.equal(
+      pageImage('<meta name="twitter:image" content="http://x.org/a.png">', 'https://x.org/'),
+      null
+    );
+    assert.equal(pageImage('<p>no image</p>', 'https://x.org/'), null);
   });
 
   it('reads Atom entries with their alternate link', () => {

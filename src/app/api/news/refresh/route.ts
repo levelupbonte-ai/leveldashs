@@ -1,9 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 import { NextResponse, type NextRequest } from 'next/server';
-import { fetchFeed } from '@/features/news/server/feeds';
-import { summarize, type Summary } from '@/features/news/server/ai';
+import { runNewsRefresh } from '@/features/news/server/refresh';
 import { readBillingKey } from '@/lib/payments/config';
-import { createAnonClient } from '@/lib/supabase/anon';
 
 // Daily news refresh (Vercel Cron, see vercel.json). Reads the official feeds
 // listed in private.news_sources, summarizes the new articles with AI (one
@@ -13,14 +11,6 @@ import { createAnonClient } from '@/lib/supabase/anon';
 // Database calls authenticate with the LevelUp server key (LEVELUP_BILLING_KEY).
 
 export const maxDuration = 60;
-
-interface Source {
-  id: string;
-  country: string;
-  name: string;
-  feed_url: string;
-  lang: string;
-}
 
 function authorized(request: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -37,67 +27,6 @@ export async function GET(request: NextRequest) {
   const force =
     Boolean(process.env.CRON_SECRET) && new URL(request.url).searchParams.get('force') === '1';
 
-  const db = createAnonClient();
-  const { data, error } = await db.rpc('news_worker_begin', { p_key: key, p_force: force });
-  if (error) {
-    console.error('news: begin failed', error.code ?? '');
-    return NextResponse.json({ error: 'failed' }, { status: 500 });
-  }
-  const begin = data as { run: boolean; sources?: Source[]; known?: string[] };
-  if (!begin.run) return NextResponse.json({ skipped: true });
-
-  const known = new Set(begin.known ?? []);
-  const since = Date.now() - 45 * 24 * 3600 * 1000;
-  const report: Record<string, string> = {};
-
-  await Promise.all(
-    (begin.sources ?? []).map(async (source) => {
-      const { items, status } = await fetchFeed(source.feed_url);
-      const fresh = items
-        .filter((it) => !known.has(it.url))
-        .filter((it) => !it.publishedAt || Date.parse(it.publishedAt) > since)
-        .slice(0, 8);
-      let summaries = new Map<number, Summary>();
-      let aiFailed = false;
-      if (fresh.length) {
-        let countryName = source.country;
-        try {
-          countryName =
-            new Intl.DisplayNames(['en'], { type: 'region' }).of(source.country) ?? source.country;
-        } catch {
-          // keep the code
-        }
-        try {
-          summaries = await summarize(fresh, source.name, countryName);
-        } catch {
-          aiFailed = true;
-        }
-      }
-      // Without the AI's summary and relevance check nothing is saved: the
-      // articles are not "known" yet, so tomorrow's run tries them again.
-      const payload = aiFailed
-        ? []
-        : fresh
-            .map((it, i) => ({ it, s: summaries.get(i) }))
-            .filter((x) => x.s)
-            .map(({ it, s }) => ({
-              url: it.url,
-              title: it.title,
-              published_at: it.publishedAt,
-              summary_en: s!.summary_en,
-              summary_fr: s!.summary_fr,
-              topics: s!.topics,
-              important: s!.important,
-              relevant: s!.relevant
-            }));
-      const saved = await db.rpc('news_worker_save', {
-        p_key: key,
-        p_source: source.id,
-        p_status: aiFailed ? 'ai_failed' : status,
-        p_items: payload
-      });
-      report[source.id] = saved.error ? 'save_failed' : `${status}:${payload.length}`;
-    })
-  );
-  return NextResponse.json({ ok: true, sources: report });
+  const result = await runNewsRefresh(key, force);
+  return 'error' in result ? NextResponse.json(result, { status: 500 }) : NextResponse.json(result);
 }
