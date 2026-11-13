@@ -13,6 +13,8 @@ export interface Summary {
   summary_fr: string;
   topics: string[];
   important: boolean;
+  /** Useful to someone preparing to visit, study, work or settle in the country. */
+  relevant: boolean;
 }
 
 const TOPICS = ['visa', 'study', 'work', 'travel', 'family', 'fees', 'residence', 'other'];
@@ -36,10 +38,11 @@ function parseJsonArray(text: string): unknown[] | null {
 const clip = (v: unknown, max: number) =>
   typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : '';
 
-/** Two-sentence summaries in English and French, topics and an "important" flag. */
+/** Short summaries in English and French, topics, "important" and "relevant" flags. */
 export async function summarize(
   items: FeedItem[],
-  sourceName: string
+  sourceName: string,
+  countryName: string
 ): Promise<Map<number, Summary>> {
   const out = new Map<number, Summary>();
   if (!items.length) return out;
@@ -52,11 +55,13 @@ export async function summarize(
       'Use ONLY the facts in the given title and text; never add dates, numbers or rules that are not written there. ' +
       'Answer with a JSON array only.',
     prompt:
-      `SOURCE: ${sourceName}\n\nARTICLES:\n${list}\n\n` +
+      `SOURCE: ${sourceName} (official, ${countryName})\nREADERS: people from abroad (mostly Africa) preparing to visit, study, work or settle in ${countryName}.\n\nARTICLES:\n${list}\n\n` +
       'For each article return {"i": index, "summary_en": "1-2 short sentences: what changes and for whom", ' +
       '"summary_fr": "the same in natural French", "topics": subset of ' +
       JSON.stringify(TOPICS) +
-      ', "important": true only when it changes rules, fees, deadlines, processing or entry conditions}. JSON array only.',
+      ', "important": true only when it changes rules, fees, deadlines, processing or entry conditions, ' +
+      '"relevant": true only if these readers need it for their visa, permit, studies, work, family or arrival ' +
+      "(false for budgets, politics, diplomacy, court cases, ministers' agendas or news for the country's own citizens)}. JSON array only.",
     maxTokens: 1800,
     temperature: 0.2
   });
@@ -71,7 +76,8 @@ export async function summarize(
       topics: Array.isArray(r.topics)
         ? r.topics.filter((t): t is string => TOPICS.includes(String(t)))
         : [],
-      important: r.important === true
+      important: r.important === true,
+      relevant: r.relevant === true
     });
   }
   return out;

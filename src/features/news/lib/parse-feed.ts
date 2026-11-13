@@ -16,13 +16,19 @@ const ENTITIES: Record<string, string> = {
   nbsp: ' '
 };
 
-export function decodeText(raw: string): string {
-  return raw
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/<[^>]+>/g, ' ')
+const decodeEntities = (v: string) =>
+  v
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
-    .replace(/&([a-z]+);/gi, (m, n: string) => ENTITIES[n.toLowerCase()] ?? m)
+    .replace(/&([a-z]+);/gi, (m, n: string) => ENTITIES[n.toLowerCase()] ?? m);
+
+/** Plain text: CDATA unwrapped, tags removed, entities decoded (also HTML escaped inside the XML). */
+export function decodeText(raw: string): string {
+  const once = decodeEntities(
+    raw.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1').replace(/<[^>]+>/g, ' ')
+  );
+  // Many feeds escape their HTML (&lt;p&gt;): after decoding, strip those tags too.
+  return decodeEntities(once.replace(/<[^>]+>/g, ' '))
     .replace(/\s+/g, ' ')
     .trim();
 }

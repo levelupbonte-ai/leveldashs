@@ -30,7 +30,13 @@ describe('news feeds', () => {
     assert.equal(item.publishedAt, '2026-11-12T08:00:00.000Z');
   });
 
-  it('decodes entities and strips tags', () => {
-    assert.equal(decodeText('<p>A &amp; B&#160;&lt;C&gt;</p>'), 'A & B <C>');
+  it('decodes entities and strips tags, also HTML escaped inside the XML', () => {
+    assert.equal(decodeText('<p>A &amp; B&#160;x</p>'), 'A & B x');
+    assert.equal(
+      decodeText(
+        '&lt;span&gt;La Belgique&lt;/span&gt; &lt;span class="user-name"&gt;x&lt;/span&gt;'
+      ),
+      'La Belgique x'
+    );
   });
 });
