@@ -37,3 +37,7 @@ space for the country of their dossier.
 - **Freshness**: besides the daily cron, a member opening news older than 8
   hours starts a refresh in the background (`after()`), still limited to one
   run per 5 hours by the database. `updated_at` is shown in the member space.
+- **Refusals are respected**: a source answering 403 (refuses automated
+  readers) or 404 is turned off, never worked around (no fake browser
+  identity). A country counts as covered only while one of its sources works;
+  otherwise members get its official websites (`portal_news_guide`).
