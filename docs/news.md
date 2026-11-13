@@ -14,8 +14,13 @@ space for the country of their dossier.
   the database: `LEVELUP_BILLING_KEY`. Optional `CRON_SECRET` locks the address
   to Vercel Cron (and allows `?force=1`).
 - **AI cost**: one call per source per day for the new articles only (summary
-  EN + FR, topics, "important"), on the `reports` route (free providers first).
-  Never per member.
+  EN + FR, topics, "important", "relevant"), on the `reports` route (free
+  providers first). Never per member. Articles the AI marks not relevant
+  (budgets, politics, court cases…) stay stored but hidden, so they are never
+  summarized twice. If the AI call fails nothing is saved and the next run
+  retries.
+- **Pairs**: a source published in two languages (Canada EN/FR, `pair`)
+  shows only the member's language.
 - **Other countries**: `portal_news_guide` → cached official links (30 days,
   shared by all members) or, for paid members (5 new countries a day), one AI
   call that lists official sites; each link is opened and kept only if it

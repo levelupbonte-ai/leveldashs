@@ -58,29 +58,42 @@ export async function GET(request: NextRequest) {
         .filter((it) => !it.publishedAt || Date.parse(it.publishedAt) > since)
         .slice(0, 8);
       let summaries = new Map<number, Summary>();
+      let aiFailed = false;
       if (fresh.length) {
+        let countryName = source.country;
         try {
-          summaries = await summarize(fresh, source.name);
+          countryName =
+            new Intl.DisplayNames(['en'], { type: 'region' }).of(source.country) ?? source.country;
         } catch {
-          // Saved without a summary: the title and the link still help.
+          // keep the code
+        }
+        try {
+          summaries = await summarize(fresh, source.name, countryName);
+        } catch {
+          aiFailed = true;
         }
       }
-      const payload = fresh.map((it, i) => {
-        const s = summaries.get(i);
-        return {
-          url: it.url,
-          title: it.title,
-          published_at: it.publishedAt,
-          summary_en: s?.summary_en || (source.lang === 'en' ? it.description.slice(0, 300) : ''),
-          summary_fr: s?.summary_fr || (source.lang === 'fr' ? it.description.slice(0, 300) : ''),
-          topics: s?.topics ?? [],
-          important: s?.important ?? false
-        };
-      });
+      // Without the AI's summary and relevance check nothing is saved: the
+      // articles are not "known" yet, so tomorrow's run tries them again.
+      const payload = aiFailed
+        ? []
+        : fresh
+            .map((it, i) => ({ it, s: summaries.get(i) }))
+            .filter((x) => x.s)
+            .map(({ it, s }) => ({
+              url: it.url,
+              title: it.title,
+              published_at: it.publishedAt,
+              summary_en: s!.summary_en,
+              summary_fr: s!.summary_fr,
+              topics: s!.topics,
+              important: s!.important,
+              relevant: s!.relevant
+            }));
       const saved = await db.rpc('news_worker_save', {
         p_key: key,
         p_source: source.id,
-        p_status: status,
+        p_status: aiFailed ? 'ai_failed' : status,
         p_items: payload
       });
       report[source.id] = saved.error ? 'save_failed' : `${status}:${payload.length}`;
