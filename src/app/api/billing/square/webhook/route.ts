@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { onlinePaymentsConfig } from '@/lib/payments';
-import { toSquarePaymentEvent } from '@/lib/payments/square-form';
+import { toSquareDemoEvent, toSquarePaymentEvent } from '@/lib/payments/square-form';
+import { sendDemoPaidEmails, type DemoPaid } from '@/lib/demo/emails';
 import { verifySquareSignature } from '@/lib/payments/square-signature';
 import { createAnonClient } from '@/lib/supabase/anon';
 import { errorResponse } from '@/lib/validation/http';
@@ -49,7 +50,29 @@ export async function POST(request: NextRequest) {
     locationId: square.locationId,
     livemode: square.environment === 'production'
   });
-  if (!payload) return received('ignored');
+  if (!payload) {
+    // A human demo's payment (levelup-ecosystem.com "Start a project").
+    const demo = toSquareDemoEvent(event, { locationId: square.locationId });
+    if (!demo) return received('ignored');
+    const { data, error } = await createAnonClient().rpc('demo_ingest_square', {
+      p_key: config.billingKey,
+      p_event: demo
+    });
+    if (error) {
+      console.error('demo payment not recorded', error.code ?? '');
+      return errorResponse(500, 'not_recorded');
+    }
+    const result = data as (DemoPaid & { status: string }) | null;
+    // The project reaches LevelUp now: the client gets the tracking link, the team an alert.
+    if (result?.status === 'paid') {
+      const amount = new Intl.NumberFormat(result.locale === 'fr' ? 'fr-CA' : 'en-US', {
+        style: 'currency',
+        currency: (demo.currency ?? 'usd').toUpperCase()
+      }).format((demo.amount ?? 0) / 100);
+      await sendDemoPaidEmails(result, amount);
+    }
+    return received(result?.status ?? 'recorded');
+  }
 
   const { data, error } = await createAnonClient().rpc('billing_ingest_stripe_event', {
     p_key: config.billingKey,

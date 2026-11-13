@@ -38,7 +38,33 @@ export interface ProjectRequest {
   notes: string | null;
   reviewed_at: string | null;
   handoff: { created_at: string; claimed_at: string | null; open_count: number } | null;
+  /** Human demo (19 USD): null when the visitor did not choose it. */
+  demo: ProjectDemo | null;
+  estimate: { min_days: number; max_days: number | null; note: string | null } | null;
   masked: boolean;
+}
+
+export const DEMO_STEPS = [
+  'paid',
+  'analysis',
+  'design',
+  'build',
+  'final_check',
+  'ready',
+  'cancelled'
+] as const;
+export type DemoStep = (typeof DEMO_STEPS)[number];
+export type DemoStatus = DemoStep | 'awaiting_payment';
+
+export interface ProjectDemo {
+  status: DemoStatus;
+  paid_at: string | null;
+  amount: number | null;
+  currency: string | null;
+  ready_by: string | null;
+  url: string | null;
+  code: string | null;
+  events: { status: DemoStatus; message: string | null; at: string }[];
 }
 
 export interface ProjectRequestFilters {

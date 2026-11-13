@@ -6,8 +6,11 @@ import { createHmac } from 'node:crypto';
 import { diagnoseOnlinePayments, readOnlinePaymentsConfig, selectProvider } from './config';
 import {
   chargeIdFromNote,
+  demoCodeFromNote,
+  demoPaymentNote,
   paymentLinkBody,
   squarePaymentNote,
+  toSquareDemoEvent,
   toSquarePaymentEvent
 } from './square-form';
 import { signSquarePayload, verifySquareSignature } from './square-signature';
@@ -344,5 +347,51 @@ describe('config as pasted in Vercel', () => {
       'LEVELUP_BILLING_KEY (missing)',
       'LEVELUP_SQUARE_LOCATION_ID (malformed)'
     ]);
+  });
+});
+
+describe('human demo payments', () => {
+  const REQUEST_ID = '6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b';
+  const note = demoPaymentNote('LU-7K3F9Q', REQUEST_ID);
+  const event = (overrides: Record<string, unknown> = {}) => ({
+    type: 'payment.updated',
+    event_id: 'evt-demo-00000001',
+    data: {
+      object: {
+        payment: {
+          id: 'PAYMENT0000001',
+          order_id: 'ORDER00000001',
+          location_id: 'L88917AVBK2S5',
+          status: 'COMPLETED',
+          note,
+          amount_money: { amount: 1900, currency: 'USD' },
+          ...overrides
+        }
+      }
+    }
+  });
+  test('the note names the demo, and only a demo note does', () => {
+    assert.equal(demoCodeFromNote(note), 'LU-7K3F9Q');
+    assert.equal(demoCodeFromNote(`LevelUp LU-2026-0001 charge ${REQUEST_ID}`), null);
+    assert.equal(demoCodeFromNote('LevelUp demo LU-0O1I00 request x'), null);
+  });
+  test('a demo payment at this location, never as a charge', () => {
+    const opts = { locationId: 'L88917AVBK2S5' };
+    assert.deepEqual(toSquareDemoEvent(event(), opts), {
+      event_id: 'evt-demo-00000001',
+      order_id: 'ORDER00000001',
+      payment_id: 'PAYMENT0000001',
+      code: 'LU-7K3F9Q',
+      payment_status: 'COMPLETED',
+      amount: 1900,
+      currency: 'usd'
+    });
+    assert.equal(toSquarePaymentEvent(event(), { ...opts, livemode: true }), null);
+    assert.equal(toSquareDemoEvent(event({ location_id: 'LOTHER0000001' }), opts), null);
+    assert.equal(toSquareDemoEvent(event({ note: 'Coffee' }), opts), null);
+  });
+  test('the demo link carries its own note', () => {
+    const body = paymentLinkBody({ ...REQUEST, paymentNote: note }, 'L88917AVBK2S5');
+    assert.equal(body.payment_note, note);
   });
 });

@@ -43,6 +43,7 @@ import {
 } from '../api/types';
 import { projectRequestParams, toProjectRequestFilters } from '../lib/filters';
 import { useNow } from '@/features/insights/lib/use-now';
+import { DemoPanel } from './demo-panel';
 
 const VERDICT_VARIANT = { qualified: 'default', review: 'secondary', rejected: 'outline' } as const;
 
@@ -161,6 +162,11 @@ export function ProjectRequestsView() {
                         </Badge>
                       )}
                       <Badge variant='outline'>{t(`status.${r.status}`)}</Badge>
+                      {r.demo && (
+                        <Badge variant={r.demo.paid_at ? 'default' : 'secondary'}>
+                          {r.demo.paid_at ? t('demo.badgePaid') : t('demo.badgeAwaiting')}
+                        </Badge>
+                      )}
                       {r.handoff?.claimed_at && <Badge variant='secondary'>{t('claimed')}</Badge>}
                       <span className='text-muted-foreground text-xs'>
                         {format.relativeTime(new Date(r.created_at), now)}
@@ -303,6 +309,7 @@ function RequestDetail({ request: r, canEdit }: { request: ProjectRequest; canEd
             </div>
           )}
         </section>
+        <DemoPanel request={r} canEdit={canEdit} />
         <div className='flex flex-wrap items-center gap-2'>
           <StatusSelect
             label={t('statusFilter')}

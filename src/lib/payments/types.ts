@@ -25,6 +25,8 @@ export interface CheckoutRequest {
   buyerEmail?: string | null;
   /** LevelUp's billing e-mail, shown as the support address. */
   supportEmail?: string | null;
+  /** Square: the note copied onto the payment (default: the charge note). */
+  paymentNote?: string;
 }
 
 export type CheckoutStatus = 'open' | 'complete' | 'expired';
