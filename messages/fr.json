@@ -2,7 +2,13 @@
   "metadata": {
     "app": {
       "description": "Gérez votre site, vos réservations et vos clients au même endroit avec LevelUp Ecosystem.",
-      "ogImageAlt": "LevelUp Dashboard — l’étoile LevelUp"
+      "ogImageAlt": "LevelUp Dashboard — l’étoile LevelUp",
+      "shortcuts": {
+        "unread": "Messages non lus",
+        "members": "Membres",
+        "requests": "Demandes",
+        "publish": "Publier"
+      }
     },
     "dashboard": {
       "title": "Tableau de bord",
@@ -4343,6 +4349,18 @@
           "call": "Bonjour, j’aimerais échanger avec vous sur votre projet. Quand êtes-vous disponible ?"
         }
       }
+    },
+    "push": {
+      "title": "Notifications sur cet appareil",
+      "on": "Notifications activées",
+      "off": "Activer les notifications",
+      "turnOff": "Désactiver",
+      "description": "Recevez une notification pour un nouveau membre ou un nouveau message, même dashboard fermé.",
+      "enabled": "Notifications activées sur cet appareil",
+      "disabled": "Notifications désactivées sur cet appareil",
+      "denied": "Les notifications sont bloquées dans les réglages du navigateur.",
+      "unsupported": "Ce navigateur ne peut pas recevoir de notifications. Sur iPhone, ajoutez d’abord le dashboard à l’écran d’accueil (Partager → Sur l’écran d’accueil).",
+      "unavailable": "Les notifications ne sont pas encore configurées."
     }
   },
   "siteForms": {

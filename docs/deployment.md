@@ -35,6 +35,13 @@ Ensure these are set in your deployment platform:
   `CAMPAIGN_EMAIL_FROM_ADDRESS`, and for scheduled sending and delivery tracking `LEVELUP_EMAIL_KEY`,
   `CRON_SECRET`, `RESEND_WEBHOOK_SECRET`. Steps in [email-campaigns.md](./email-campaigns.md#setup)
 
+- Team push notifications (installed dashboard: new member, new message), optional, server-only:
+  `DASHBOARD_VAPID_PUBLIC_KEY` and `DASHBOARD_VAPID_PRIVATE_KEY` (*Sensitive*), generated once with
+  `npx web-push@3.6.7 generate-vapid-keys`; sending uses `LEVELUP_BILLING_KEY`. Without them the
+  "notifications" card is hidden and nothing is sent. Client websites call `POST /api/push/staff`
+  (no key, no data) after a member writes or signs in; it only sends what the database queued
+  (`staff_push_*`, migration `staff_push`) to editors+ of that site.
+
 Sentry source maps are uploaded automatically in CI.
 
 Only the publishable key is needed: the app never uses the Supabase secret / service-role key, and every query runs as the signed-in user through RLS.
