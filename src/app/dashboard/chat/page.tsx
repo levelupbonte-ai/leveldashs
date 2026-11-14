@@ -62,6 +62,12 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
             organizationId={org.id}
             organizationName={org.name}
             canManageVisitors={hasRole(org.role, 'editor')}
+            portalWebsiteId={
+              hasRole(org.role, 'editor') &&
+              session.activeWebsite?.features.includes('client_portal')
+                ? session.activeWebsite.id
+                : null
+            }
           />
         </Suspense>
       </HydrationBoundary>

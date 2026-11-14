@@ -33,7 +33,10 @@ export async function generateMetadata(): Promise<Metadata> {
       template: '%s | LevelUp'
     },
     description,
-    applicationName: 'LevelUp Dashboard',
+    applicationName: 'LevelUp',
+    // Home-screen name and icon, whatever page the app is installed from
+    // (iPhone uses this, not the page title like "Client space").
+    appleWebApp: { capable: true, title: 'LevelUp', statusBarStyle: 'default' },
     openGraph: {
       title: 'LevelUp Dashboard',
       description,

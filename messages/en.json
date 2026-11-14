@@ -3543,6 +3543,7 @@
     },
     "tabs": {
       "all": "All",
+      "members": "Members",
       "team": "Team",
       "direct": "Direct",
       "visitors": "Visitors"
@@ -3550,11 +3551,13 @@
     "sections": {
       "team": "Team",
       "direct": "Direct messages",
-      "visitors": "Website visitors"
+      "visitors": "Website visitors",
+      "members": "Client space members"
     },
     "emptySection": {
       "direct": "No direct messages yet. Start one with a teammate.",
-      "visitors": "No visitor messages yet. Messages sent from your website’s contact form appear here."
+      "visitors": "No visitor messages yet. Messages sent from your website’s contact form appear here.",
+      "members": "No member has written yet. Messages from your client space (members) appear here."
     },
     "teamName": "Team",
     "teamSubtitle": "{count, plural, one {# member} other {# members}}",
@@ -3686,7 +3689,14 @@
       "live": "Live",
       "polling": "Refreshing automatically"
     },
-    "navBadge": "{count, plural, one {# unread message} other {# unread messages}}"
+    "navBadge": "{count, plural, one {# unread message} other {# unread messages}}",
+    "member": {
+      "label": "Client space member",
+      "subtitle": "Member of your client space · they see your reply in their space and by e-mail",
+      "profile": "Profile",
+      "back": "Back to conversations",
+      "draft": "Draft: {text}"
+    }
   },
   "unsubscribe": {
     "metaTitle": "Unsubscribe",
@@ -4360,7 +4370,11 @@
       "disabled": "Notifications are off for this device",
       "denied": "Notifications are blocked in this browser settings.",
       "unsupported": "This browser cannot receive notifications. On iPhone, add the dashboard to the home screen first (Share → Add to Home Screen).",
-      "unavailable": "Notifications are not set up yet."
+      "unavailable": "Notifications are not set up yet.",
+      "promptTitle": "Turn on notifications",
+      "promptBody": "Be told on this device as soon as a member writes to you or joins your client space, even when the dashboard is closed.",
+      "later": "Later",
+      "enable": "Turn on"
     }
   },
   "siteForms": {
