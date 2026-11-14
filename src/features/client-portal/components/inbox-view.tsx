@@ -451,7 +451,7 @@ function GroupMessageDialog({
           {recipients.map((r) => r.name || r.email).join(', ')}
         </p>
         <div className='flex flex-wrap gap-1.5'>
-          {(['redo', 'news', 'call'] as const).map((k) => (
+          {(['plans', 'redo', 'news', 'call'] as const).map((k) => (
             <Button
               key={k}
               type='button'
