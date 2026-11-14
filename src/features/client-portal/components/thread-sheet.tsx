@@ -1,5 +1,6 @@
 'use client';
 
+import { useStore } from '@tanstack/react-form';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -17,34 +18,43 @@ import {
   SheetTitle
 } from '@/components/ui/sheet';
 import { useErrorMessage } from '@/hooks/use-error-message';
+import { useVisualViewport } from '@/hooks/use-visual-viewport';
 import { useAppForm } from '@/lib/form';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { useFields } from '@/lib/validation/use-fields';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalKeys, portalThreadQueryOptions } from '../api/queries';
-import { answerPortalHandoff, replyToPortalCustomer } from '../api/service';
-import type { PortalCustomer, PortalMessage } from '../api/types';
+import { answerPortalHandoff, replyToPortalCustomer, savePortalDraft } from '../api/service';
+import type { PortalCustomer, PortalInboxEntry, PortalMessage } from '../api/types';
 import { ProfileCard } from './profile-card';
 import { useNudgeEmails } from './use-nudge-emails';
+
+/** Who the thread is with (from the customer list or the inbox). */
+export type ThreadCustomer = Pick<PortalCustomer, 'id' | 'name' | 'email' | 'status'>;
 
 /** Message thread with one customer; opening it marks their messages as read. */
 export function ThreadSheet({
   customer,
   onOpenChange
 }: {
-  customer: PortalCustomer | null;
+  customer: ThreadCustomer | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const t = useTranslations('clientPortal.thread');
+  // Phones: the panel follows the visible area so the keyboard never covers the reply box.
+  const visible = useVisualViewport(!!customer);
   return (
     <Sheet open={!!customer} onOpenChange={onOpenChange}>
-      <SheetContent className='flex w-full flex-col sm:max-w-lg'>
+      <SheetContent
+        className='flex w-full flex-col gap-3 sm:max-w-lg'
+        style={visible ? { top: visible.top, height: visible.height, bottom: 'auto' } : undefined}
+      >
         <SheetHeader>
           <SheetTitle>{customer?.name || customer?.email}</SheetTitle>
           <SheetDescription>{t('description')}</SheetDescription>
         </SheetHeader>
-        {customer && <Thread customer={customer} />}
+        {customer && <Thread key={customer.id} customer={customer} keyboard={!!visible} />}
       </SheetContent>
     </Sheet>
   );
@@ -57,7 +67,7 @@ function dayKey(iso: string) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function Thread({ customer }: { customer: PortalCustomer }) {
+function Thread({ customer, keyboard }: { customer: ThreadCustomer; keyboard: boolean }) {
   const scope = useSiteScope();
   const t = useTranslations('clientPortal.thread');
   const format = useFormatter();
@@ -76,15 +86,25 @@ function Thread({ customer }: { customer: PortalCustomer }) {
   const count = data?.length ?? 0;
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'end' });
-    if (count) void queryClient.invalidateQueries({ queryKey: portalKeys.list(scope.websiteId) });
+    if (count) {
+      void queryClient.invalidateQueries({ queryKey: portalKeys.list(scope.websiteId) });
+      void queryClient.invalidateQueries({ queryKey: portalKeys.inbox(scope.websiteId) });
+    }
   }, [count, queryClient, scope.websiteId]);
 
   // Answering a question sent from the AI assistant: the reply is marked validated.
   const [replyTo, setReplyTo] = useState<PortalMessage | null>(null);
 
   const schema = useMemo(() => z.object({ body: f.text(4000, { min: 1, multiline: true }) }), [f]);
+  // The team's unsent reply, kept between visits (Drafts folder of the inbox).
+  const [savedDraft] = useState(
+    () =>
+      queryClient
+        .getQueryData<PortalInboxEntry[]>(portalKeys.inbox(scope.websiteId))
+        ?.find((c) => c.id === customer.id)?.draft ?? ''
+  );
   const form = useAppForm({
-    defaultValues: { body: '' },
+    defaultValues: { body: savedDraft },
     validators: { onSubmit: schema },
     onSubmit: async ({ value }) => {
       try {
@@ -92,7 +112,8 @@ function Thread({ customer }: { customer: PortalCustomer }) {
         if (replyTo) await answerPortalHandoff(createClient(), replyTo.id, body);
         else await replyToPortalCustomer(createClient(), customer.id, body);
         nudge();
-        form.reset();
+        draft.current = '';
+        form.reset({ body: '' });
         setReplyTo(null);
         void queryClient.invalidateQueries({ queryKey: portalKeys.all(scope.websiteId) });
       } catch (error) {
@@ -101,13 +122,44 @@ function Thread({ customer }: { customer: PortalCustomer }) {
     }
   });
 
+  const body = useStore(form.store, (state) => state.values.body);
+  const draft = useRef(savedDraft);
+  useEffect(() => {
+    if (body.trim() === draft.current.trim()) return;
+    const timer = setTimeout(() => {
+      draft.current = body;
+      savePortalDraft(createClient(), customer.id, body)
+        .then(() => queryClient.invalidateQueries({ queryKey: portalKeys.inbox(scope.websiteId) }))
+        .catch(() => undefined);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [body, customer.id, queryClient, scope.websiteId]);
+  // Closing the panel before the autosave: keep what was typed.
+  const latest = useRef(body);
+  useEffect(() => {
+    latest.current = body;
+  }, [body]);
+  useEffect(
+    () => () => {
+      if (latest.current.trim() !== draft.current.trim()) {
+        void savePortalDraft(createClient(), customer.id, latest.current)
+          .then(() =>
+            queryClient.invalidateQueries({ queryKey: portalKeys.inbox(scope.websiteId) })
+          )
+          .catch(() => undefined);
+      }
+    },
+    [customer.id, queryClient, scope.websiteId]
+  );
+
   const lastOwn = data?.toReversed().find((m) => m.sender === 'owner');
 
   let lastDay = '';
 
   return (
     <div className='flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4'>
-      <ProfileCard customerId={customer.id} />
+      {/* Keyboard open on a phone: room for the conversation and the reply. */}
+      {!keyboard && <ProfileCard customerId={customer.id} />}
       <div className='min-h-0 flex-1 space-y-1.5 overflow-y-auto' aria-live='polite'>
         {isPending && <Skeleton className='h-24 w-full' />}
         {data?.length === 0 && <p className='text-muted-foreground text-sm'>{t('empty')}</p>}
@@ -184,7 +236,7 @@ function Thread({ customer }: { customer: PortalCustomer }) {
             </button>
           </div>
         )}
-        <div className='flex flex-wrap gap-1.5'>
+        <div className={cn('flex flex-wrap gap-1.5', keyboard && 'hidden')}>
           {QUICK_REPLIES.map((k) => (
             <Button
               key={k}

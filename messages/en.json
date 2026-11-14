@@ -3975,6 +3975,7 @@
       "invite": "Invite to portal"
     },
     "tabs": {
+      "messages": "Messages",
       "customers": "Customers",
       "published": "Published",
       "plans": "Plans & offer",
@@ -4286,6 +4287,62 @@
       "sheetProspect": "Has not paid yet",
       "emptyTitle": "No questionnaire yet",
       "emptyDescription": "Questionnaires filled in on the website before payment show here."
+    },
+    "inbox": {
+      "folders": "Folders",
+      "folder": {
+        "unread": "Unread",
+        "all": "All",
+        "read": "Read",
+        "drafts": "Drafts",
+        "archived": "Archived"
+      },
+      "groups": {
+        "title": "Smart groups — tap one to select its members",
+        "redo": "Dossier to redo"
+      },
+      "search": "Search a member, a country, a message…",
+      "selectAll": "Select all",
+      "selectNone": "Clear selection",
+      "select": "Select {name}",
+      "empty": {
+        "unread": "No unread message. You are up to date.",
+        "all": "No conversation yet.",
+        "read": "No read conversation.",
+        "drafts": "No draft. A reply you start and do not send is kept here.",
+        "archived": "Nothing archived. A new message from the member brings the conversation back.",
+        "group": "No member in this group."
+      },
+      "draft": "Draft:",
+      "you": "You:",
+      "noMessages": "No message yet",
+      "unread": "{count, plural, one {# unread} other {# unread}}",
+      "noDossier": "Dossier to redo",
+      "revoked": "Access removed",
+      "archive": "Archive",
+      "unarchive": "Move back to inbox",
+      "archived": "Conversation archived",
+      "unarchived": "Conversation moved back to the inbox",
+      "selected": "{count, plural, one {# member selected} other {# members selected}}",
+      "clear": "Clear",
+      "writeTo": "{count, plural, one {Write to # member} other {Write to # members}}",
+      "group": {
+        "title": "{count, plural, one {Message to # member} other {Message to # members}}",
+        "description": "Each member receives it privately in their space and by e-mail. Nobody sees the other recipients.",
+        "message": "Message",
+        "send": "{count, plural, one {Send to # member} other {Send to # members}}",
+        "sent": "{count, plural, one {Sent to # member} other {Sent to # members}}",
+        "templateLabel": {
+          "redo": "Redo the dossier",
+          "news": "News",
+          "call": "Let's talk"
+        },
+        "template": {
+          "redo": "Hello, your registration is confirmed and you have nothing to pay. Your dossier was not completed: simply fill it in again from your space ({site}) so the app updates your file. Thank you!",
+          "news": "Hello, there is news about your project. Please open your space to read it.",
+          "call": "Hello, I would like to talk with you about your project. When are you available?"
+        }
+      }
     }
   },
   "siteForms": {
