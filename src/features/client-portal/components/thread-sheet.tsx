@@ -28,6 +28,7 @@ import { portalKeys, portalThreadQueryOptions } from '../api/queries';
 import { answerPortalHandoff, replyToPortalCustomer, savePortalDraft } from '../api/service';
 import type { PortalCustomer, PortalInboxEntry, PortalMessage } from '../api/types';
 import { ProfileCard } from './profile-card';
+import { ThreadSummary } from './thread-summary';
 import { useNudgeEmails } from './use-nudge-emails';
 
 /** Who the thread is with (from the customer list or the inbox). */
@@ -167,6 +168,11 @@ export function PortalThread({
     <div className='flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4'>
       {/* Keyboard open on a phone: room for the conversation and the reply. */}
       {!keyboard && <ProfileCard customerId={customer.id} />}
+      <ThreadSummary
+        customerId={customer.id}
+        lastMemberMessage={data?.toReversed().find((m) => m.sender === 'customer')?.id ?? null}
+        compact={keyboard}
+      />
       <div className='min-h-0 flex-1 space-y-1.5 overflow-y-auto' aria-live='polite'>
         {isPending && <Skeleton className='h-24 w-full' />}
         {data?.length === 0 && <p className='text-muted-foreground text-sm'>{t('empty')}</p>}

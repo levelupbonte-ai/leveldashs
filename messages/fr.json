@@ -4010,7 +4010,9 @@
       "offer": "Un groupe d’offre",
       "customer": "Un client",
       "offerNamed": "Offre : {offer}",
-      "customerNamed": "Pour {name}"
+      "customerNamed": "Pour {name}",
+      "customers": "Membres que je choisis (pays, projet…)",
+      "customersNamed": "{count, plural, one {# membre choisi} other {# membres choisis}}"
     },
     "customers": {
       "emptyTitle": "Aucun client pour l’instant",
@@ -4082,7 +4084,14 @@
       "level": "Qui peut le lire",
       "levelHint": "Les membres en offre gratuite lisent ce que son niveau inclut. Les autres voient le titre et sont invités à prendre un forfait.",
       "levelFree": "Tous les membres (gratuit)",
-      "levelPlan": "Forfait {plan} et plus"
+      "levelPlan": "Forfait {plan} et plus",
+      "pick": {
+        "title": "Qui le reçoit",
+        "selected": "{count, plural, =0 {Aucun membre choisi} one {# membre choisi} other {# membres choisis}}",
+        "clear": "Effacer",
+        "search": "Chercher un nom, un e-mail, un pays…",
+        "none": "Aucun membre ne correspond."
+      }
     },
     "invite": {
       "title": "Inviter dans l’espace",
@@ -4131,6 +4140,16 @@
         "draft": "Réponse préparée",
         "useDraft": "Utiliser et modifier",
         "answer": "Répondre"
+      },
+      "ai": {
+        "title": "Résumé IA",
+        "loading": "Le résumé IA se charge",
+        "urgent": "Urgent",
+        "hide": "Masquer le résumé",
+        "show": "Afficher le résumé",
+        "next": "Prochaine étape :",
+        "note": "Écrit par l’IA à partir des messages : vérifiez avant de répondre.",
+        "refresh": "Actualiser"
       }
     },
     "access": {
@@ -4358,7 +4377,9 @@
           "news": "Bonjour, il y a du nouveau pour votre projet. Ouvrez votre espace pour le lire.",
           "call": "Bonjour, j’aimerais échanger avec vous sur votre projet. Quand êtes-vous disponible ?"
         }
-      }
+      },
+      "urgent": "Urgent",
+      "publishTo": "Leur publier"
     },
     "push": {
       "title": "Notifications sur cet appareil",

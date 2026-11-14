@@ -21,7 +21,9 @@ export const portalKeys = {
     [...portalKeys.all(websiteId), 'profile', customerId] as const,
   assistant: (websiteId: string) => [...portalKeys.all(websiteId), 'assistant'] as const,
   questionnaires: (websiteId: string) => [...portalKeys.all(websiteId), 'questionnaires'] as const,
-  inbox: (websiteId: string) => [...portalKeys.all(websiteId), 'inbox'] as const
+  inbox: (websiteId: string) => [...portalKeys.all(websiteId), 'inbox'] as const,
+  summary: (websiteId: string, customerId: string, upto: string) =>
+    [...portalKeys.all(websiteId), 'summary', customerId, upto] as const
 };
 
 export const portalOverviewQueryOptions = (db: SupabaseClient, websiteId: string) =>

@@ -27,6 +27,7 @@ import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalInboxQueryOptions, portalKeys } from '../api/queries';
 import { archivePortalConversation, replyToManyPortalCustomers } from '../api/service';
 import type { InboxFolder, PortalInboxEntry } from '../api/types';
+import { memberGroups, regionNamer } from '../lib/member-groups';
 import { PushToggle } from './push-toggle';
 import { useNudgeEmails } from './use-nudge-emails';
 
@@ -40,19 +41,6 @@ export function inFolder(c: PortalInboxEntry, folder: InboxFolder): boolean {
   if (folder === 'read') return c.messages > 0 && c.unread === 0;
   if (folder === 'drafts') return !!c.draft;
   return true;
-}
-
-/** Smart groups: same destination, same project, or a dossier to redo. */
-type Group = { key: string; label: string; ids: string[] };
-
-/** Country name in the dashboard language ("US" → "États-Unis"). */
-function regionNamer(locale: string): (code: string) => string {
-  try {
-    const names = new Intl.DisplayNames([locale], { type: 'region' });
-    return (code) => names.of(code) ?? code;
-  } catch {
-    return (code) => code;
-  }
 }
 
 function initials(c: PortalInboxEntry) {
@@ -73,11 +61,14 @@ function initials(c: PortalInboxEntry) {
 export function InboxView({
   folder,
   onFolderChange,
-  onOpen
+  onOpen,
+  onPublish
 }: {
   folder: InboxFolder;
   onFolderChange: (folder: InboxFolder) => void;
   onOpen: (customer: PortalInboxEntry) => void;
+  /** Publish an update or a document to the selected members. */
+  onPublish: (customerIds: string[]) => void;
 }) {
   const scope = useSiteScope();
   const t = useTranslations('clientPortal.inbox');
@@ -96,32 +87,10 @@ export function InboxView({
   const regionName = useMemo(() => regionNamer(locale), [locale]);
   const [now] = useState(() => new Date());
 
-  const groups = useMemo<Group[]>(() => {
-    const byCountry = new Map<string, string[]>();
-    const byProject = new Map<string, string[]>();
-    const redo: string[] = [];
-    for (const c of entries) {
-      if (c.status !== 'active') continue;
-      if (!c.has_dossier) redo.push(c.id);
-      if (c.country) byCountry.set(c.country, [...(byCountry.get(c.country) ?? []), c.id]);
-      if (c.country && c.purpose) {
-        const key = `${c.country}|${c.purpose}`;
-        byProject.set(key, [...(byProject.get(key) ?? []), c.id]);
-      }
-    }
-    const out: Group[] = [];
-    if (redo.length) out.push({ key: 'redo', label: t('groups.redo'), ids: redo });
-    for (const [code, ids] of [...byCountry].toSorted((a, b) => b[1].length - a[1].length)) {
-      out.push({ key: `country:${code}`, label: regionName(code), ids });
-    }
-    // Same destination and same project, when at least two members share it.
-    for (const [key, ids] of byProject) {
-      if (ids.length < 2) continue;
-      const [code, purpose] = key.split('|');
-      out.push({ key: `project:${key}`, label: `${regionName(code)} · ${purpose}`, ids });
-    }
-    return out;
-  }, [entries, regionName, t]);
+  const groups = useMemo(
+    () => memberGroups(entries, regionName, t('groups.redo')),
+    [entries, regionName, t]
+  );
 
   const groupIds = useMemo(
     () => (group === 'all' ? null : new Set(groups.find((g) => g.key === group)?.ids ?? [])),
@@ -346,7 +315,14 @@ export function InboxView({
                       t('noMessages')
                     )}
                   </span>
+                  {c.ai_need && (
+                    <span className='text-primary mt-0.5 flex items-start gap-1 text-xs'>
+                      <Icons.sparkles className='mt-0.5 size-3 shrink-0' aria-hidden />
+                      <span className='line-clamp-1'>{c.ai_need}</span>
+                    </span>
+                  )}
                   <span className='mt-1 flex flex-wrap gap-1.5'>
+                    {c.ai_urgency === 'high' && <Badge variant='destructive'>{t('urgent')}</Badge>}
                     {c.unread > 0 && <Badge>{t('unread', { count: c.unread })}</Badge>}
                     {!c.has_dossier && c.status === 'active' && (
                       <Badge
@@ -381,6 +357,10 @@ export function InboxView({
           <div className='ml-auto flex gap-2'>
             <Button variant='ghost' size='sm' onClick={() => setSelected(new Set())}>
               {t('clear')}
+            </Button>
+            <Button variant='outline' size='sm' onClick={() => onPublish([...selected])}>
+              <Icons.page aria-hidden />
+              {t('publishTo')}
             </Button>
             <Button
               size='sm'

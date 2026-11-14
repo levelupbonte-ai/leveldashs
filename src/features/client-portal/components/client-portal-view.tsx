@@ -84,9 +84,10 @@ export function ClientPortalView() {
   const setTab = (value: string) =>
     void setParams({ tab: TABS.find((v) => v === value) ?? 'messages' });
   const setFolder = (value: InboxFolder) => void setParams({ folder: value, tab: 'messages' });
-  const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(() =>
-    params.publish ? {} : null
-  );
+  const [publishFor, setPublishFor] = useState<{
+    customerId?: string;
+    customerIds?: string[];
+  } | null>(() => (params.publish ? {} : null));
   const [thread, setThread] = useState<ThreadCustomer | null>(null);
   const [trialFor, setTrialFor] = useState<{
     customer: PortalCustomer;
@@ -140,7 +141,12 @@ export function ClientPortalView() {
           <TabsTrigger value='assistant'>{t('tabs.assistant')}</TabsTrigger>
         </TabsList>
         <TabsContent value='messages' className='mt-3'>
-          <InboxView folder={folder} onFolderChange={setFolder} onOpen={setThread} />
+          <InboxView
+            folder={folder}
+            onFolderChange={setFolder}
+            onOpen={setThread}
+            onPublish={(customerIds) => setPublishFor({ customerIds })}
+          />
         </TabsContent>
         <TabsContent value='customers' className='mt-3'>
           <CustomerList
@@ -168,6 +174,7 @@ export function ClientPortalView() {
       <PublishSheet
         open={publishFor !== null}
         initialCustomerId={publishFor?.customerId}
+        initialCustomerIds={publishFor?.customerIds}
         onOpenChange={(open) => {
           if (open) return;
           setPublishFor(null);
@@ -448,6 +455,8 @@ function audienceLabel(
   item: PortalItem
 ) {
   if (item.audience === 'all') return t('audience.all');
+  if (item.audience === 'customers')
+    return t('audience.customersNamed', { count: item.customer_ids?.length ?? 0 });
   if (item.audience === 'offer')
     return t('audience.offerNamed', { offer: offerLabel(data, item.offer_id ?? '') });
   const c = data.customers.find((x) => x.id === item.customer_id);
