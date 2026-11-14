@@ -4370,12 +4370,14 @@
         "templateLabel": {
           "redo": "Refaire le dossier",
           "news": "Nouvelle",
-          "call": "Parlons-en"
+          "call": "Parlons-en",
+          "plans": "Nouveaux plans"
         },
         "template": {
           "redo": "Bonjour, votre inscription est bien enregistrée et vous n’avez rien à payer. Votre dossier n’a pas été complété : il suffit de le refaire depuis votre espace ({site}) pour que l’application mette votre dossier à jour. Merci !",
           "news": "Bonjour, il y a du nouveau pour votre projet. Ouvrez votre espace pour le lire.",
-          "call": "Bonjour, j’aimerais échanger avec vous sur votre projet. Quand êtes-vous disponible ?"
+          "call": "Bonjour, j’aimerais échanger avec vous sur votre projet. Quand êtes-vous disponible ?",
+          "plans": "Bonjour, merci d’avoir rejoint Black Pater dès le lancement. Pour mieux vous accompagner, Black Pater passe à 3 plans clairs, au même prix pour tous : Plus (11 $/mois), Pro (16 $/mois) et Premium (23 $/mois), avec des appels inclus chaque mois. Votre accès actuel reste valable jusqu’à sa date de fin, et ce que vous avez payé sans l’utiliser encore est automatiquement déduit de votre premier mois. Vous pouvez choisir votre plan dans votre espace, rubrique « Mon compte ». Je reste disponible si vous avez la moindre question."
         }
       },
       "urgent": "Urgent",
