@@ -1,11 +1,15 @@
 import { createSearchParamsCache, parseAsString, parseAsStringLiteral } from 'nuqs/server';
 
-export const CHAT_TABS = ['all', 'team', 'direct', 'visitors'] as const;
+export const CHAT_TABS = ['all', 'members', 'team', 'direct', 'visitors'] as const;
 export type ChatTab = (typeof CHAT_TABS)[number];
 
-/** `?c=<conversation id>&tab=all|team|direct|visitors`, shared by the server page and the client. */
+/**
+ * `?c=<conversation id>&tab=all|members|team|direct|visitors`, shared by the server page and
+ * the client; `?m=<member id>` opens a client-portal member's conversation (Black Pater…).
+ */
 export const chatSearchParams = {
   c: parseAsString,
+  m: parseAsString,
   tab: parseAsStringLiteral(CHAT_TABS).withDefault('all')
 };
 

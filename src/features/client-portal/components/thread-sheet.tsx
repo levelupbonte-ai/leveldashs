@@ -54,7 +54,7 @@ export function ThreadSheet({
           <SheetTitle>{customer?.name || customer?.email}</SheetTitle>
           <SheetDescription>{t('description')}</SheetDescription>
         </SheetHeader>
-        {customer && <Thread key={customer.id} customer={customer} keyboard={!!visible} />}
+        {customer && <PortalThread key={customer.id} customer={customer} keyboard={!!visible} />}
       </SheetContent>
     </Sheet>
   );
@@ -67,7 +67,14 @@ function dayKey(iso: string) {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function Thread({ customer, keyboard }: { customer: ThreadCustomer; keyboard: boolean }) {
+/** One member's conversation (sheet in the portal page, pane in the chat page). */
+export function PortalThread({
+  customer,
+  keyboard
+}: {
+  customer: ThreadCustomer;
+  keyboard: boolean;
+}) {
   const scope = useSiteScope();
   const t = useTranslations('clientPortal.thread');
   const format = useFormatter();

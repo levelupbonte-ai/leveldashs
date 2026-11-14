@@ -3543,6 +3543,7 @@
     },
     "tabs": {
       "all": "Tout",
+      "members": "Membres",
       "team": "Équipe",
       "direct": "Directs",
       "visitors": "Visiteurs"
@@ -3550,11 +3551,13 @@
     "sections": {
       "team": "Équipe",
       "direct": "Messages directs",
-      "visitors": "Visiteurs du site"
+      "visitors": "Visiteurs du site",
+      "members": "Membres de l’espace client"
     },
     "emptySection": {
       "direct": "Aucun message direct pour l’instant. Écrivez à un membre de l’équipe.",
-      "visitors": "Aucun message de visiteur pour l’instant. Les messages envoyés depuis le formulaire de contact de votre site apparaissent ici."
+      "visitors": "Aucun message de visiteur pour l’instant. Les messages envoyés depuis le formulaire de contact de votre site apparaissent ici.",
+      "members": "Aucun membre n’a encore écrit. Les messages de votre espace client (membres) arrivent ici."
     },
     "teamName": "Équipe",
     "teamSubtitle": "{count, plural, one {# membre} other {# membres}}",
@@ -3686,7 +3689,14 @@
       "live": "En direct",
       "polling": "Actualisation automatique"
     },
-    "navBadge": "{count, plural, one {# message non lu} other {# messages non lus}}"
+    "navBadge": "{count, plural, one {# message non lu} other {# messages non lus}}",
+    "member": {
+      "label": "Membre de l’espace client",
+      "subtitle": "Membre de votre espace client · il voit votre réponse dans son espace et par e-mail",
+      "profile": "Profil",
+      "back": "Retour aux conversations",
+      "draft": "Brouillon : {text}"
+    }
   },
   "unsubscribe": {
     "metaTitle": "Désabonnement",
@@ -4360,7 +4370,11 @@
       "disabled": "Notifications désactivées sur cet appareil",
       "denied": "Les notifications sont bloquées dans les réglages du navigateur.",
       "unsupported": "Ce navigateur ne peut pas recevoir de notifications. Sur iPhone, ajoutez d’abord le dashboard à l’écran d’accueil (Partager → Sur l’écran d’accueil).",
-      "unavailable": "Les notifications ne sont pas encore configurées."
+      "unavailable": "Les notifications ne sont pas encore configurées.",
+      "promptTitle": "Activez les notifications",
+      "promptBody": "Soyez prévenu sur cet appareil dès qu’un membre vous écrit ou rejoint votre espace client, même dashboard fermé.",
+      "later": "Plus tard",
+      "enable": "Activer"
     }
   },
   "siteForms": {

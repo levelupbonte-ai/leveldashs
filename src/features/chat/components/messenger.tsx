@@ -13,6 +13,8 @@ import {
   EmptyTitle
 } from '@/components/ui/empty';
 import { Skeleton } from '@/components/ui/skeleton';
+import { portalInboxQueryOptions } from '@/features/client-portal/api/queries';
+import { useVisualViewport } from '@/hooks/use-visual-viewport';
 import { cn } from '@/lib/utils';
 import { conversationsQueryOptions } from '../api/queries';
 import { useChatActions } from '../hooks/use-chat-actions';
@@ -21,6 +23,7 @@ import { chatSearchParams } from '../lib/search-params';
 import { ChatArea } from './chat-area';
 import { useConversationName } from './conversation-avatar';
 import { ConversationList } from './conversation-list';
+import { MemberPane } from './member-pane';
 import { NewDirectDialog } from './new-direct-dialog';
 
 interface MessengerProps {
@@ -28,14 +31,23 @@ interface MessengerProps {
   organizationName: string;
   /** Editors and above: visitor contact details, notes, resolve and archive. */
   canManageVisitors: boolean;
+  /** Website whose client-portal members also write here (editors+), or null. */
+  portalWebsiteId: string | null;
 }
 
-export function Messenger({ organizationId, organizationName, canManageVisitors }: MessengerProps) {
+export function Messenger({
+  organizationId,
+  organizationName,
+  canManageVisitors,
+  portalWebsiteId
+}: MessengerProps) {
   const t = useTranslations('chat');
   const actions = useChatActions(organizationId);
   const { db } = actions;
   const nameOf = useConversationName();
-  const [{ c: selectedId, tab }, setParams] = useQueryStates(chatSearchParams, { history: 'push' });
+  const [{ c: selectedId, m: memberId, tab }, setParams] = useQueryStates(chatSearchParams, {
+    history: 'push'
+  });
   const [showArchived, setShowArchived] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
 
@@ -47,6 +59,17 @@ export function Messenger({ organizationId, organizationName, canManageVisitors 
   const conversations = (showArchived && archived.data) || open.data;
   const selected = conversations.find((c) => c.id === selectedId) ?? null;
 
+  // Members of the client portal (Black Pater…): their messages live here too.
+  const portal = useQuery({
+    ...portalInboxQueryOptions(db, portalWebsiteId ?? ''),
+    enabled: !!portalWebsiteId
+  });
+  const members = portalWebsiteId ? (portal.data ?? []) : null;
+  const member = (memberId && members?.find((m) => m.id === memberId)) || null;
+  const paneOpen = !!(selected || member);
+  // Phones: with the keyboard open the chat fills the visible area (reply box in view).
+  const visible = useVisualViewport(paneOpen);
+
   const { live } = useChatRealtime(organizationId, selected?.id ?? null);
 
   // An unknown or no longer visible conversation in the URL is dropped.
@@ -54,15 +77,25 @@ export function Messenger({ organizationId, organizationName, canManageVisitors 
     if (selectedId && !selected && !archived.isFetching) void setParams({ c: null });
   }, [selectedId, selected, archived.isFetching, setParams]);
 
-  const select = (id: string | null) => void setParams({ c: id });
+  const select = (id: string | null) => void setParams({ c: id, m: null });
+  const selectMember = (id: string | null) => void setParams({ m: id, c: null });
 
   return (
-    <div className='border-border/50 bg-background/70 relative grid h-[calc(100dvh-5.5rem)] w-full min-w-0 gap-3 overflow-hidden rounded-2xl border p-2 backdrop-blur-xl sm:p-3 lg:[grid-template-columns:minmax(18rem,30%)_1fr] lg:gap-4 lg:rounded-3xl lg:p-5'>
+    <div
+      className={cn(
+        'border-border/50 bg-background/70 relative grid h-[calc(100dvh-5.5rem)] w-full min-w-0 gap-3 overflow-hidden rounded-2xl border p-2 backdrop-blur-xl sm:p-3 lg:[grid-template-columns:minmax(18rem,30%)_1fr] lg:gap-4 lg:rounded-3xl lg:p-5',
+        visible && 'fixed inset-x-0 z-50 rounded-none'
+      )}
+      style={visible ? { top: visible.top, height: visible.height } : undefined}
+    >
       <ConversationList
-        className={cn(selected && 'hidden lg:flex')}
+        className={cn(paneOpen && 'hidden lg:flex')}
         conversations={conversations}
         selectedId={selected?.id ?? null}
         onSelect={select}
+        members={members}
+        selectedMemberId={member?.id ?? null}
+        onSelectMember={selectMember}
         tab={tab}
         onTabChange={(next) => void setParams({ tab: next })}
         onNewMessage={() => setNewOpen(true)}
@@ -71,8 +104,10 @@ export function Messenger({ organizationId, organizationName, canManageVisitors 
         live={live}
       />
 
-      <div className={cn('min-h-0 min-w-0', !selected && 'hidden lg:block')}>
-        {selected ? (
+      <div className={cn('min-h-0 min-w-0', !paneOpen && 'hidden lg:block')}>
+        {member ? (
+          <MemberPane member={member} keyboard={!!visible} onBack={() => selectMember(null)} />
+        ) : selected ? (
           <Suspense key={selected.id} fallback={<ThreadSkeleton />}>
             <ChatArea
               conversation={selected}

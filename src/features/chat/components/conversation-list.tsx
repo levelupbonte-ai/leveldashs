@@ -6,12 +6,13 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import type { PortalInboxEntry } from '@/features/client-portal/api/types';
 import type { ChatConversation, ConversationKind } from '../api/types';
 import { CHAT_TABS, type ChatTab } from '../lib/search-params';
 import { useChatFormat } from '../hooks/use-chat-format';
 import { ConversationAvatar, useConversationName } from './conversation-avatar';
 
-const TAB_KIND: Record<Exclude<ChatTab, 'all'>, ConversationKind> = {
+const TAB_KIND: Record<Exclude<ChatTab, 'all' | 'members'>, ConversationKind> = {
   team: 'team',
   direct: 'direct',
   visitors: 'visitor'
@@ -27,6 +28,10 @@ interface ConversationListProps {
   showArchived: boolean;
   onToggleArchived: () => void;
   live: boolean;
+  /** Client-portal members (Black Pater…), or null when the site has none / no access. */
+  members: PortalInboxEntry[] | null;
+  selectedMemberId: string | null;
+  onSelectMember: (id: string) => void;
   className?: string;
 }
 
@@ -40,6 +45,9 @@ export function ConversationList({
   showArchived,
   onToggleArchived,
   live,
+  members,
+  selectedMemberId,
+  onSelectMember,
   className
 }: ConversationListProps) {
   const t = useTranslations('chat');
@@ -49,6 +57,7 @@ export function ConversationList({
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return conversations.filter((c) => {
+      if (tab === 'members') return false;
       if (tab !== 'all' && c.kind !== TAB_KIND[tab]) return false;
       if (!q) return true;
       const haystack = [nameOf(c), c.visitor?.email, c.visitor?.website_name, c.last_message?.body]
@@ -59,10 +68,24 @@ export function ConversationList({
     });
   }, [conversations, tab, search, nameOf]);
 
+  const memberItems = useMemo(() => {
+    if (!members || (tab !== 'all' && tab !== 'members')) return [];
+    const q = search.trim().toLowerCase();
+    return members.filter(
+      (m) =>
+        !m.archived &&
+        // "All" shows the conversations that exist; the Members tab shows everyone.
+        (tab === 'members' || m.messages > 0) &&
+        (!q || [m.name, m.email, m.last?.body].filter(Boolean).join(' ').toLowerCase().includes(q))
+    );
+  }, [members, tab, search]);
+  const memberUnread = (members ?? []).reduce((n, m) => n + m.unread, 0);
+  const tabs = CHAT_TABS.filter((key) => key !== 'members' || members);
+
   const sections: { kind: ConversationKind; items: ChatConversation[] }[] = (
     ['team', 'direct', 'visitor'] as ConversationKind[]
   )
-    .filter((kind) => tab === 'all' || TAB_KIND[tab] === kind)
+    .filter((kind) => tab === 'all' || (tab !== 'members' && TAB_KIND[tab] === kind))
     .map((kind) => ({ kind, items: filtered.filter((c) => c.kind === kind) }));
 
   const sectionTitle = (kind: ConversationKind) =>
@@ -125,12 +148,22 @@ export function ConversationList({
       <div
         role='group'
         aria-label={t('list.label')}
-        className='bg-muted/60 grid grid-cols-4 gap-1 rounded-2xl p-1'
+        className={cn(
+          'bg-muted/60 grid gap-1 rounded-2xl p-1',
+          tabs.length === 5 ? 'grid-cols-5' : 'grid-cols-4'
+        )}
       >
-        {CHAT_TABS.map((key) => {
-          const unread = conversations
-            .filter((c) => key === 'all' || c.kind === TAB_KIND[key as Exclude<ChatTab, 'all'>])
-            .reduce((n, c) => n + (c.muted ? 0 : c.unread), 0);
+        {tabs.map((key) => {
+          const unread =
+            key === 'members'
+              ? memberUnread
+              : conversations
+                  .filter(
+                    (c) =>
+                      key === 'all' ||
+                      c.kind === TAB_KIND[key as Exclude<ChatTab, 'all' | 'members'>]
+                  )
+                  .reduce((n, c) => n + (c.muted ? 0 : c.unread), 0);
           return (
             <button
               key={key}
@@ -160,7 +193,32 @@ export function ConversationList({
         aria-label={t('list.label')}
         className='-mr-1 min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'
       >
-        {search.trim() && filtered.length === 0 ? (
+        {members && (tab === 'all' || tab === 'members') ? (
+          <section aria-label={t('sections.members')} className='space-y-1.5'>
+            <h3 className='text-muted-foreground px-1 text-[0.7rem] font-semibold tracking-wide uppercase'>
+              {t('sections.members')}
+            </h3>
+            {memberItems.length === 0 && !search.trim() ? (
+              <p className='text-muted-foreground px-1 py-2 text-xs leading-relaxed'>
+                {t('emptySection.members')}
+              </p>
+            ) : null}
+            <ul className='space-y-1.5'>
+              {memberItems.map((m) => (
+                <li key={m.id}>
+                  <MemberItem
+                    member={m}
+                    active={m.id === selectedMemberId}
+                    onSelect={() => onSelectMember(m.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        {tab === 'members' ? null : search.trim() &&
+          filtered.length === 0 &&
+          !memberItems.length ? (
           <p className='text-muted-foreground py-8 text-center text-xs'>{t('list.noMatch')}</p>
         ) : (
           sections.map(({ kind, items }) => (
@@ -289,6 +347,88 @@ function ConversationItem({ conversation: c, name, active, onSelect }: Conversat
             <span className='bg-primary text-primary-foreground inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[0.65rem] font-semibold'>
               <span aria-hidden='true'>{unread > 99 ? '99+' : unread}</span>
               <span className='sr-only'>{t('unreadLabel', { count: unread })}</span>
+            </span>
+          ) : null}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+/** A client-portal member's conversation in the list (same look as the others). */
+function MemberItem({
+  member: m,
+  active,
+  onSelect
+}: {
+  member: PortalInboxEntry;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const t = useTranslations('chat');
+  const { listTime } = useChatFormat();
+  const name = m.name || m.email;
+  const initials = name
+    .split(/[\s@.]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase())
+    .join('');
+  const preview = m.draft
+    ? t('member.draft', { text: m.draft })
+    : m.last
+      ? m.last.sender === 'owner'
+        ? t('preview.you', { text: m.last.body.replace(/\s+/g, ' ') })
+        : m.last.body.replace(/\s+/g, ' ')
+      : t('preview.empty');
+  return (
+    <button
+      type='button'
+      onClick={onSelect}
+      aria-current={active ? 'true' : undefined}
+      className={cn(
+        'focus-visible:ring-primary/50 focus-visible:ring-offset-background flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
+        active
+          ? 'border-primary/40 bg-primary/10'
+          : 'bg-background/70 hover:border-border/40 hover:bg-muted/40 border-transparent'
+      )}
+    >
+      <span
+        aria-hidden='true'
+        className='grid size-10 shrink-0 place-items-center rounded-full bg-amber-500/15 text-xs font-semibold text-amber-700 dark:text-amber-300'
+      >
+        {initials}
+      </span>
+      <span className='min-w-0 flex-1 space-y-0.5'>
+        <span className='flex items-start justify-between gap-2'>
+          <span
+            className={cn(
+              'text-foreground truncate text-sm',
+              m.unread ? 'font-semibold' : 'font-medium'
+            )}
+          >
+            {name}
+          </span>
+          <span className='text-muted-foreground shrink-0 text-[0.65rem]' suppressHydrationWarning>
+            {m.last ? listTime(m.last.at) : ''}
+          </span>
+        </span>
+        <span className='text-muted-foreground block truncate text-[0.7rem]'>
+          {t('member.label')}
+        </span>
+        <span className='flex items-center gap-2'>
+          <span
+            className={cn(
+              'line-clamp-1 flex-1 text-xs',
+              m.unread ? 'text-foreground' : 'text-muted-foreground'
+            )}
+          >
+            {preview}
+          </span>
+          {m.unread > 0 ? (
+            <span className='bg-primary text-primary-foreground inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1.5 text-[0.65rem] font-semibold'>
+              <span aria-hidden='true'>{m.unread > 99 ? '99+' : m.unread}</span>
+              <span className='sr-only'>{t('unreadLabel', { count: m.unread })}</span>
             </span>
           ) : null}
         </span>
