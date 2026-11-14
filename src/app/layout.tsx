@@ -59,7 +59,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: META_THEME_COLORS.light
+  themeColor: META_THEME_COLORS.light,
+  // Android: the page shrinks when the keyboard opens (reply boxes stay visible).
+  interactiveWidget: 'resizes-content'
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

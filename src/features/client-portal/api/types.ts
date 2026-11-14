@@ -69,6 +69,31 @@ export interface PortalCustomer {
   last_message_at: string | null;
 }
 
+/** One member's conversation in the team inbox (portal_admin_inbox). */
+export interface PortalInboxEntry {
+  id: string;
+  name: string | null;
+  email: string;
+  status: 'active' | 'revoked';
+  locale: 'en' | 'fr';
+  member_until: string | null;
+  trial_ends_at: string | null;
+  /** Destination of the member's dossier (ISO 3166-1 alpha-2), null without dossier. */
+  country: string | null;
+  /** Project chosen in the questionnaire (study, work, visit…). */
+  purpose: string | null;
+  has_dossier: boolean;
+  unread: number;
+  messages: number;
+  last: { body: string; sender: 'customer' | 'owner'; at: string } | null;
+  archived: boolean;
+  /** The team's unsent reply to this member. */
+  draft: string | null;
+  draft_updated_at: string | null;
+}
+
+export type InboxFolder = 'unread' | 'all' | 'read' | 'drafts' | 'archived';
+
 export interface PortalTripStep {
   date: string | null;
   title: string;

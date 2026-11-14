@@ -3,6 +3,7 @@ import { queryOptions } from '@tanstack/react-query';
 import { siteKeys } from '@/features/site/api/queries';
 import {
   getPortalAssistant,
+  getPortalInbox,
   getPortalOverview,
   getPortalProfile,
   getPortalQuestionnaires,
@@ -19,7 +20,8 @@ export const portalKeys = {
   profile: (websiteId: string, customerId: string) =>
     [...portalKeys.all(websiteId), 'profile', customerId] as const,
   assistant: (websiteId: string) => [...portalKeys.all(websiteId), 'assistant'] as const,
-  questionnaires: (websiteId: string) => [...portalKeys.all(websiteId), 'questionnaires'] as const
+  questionnaires: (websiteId: string) => [...portalKeys.all(websiteId), 'questionnaires'] as const,
+  inbox: (websiteId: string) => [...portalKeys.all(websiteId), 'inbox'] as const
 };
 
 export const portalOverviewQueryOptions = (db: SupabaseClient, websiteId: string) =>
@@ -70,4 +72,13 @@ export const portalQuestionnairesQueryOptions = (db: SupabaseClient, websiteId: 
     queryKey: portalKeys.questionnaires(websiteId),
     queryFn: () => getPortalQuestionnaires(db, websiteId),
     staleTime: 60 * 1000
+  });
+
+/** The team inbox: refreshed every 30 s so new messages show up. */
+export const portalInboxQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: portalKeys.inbox(websiteId),
+    queryFn: () => getPortalInbox(db, websiteId),
+    staleTime: 15 * 1000,
+    refetchInterval: 30 * 1000
   });

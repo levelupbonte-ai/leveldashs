@@ -3975,6 +3975,7 @@
       "invite": "Inviter dans l’espace"
     },
     "tabs": {
+      "messages": "Messages",
       "customers": "Clients",
       "published": "Publié",
       "plans": "Forfaits et offre",
@@ -4286,6 +4287,62 @@
       "sheetProspect": "N’a pas encore payé",
       "emptyTitle": "Aucun questionnaire pour l’instant",
       "emptyDescription": "Les questionnaires remplis sur le site avant le paiement apparaissent ici."
+    },
+    "inbox": {
+      "folders": "Dossiers",
+      "folder": {
+        "unread": "Non lus",
+        "all": "Tous",
+        "read": "Lus",
+        "drafts": "Brouillons",
+        "archived": "Archivés"
+      },
+      "groups": {
+        "title": "Groupes intelligents — touchez-en un pour sélectionner ses membres",
+        "redo": "Dossier à refaire"
+      },
+      "search": "Chercher un membre, un pays, un message…",
+      "selectAll": "Tout sélectionner",
+      "selectNone": "Tout désélectionner",
+      "select": "Sélectionner {name}",
+      "empty": {
+        "unread": "Aucun message non lu. Vous êtes à jour.",
+        "all": "Aucune conversation pour l’instant.",
+        "read": "Aucune conversation lue.",
+        "drafts": "Aucun brouillon. Une réponse commencée et non envoyée est gardée ici.",
+        "archived": "Rien d’archivé. Un nouveau message du membre ramène la conversation.",
+        "group": "Aucun membre dans ce groupe."
+      },
+      "draft": "Brouillon :",
+      "you": "Vous :",
+      "noMessages": "Aucun message",
+      "unread": "{count, plural, one {# non lu} other {# non lus}}",
+      "noDossier": "Dossier à refaire",
+      "revoked": "Accès retiré",
+      "archive": "Archiver",
+      "unarchive": "Remettre dans la boîte",
+      "archived": "Conversation archivée",
+      "unarchived": "Conversation remise dans la boîte",
+      "selected": "{count, plural, one {# membre sélectionné} other {# membres sélectionnés}}",
+      "clear": "Effacer",
+      "writeTo": "{count, plural, one {Écrire à # membre} other {Écrire à # membres}}",
+      "group": {
+        "title": "{count, plural, one {Message à # membre} other {Message à # membres}}",
+        "description": "Chaque membre le reçoit en privé dans son espace et par e-mail. Personne ne voit les autres destinataires.",
+        "message": "Message",
+        "send": "{count, plural, one {Envoyer à # membre} other {Envoyer à # membres}}",
+        "sent": "{count, plural, one {Envoyé à # membre} other {Envoyé à # membres}}",
+        "templateLabel": {
+          "redo": "Refaire le dossier",
+          "news": "Nouvelle",
+          "call": "Parlons-en"
+        },
+        "template": {
+          "redo": "Bonjour, votre inscription est bien enregistrée et vous n’avez rien à payer. Votre dossier n’a pas été complété : il suffit de le refaire depuis votre espace ({site}) pour que l’application mette votre dossier à jour. Merci !",
+          "news": "Bonjour, il y a du nouveau pour votre projet. Ouvrez votre espace pour le lire.",
+          "call": "Bonjour, j’aimerais échanger avec vous sur votre projet. Quand êtes-vous disponible ?"
+        }
+      }
     }
   },
   "siteForms": {

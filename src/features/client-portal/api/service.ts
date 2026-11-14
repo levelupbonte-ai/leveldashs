@@ -6,6 +6,7 @@ import {
   PORTAL_DOCUMENT_MAX_BYTES,
   PORTAL_DOCUMENT_TYPES,
   type PortalAssistant,
+  type PortalInboxEntry,
   type PortalItemInput,
   type PortalMessage,
   type PortalOverview,
@@ -116,6 +117,43 @@ export function publishPortalItem(
 
 export function archivePortalItem(db: SupabaseClient, itemId: string) {
   return rpc<{ ok: true }>(db.rpc('portal_admin_archive_item', { p_item_id: itemId }));
+}
+
+export function getPortalInbox(db: SupabaseClient, websiteId: string) {
+  return rpc<PortalInboxEntry[]>(db.rpc('portal_admin_inbox', { p_website_id: websiteId }));
+}
+
+export function archivePortalConversation(
+  db: SupabaseClient,
+  customerId: string,
+  archived: boolean
+) {
+  return rpc<{ ok: true; archived: boolean }>(
+    db.rpc('portal_admin_inbox_archive', { p_customer_id: customerId, p_archived: archived })
+  );
+}
+
+/** Keeps the team's unsent reply to a member (empty: no draft). */
+export function savePortalDraft(db: SupabaseClient, customerId: string, body: string) {
+  return rpc<{ ok: true; draft: string | null }>(
+    db.rpc('portal_admin_inbox_draft', { p_customer_id: customerId, p_body: body })
+  );
+}
+
+/** The same message to several members (each gets it in their space and by e-mail). */
+export function replyToManyPortalCustomers(
+  db: SupabaseClient,
+  websiteId: string,
+  customerIds: string[],
+  body: string
+) {
+  return rpc<{ ok: true; sent: number }>(
+    db.rpc('portal_admin_reply_many', {
+      p_website_id: websiteId,
+      p_customer_ids: customerIds,
+      p_body: body
+    })
+  );
 }
 
 export function getPortalThread(db: SupabaseClient, customerId: string) {

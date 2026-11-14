@@ -28,17 +28,19 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useErrorMessage } from '@/hooks/use-error-message';
 import { createClient } from '@/lib/supabase/client';
+import { cn } from '@/lib/utils';
 import { formatMoney } from '@/features/payments/lib/money';
 import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalKeys, portalOverviewQueryOptions } from '../api/queries';
 import { archivePortalItem, portalDocumentUrl, setPortalCustomerStatus } from '../api/service';
-import type { PortalCustomer, PortalItem, PortalOverview } from '../api/types';
+import type { InboxFolder, PortalCustomer, PortalItem, PortalOverview } from '../api/types';
 import { AssistantPanel } from './assistant-panel';
+import { InboxView } from './inbox-view';
 import { InviteDialog } from './invite-dialog';
 import { QuestionnairesView } from './questionnaires-view';
 import { PublishSheet } from './publish-sheet';
 import { PortalSettingsPanel } from './portal-settings';
-import { ThreadSheet } from './thread-sheet';
+import { ThreadSheet, type ThreadCustomer } from './thread-sheet';
 import { TrialDialog } from './trial-dialog';
 
 /**
@@ -53,20 +55,30 @@ export function ClientPortalView() {
   const { data } = useSuspenseQuery(portalOverviewQueryOptions(createClient(), scope.websiteId));
   const [inviteOpen, setInviteOpen] = useState(false);
   const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(null);
-  const [threadId, setThreadId] = useState<string | null>(null);
+  const [thread, setThread] = useState<ThreadCustomer | null>(null);
+  const [tab, setTab] = useState('messages');
+  const [folder, setFolder] = useState<InboxFolder>('unread');
   const [trialFor, setTrialFor] = useState<{
     customer: PortalCustomer;
     mode: 'trial' | 'membership';
   } | null>(null);
   const unread = data.customers.reduce((sum, c) => sum + c.unread, 0);
   const active = data.customers.filter((c) => c.status === 'active').length;
-  const thread = data.customers.find((c) => c.id === threadId) ?? null;
 
   return (
     <div className='space-y-4'>
       <div className='grid gap-3 sm:grid-cols-3'>
         <Stat label={t('stats.customers')} value={active} icon='teams' />
-        <Stat label={t('stats.unread')} value={unread} icon='chat' highlight={unread > 0} />
+        <Stat
+          label={t('stats.unread')}
+          value={unread}
+          icon='chat'
+          highlight={unread > 0}
+          onClick={() => {
+            setFolder('unread');
+            setTab('messages');
+          }}
+        />
         <Stat
           label={t('stats.emails')}
           value={data.outbox.pending}
@@ -88,21 +100,25 @@ export function ClientPortalView() {
         </Button>
       </div>
 
-      <Tabs defaultValue='customers'>
+      <Tabs value={tab} onValueChange={(value) => setTab(String(value))}>
         <TabsList className='h-auto flex-wrap'>
-          <TabsTrigger value='customers'>
-            {t('tabs.customers')}
+          <TabsTrigger value='messages'>
+            {t('tabs.messages')}
             {unread > 0 && <Badge className='ml-1.5'>{unread}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value='customers'>{t('tabs.customers')}</TabsTrigger>
           <TabsTrigger value='questionnaires'>{t('tabs.questionnaires')}</TabsTrigger>
           <TabsTrigger value='published'>{t('tabs.published')}</TabsTrigger>
           <TabsTrigger value='plans'>{t('tabs.plans')}</TabsTrigger>
           <TabsTrigger value='assistant'>{t('tabs.assistant')}</TabsTrigger>
         </TabsList>
+        <TabsContent value='messages' className='mt-3'>
+          <InboxView folder={folder} onFolderChange={setFolder} onOpen={setThread} />
+        </TabsContent>
         <TabsContent value='customers' className='mt-3'>
           <CustomerList
             data={data}
-            onThread={setThreadId}
+            onThread={(id) => setThread(data.customers.find((c) => c.id === id) ?? null)}
             onPublish={(customerId) => setPublishFor({ customerId })}
             onTrial={(customer, mode) => setTrialFor({ customer, mode })}
           />
@@ -128,7 +144,7 @@ export function ClientPortalView() {
         onOpenChange={(open) => !open && setPublishFor(null)}
         data={data}
       />
-      <ThreadSheet customer={thread} onOpenChange={(open) => !open && setThreadId(null)} />
+      <ThreadSheet customer={thread} onOpenChange={(open) => !open && setThread(null)} />
       <TrialDialog
         customer={trialFor?.customer ?? null}
         mode={trialFor?.mode ?? 'trial'}
@@ -143,17 +159,19 @@ function Stat({
   value,
   icon,
   hint,
-  highlight
+  highlight,
+  onClick
 }: {
   label: string;
   value: number;
   icon: keyof typeof Icons;
   hint?: string;
   highlight?: boolean;
+  onClick?: () => void;
 }) {
   const Icon = Icons[icon];
-  return (
-    <Card className='py-4'>
+  const card = (
+    <Card className={cn('py-4', onClick && 'hover:bg-accent/50 transition-colors')}>
       <CardContent className='flex items-center gap-3 px-4'>
         <span
           className={`flex size-9 items-center justify-center rounded-lg ${highlight ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}
@@ -167,6 +185,16 @@ function Stat({
         </div>
       </CardContent>
     </Card>
+  );
+  if (!onClick) return card;
+  return (
+    <button
+      type='button'
+      onClick={onClick}
+      className='focus-visible:ring-ring rounded-xl text-left focus-visible:ring-2 focus-visible:outline-none'
+    >
+      {card}
+    </button>
   );
 }
 
