@@ -1,4 +1,5 @@
 import KBar from '@/components/kbar';
+import { RegisterServiceWorker } from '@/components/pwa/register-sw';
 import AppSidebar from '@/components/layout/app-sidebar';
 import Header from '@/components/layout/header';
 import { InfoSidebar } from '@/components/layout/info-sidebar';
@@ -50,6 +51,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <SessionProvider session={session}>
       <RecordLastMethod />
+      <RegisterServiceWorker />
       <IdleTimeout />
       <KBar>
         <SidebarProvider defaultOpen={defaultOpen}>

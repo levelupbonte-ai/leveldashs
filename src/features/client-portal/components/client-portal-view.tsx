@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
+import { parseAsBoolean, parseAsStringLiteral, useQueryStates } from 'nuqs';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
@@ -43,6 +44,22 @@ import { PortalSettingsPanel } from './portal-settings';
 import { ThreadSheet, type ThreadCustomer } from './thread-sheet';
 import { TrialDialog } from './trial-dialog';
 
+const TABS = [
+  'messages',
+  'customers',
+  'questionnaires',
+  'published',
+  'plans',
+  'assistant'
+] as const;
+const FOLDERS = [
+  'unread',
+  'all',
+  'read',
+  'drafts',
+  'archived'
+] as const satisfies readonly InboxFolder[];
+
 /**
  * Client portal of the active website: customers (paid or invited) with their
  * payments and offer, what was published to them, and their messages. Every
@@ -54,10 +71,23 @@ export function ClientPortalView() {
   const t = useTranslations('clientPortal');
   const { data } = useSuspenseQuery(portalOverviewQueryOptions(createClient(), scope.websiteId));
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(null);
+  // Tab and folder in the URL: notifications and home-screen shortcuts open them.
+  const [params, setParams] = useQueryStates(
+    {
+      tab: parseAsStringLiteral(TABS).withDefault('messages'),
+      folder: parseAsStringLiteral(FOLDERS).withDefault('unread'),
+      publish: parseAsBoolean.withDefault(false)
+    },
+    { shallow: true, history: 'replace' }
+  );
+  const { tab, folder } = params;
+  const setTab = (value: string) =>
+    void setParams({ tab: TABS.find((v) => v === value) ?? 'messages' });
+  const setFolder = (value: InboxFolder) => void setParams({ folder: value, tab: 'messages' });
+  const [publishFor, setPublishFor] = useState<{ customerId?: string } | null>(() =>
+    params.publish ? {} : null
+  );
   const [thread, setThread] = useState<ThreadCustomer | null>(null);
-  const [tab, setTab] = useState('messages');
-  const [folder, setFolder] = useState<InboxFolder>('unread');
   const [trialFor, setTrialFor] = useState<{
     customer: PortalCustomer;
     mode: 'trial' | 'membership';
@@ -74,10 +104,7 @@ export function ClientPortalView() {
           value={unread}
           icon='chat'
           highlight={unread > 0}
-          onClick={() => {
-            setFolder('unread');
-            setTab('messages');
-          }}
+          onClick={() => setFolder('unread')}
         />
         <Stat
           label={t('stats.emails')}
@@ -141,7 +168,11 @@ export function ClientPortalView() {
       <PublishSheet
         open={publishFor !== null}
         initialCustomerId={publishFor?.customerId}
-        onOpenChange={(open) => !open && setPublishFor(null)}
+        onOpenChange={(open) => {
+          if (open) return;
+          setPublishFor(null);
+          if (params.publish) void setParams({ publish: null });
+        }}
         data={data}
       />
       <ThreadSheet customer={thread} onOpenChange={(open) => !open && setThread(null)} />

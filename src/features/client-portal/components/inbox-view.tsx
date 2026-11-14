@@ -27,6 +27,7 @@ import { useSiteScope } from '@/features/site/components/use-site-scope';
 import { portalInboxQueryOptions, portalKeys } from '../api/queries';
 import { archivePortalConversation, replyToManyPortalCustomers } from '../api/service';
 import type { InboxFolder, PortalInboxEntry } from '../api/types';
+import { PushToggle } from './push-toggle';
 import { useNudgeEmails } from './use-nudge-emails';
 
 const FOLDERS: InboxFolder[] = ['unread', 'all', 'read', 'drafts', 'archived'];
@@ -167,6 +168,7 @@ export function InboxView({
 
   return (
     <div className='space-y-3'>
+      <PushToggle />
       <div
         className='-mx-1 flex gap-1 overflow-x-auto px-1 pb-1'
         role='tablist'
