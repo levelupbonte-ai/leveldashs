@@ -4371,13 +4371,13 @@
           "redo": "Redo the dossier",
           "news": "News",
           "call": "Let's talk",
-          "plans": "New plans"
+          "plans": "Founding members"
         },
         "template": {
           "redo": "Hello, your registration is confirmed and you have nothing to pay. Your dossier was not completed: simply fill it in again from your space ({site}) so the app updates your file. Thank you!",
           "news": "Hello, there is news about your project. Please open your space to read it.",
           "call": "Hello, I would like to talk with you about your project. When are you available?",
-          "plans": "Hello, thank you for joining Black Pater from the launch. To support you better, Black Pater now has 3 clear plans, at the same price for everyone: Plus ($11/month), Pro ($16/month) and Premium ($23/month), with calls included every month. Your current access stays valid until its end date, and what you paid without using it yet is automatically taken off your first month. You can choose your plan in your space, under “My account”. I remain available if you have any question."
+          "plans": "Hello, thank you for being one of Black Pater’s first members. I want to reassure you: your formula stays the same, at the same price, as long as you remain a member. Nothing changes without your consent. For those who want closer support, we are adding plans with calls included every month (Plus, Pro and Premium). It is a choice, not an obligation, and if you switch, what you already paid is taken off. Everything is explained in your space, under “My account”. I remain available for any question."
         }
       },
       "urgent": "Urgent",
