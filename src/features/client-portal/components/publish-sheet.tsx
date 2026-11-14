@@ -31,6 +31,7 @@ import {
   type PortalOverview
 } from '../api/types';
 import { parseChecklist, parseSteps } from '../lib/parse';
+import { MemberPicker } from './member-picker';
 import { useNudgeEmails } from './use-nudge-emails';
 
 /**
@@ -42,11 +43,14 @@ export function PublishSheet({
   open,
   onOpenChange,
   initialCustomerId,
+  initialCustomerIds,
   data
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialCustomerId?: string;
+  /** Members chosen in the inbox: publish to exactly them. */
+  initialCustomerIds?: string[];
   data: PortalOverview;
 }) {
   const t = useTranslations('clientPortal.publish');
@@ -61,6 +65,7 @@ export function PublishSheet({
           <PublishForm
             data={data}
             initialCustomerId={initialCustomerId}
+            initialCustomerIds={initialCustomerIds}
             onDone={() => onOpenChange(false)}
           />
         )}
@@ -72,10 +77,13 @@ export function PublishSheet({
 function PublishForm({
   data,
   initialCustomerId,
+  initialCustomerIds,
   onDone
 }: {
   data: PortalOverview;
   initialCustomerId?: string;
+  /** Members chosen in the inbox: publish to exactly them. */
+  initialCustomerIds?: string[];
   onDone: () => void;
 }) {
   const scope = useSiteScope();
@@ -98,8 +106,9 @@ function PublishForm({
       z
         .object({
           kind: z.enum(['update', 'trip', 'document', 'checklist']),
-          audience: z.enum(['all', 'offer', 'customer']),
+          audience: z.enum(['all', 'offer', 'customer', 'customers']),
           customerId: z.string(),
+          customerIds: z.array(z.string()).max(200),
           offerId: z.string(),
           title: f.text(160, { min: 1 }),
           body: f.text(8000, { multiline: true }),
@@ -116,6 +125,9 @@ function PublishForm({
           if (v.audience === 'customer' && !v.customerId) {
             ctx.addIssue({ code: 'custom', path: ['customerId'], message: tv('required') });
           }
+          if (v.audience === 'customers' && v.customerIds.length === 0) {
+            ctx.addIssue({ code: 'custom', path: ['customerIds'], message: tv('required') });
+          }
           if (v.audience === 'offer' && !v.offerId) {
             ctx.addIssue({ code: 'custom', path: ['offerId'], message: tv('required') });
           }
@@ -129,8 +141,13 @@ function PublishForm({
   const form = useAppForm({
     defaultValues: {
       kind: 'update' as PortalItemKind,
-      audience: (initialCustomerId ? 'customer' : 'all') as PortalAudience,
+      audience: (initialCustomerIds?.length
+        ? 'customers'
+        : initialCustomerId
+          ? 'customer'
+          : 'all') as PortalAudience,
       customerId: initialCustomerId ?? '',
+      customerIds: initialCustomerIds ?? ([] as string[]),
       offerId: '',
       title: '',
       body: '',
@@ -160,6 +177,7 @@ function PublishForm({
         };
         if (v.audience === 'customer') item.customer_id = v.customerId;
         if (v.audience === 'offer') item.offer_id = v.offerId;
+        if (v.audience === 'customers') item.customer_ids = v.customerIds;
         if (v.kind === 'trip') {
           item.trip = {
             start_date: v.startDate || null,
@@ -217,7 +235,10 @@ function PublishForm({
                   ? [{ value: 'offer', label: tk('audience.offer') }]
                   : []),
                 ...(customers.length > 0
-                  ? [{ value: 'customer', label: tk('audience.customer') }]
+                  ? [
+                      { value: 'customers', label: tk('audience.customers') },
+                      { value: 'customer', label: tk('audience.customer') }
+                    ]
                   : [])
               ]}
             />
@@ -237,6 +258,23 @@ function PublishForm({
                         label: c.name ? `${c.name} · ${c.email}` : c.email
                       }))}
                     />
+                  )}
+                />
+              )}
+              {audience === 'customers' && (
+                <form.Field
+                  name='customerIds'
+                  children={(field) => (
+                    <div className='space-y-1'>
+                      <MemberPicker
+                        value={field.state.value}
+                        onChange={(ids) => field.handleChange(ids)}
+                        invalid={field.state.meta.errors.length > 0}
+                      />
+                      {field.state.meta.errors.length > 0 && (
+                        <p className='text-destructive text-xs'>{tv('required')}</p>
+                      )}
+                    </div>
                   )}
                 />
               )}

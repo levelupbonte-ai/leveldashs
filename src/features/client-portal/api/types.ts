@@ -1,6 +1,6 @@
 export const PORTAL_ITEM_KINDS = ['update', 'trip', 'document', 'checklist'] as const;
 export type PortalItemKind = (typeof PORTAL_ITEM_KINDS)[number];
-export const PORTAL_AUDIENCES = ['all', 'offer', 'customer'] as const;
+export const PORTAL_AUDIENCES = ['all', 'offer', 'customer', 'customers'] as const;
 export type PortalAudience = (typeof PORTAL_AUDIENCES)[number];
 
 export interface PortalPayment {
@@ -90,6 +90,9 @@ export interface PortalInboxEntry {
   /** The team's unsent reply to this member. */
   draft: string | null;
   draft_updated_at: string | null;
+  /** What the member wants, from the AI summary (null until summarized). */
+  ai_need: string | null;
+  ai_urgency: '' | 'low' | 'normal' | 'high';
 }
 
 export type InboxFolder = 'unread' | 'all' | 'read' | 'drafts' | 'archived';
@@ -113,6 +116,8 @@ export interface PortalItem {
   kind: PortalItemKind;
   audience: PortalAudience;
   customer_id: string | null;
+  /** audience 'customers': the members chosen one by one or by group. */
+  customer_ids: string[] | null;
   offer_id: string | null;
   title: string;
   body: string | null;
@@ -149,6 +154,20 @@ export interface PortalMessage {
   /** Owner reply to an assistant question: shown as validated to the member. */
   reply_to: string | null;
   answered: boolean;
+}
+
+/** AI summary of a member's conversation, for the team only. */
+export interface PortalThreadSummary {
+  need: string;
+  summary: string;
+  urgency: 'low' | 'normal' | 'high';
+  next: string;
+}
+
+export interface PortalThreadSummaryState {
+  summary: PortalThreadSummary | null;
+  at: string | null;
+  has_messages: boolean;
 }
 
 export interface PortalKnowledgeNote {
@@ -195,6 +214,7 @@ export interface PortalItemInput {
   kind: PortalItemKind;
   audience: PortalAudience;
   customer_id?: string;
+  customer_ids?: string[];
   offer_id?: string;
   title: string;
   body?: string;

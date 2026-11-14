@@ -4010,7 +4010,9 @@
       "offer": "An offer group",
       "customer": "One customer",
       "offerNamed": "Offer: {offer}",
-      "customerNamed": "For {name}"
+      "customerNamed": "For {name}",
+      "customers": "Members I choose (country, project…)",
+      "customersNamed": "{count, plural, one {# chosen member} other {# chosen members}}"
     },
     "customers": {
       "emptyTitle": "No customer yet",
@@ -4082,7 +4084,14 @@
       "level": "Who can read it",
       "levelHint": "Members on the free offer read what its level includes. Others see the title and are invited to take a plan.",
       "levelFree": "Every member (free)",
-      "levelPlan": "{plan} plan and above"
+      "levelPlan": "{plan} plan and above",
+      "pick": {
+        "title": "Who receives it",
+        "selected": "{count, plural, =0 {No member selected} one {# member selected} other {# members selected}}",
+        "clear": "Clear",
+        "search": "Search a name, an e-mail, a country…",
+        "none": "No member matches."
+      }
     },
     "invite": {
       "title": "Invite to portal",
@@ -4131,6 +4140,16 @@
         "draft": "Prepared reply",
         "useDraft": "Use and edit",
         "answer": "Answer"
+      },
+      "ai": {
+        "title": "AI summary",
+        "loading": "AI summary is loading",
+        "urgent": "Urgent",
+        "hide": "Hide the summary",
+        "show": "Show the summary",
+        "next": "Next step:",
+        "note": "Written by AI from the messages: check before you reply.",
+        "refresh": "Refresh"
       }
     },
     "access": {
@@ -4358,7 +4377,9 @@
           "news": "Hello, there is news about your project. Please open your space to read it.",
           "call": "Hello, I would like to talk with you about your project. When are you available?"
         }
-      }
+      },
+      "urgent": "Urgent",
+      "publishTo": "Publish to them"
     },
     "push": {
       "title": "Notifications on this device",

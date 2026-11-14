@@ -13,7 +13,8 @@ import {
   type PortalPlanInput,
   type PortalProfile,
   type PortalQuestionnaire,
-  type PortalSettings
+  type PortalSettings,
+  type PortalThreadSummaryState
 } from './types';
 
 // Client portal (feature `client_portal`): every read and write goes through the
@@ -154,6 +155,17 @@ export function replyToManyPortalCustomers(
       p_body: body
     })
   );
+}
+
+/** AI summary of a member's conversation (computed once per new message burst). */
+export async function getPortalThreadSummary(customerId: string, refresh = false) {
+  const res = await fetch('/api/portal/thread-summary', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ customerId, ...(refresh ? { refresh: true } : {}) })
+  });
+  if (!res.ok) throw new Error('summary_unavailable');
+  return (await res.json()) as PortalThreadSummaryState;
 }
 
 export function getPortalThread(db: SupabaseClient, customerId: string) {
