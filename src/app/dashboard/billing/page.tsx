@@ -11,7 +11,7 @@ import {
 } from '@/features/billing/api/queries';
 import { BillingView } from '@/features/billing/components/billing-view';
 import { requireDashboardSession } from '@/lib/auth/session';
-import { autopayAvailable, onlinePaymentMethods, onlinePaymentsProblems } from '@/lib/payments';
+import { autopayClientConfig, onlinePaymentMethods, onlinePaymentsProblems } from '@/lib/payments';
 import { getQueryClient } from '@/lib/query-client';
 import { createClient } from '@/lib/supabase/server';
 
@@ -66,7 +66,7 @@ export default async function BillingPage() {
               organizationId={activeOrg.id}
               onlinePayments={onlinePayments}
               staffPaymentProblems={staffPaymentProblems}
-              autopay={autopayAvailable()}
+              autopay={autopayClientConfig()}
             />
           </Suspense>
         </HydrationBoundary>

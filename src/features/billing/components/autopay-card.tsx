@@ -17,6 +17,13 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useErrorMessage } from '@/hooks/use-error-message';
@@ -25,6 +32,7 @@ import { autopayQueryOptions, billingKeys } from '../api/queries';
 import { autopayAction } from '../api/service';
 import type { AutopayAction, AutopayState, BillingSummary } from '../api/types';
 import { formatMoney } from '../lib/format';
+import { SquareCardForm, type SquareClientConfig } from './square-card-form';
 
 const BRANDS: Record<string, string> = {
   visa: 'Visa',
@@ -37,17 +45,20 @@ const BRANDS: Record<string, string> = {
 };
 
 /**
- * Automatic monthly payment of the plan: Stripe keeps the card and charges it
- * each month; the client sees the card's brand and last 4 digits, the next
- * charge, and can change the card, download invoices, switch plan, or stop the
- * renewal (the plan stays until the end of the paid month).
+ * Automatic monthly payment of the plan with Square: the card is typed in
+ * Square's secure fields and charged by Square each month. The client sees the
+ * card's brand and last 4 digits and the next charge, and can change the card,
+ * switch plan, or stop the renewal (the plan stays until the end of the paid
+ * month). Paid months appear with their receipt in the invoices below.
  */
 export function AutopayCard({
   summary,
-  organizationId
+  organizationId,
+  square
 }: {
   summary: BillingSummary;
   organizationId: string;
+  square: SquareClientConfig;
 }) {
   const t = useTranslations('billing.autopay');
   const format = useFormatter();
@@ -59,52 +70,35 @@ export function AutopayCard({
   );
   const [busy, setBusy] = useState<AutopayAction | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [cardFor, setCardFor] = useState<'start' | 'card' | null>(null);
   const paid = summary.plans.filter((p) => (p.price ?? 0) > 0 && p.currency);
   const current = paid.find((p) => p.key === summary.plan.key);
   const [planKey, setPlanKey] = useState<string>(
     current?.key ?? paid[1]?.key ?? paid[0]?.key ?? ''
   );
 
-  // Back from Stripe: say what happened and wait for the webhook to record it.
+  // Square may have charged a month since the last visit: read it back once.
+  const subscribed = Boolean(data?.on);
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const back = params.get('autopay');
-    if (!back) return;
-    params.delete('autopay');
-    window.history.replaceState(
-      null,
-      '',
-      `${window.location.pathname}${params.size ? `?${params}` : ''}`
-    );
-    if (back === 'cancelled') {
-      toast(t('backCancelled'));
-      return;
-    }
-    toast.success(t('backOn'));
-    let tries = 0;
-    const timer = window.setInterval(async () => {
-      tries += 1;
-      const fresh = await refetch();
-      if (fresh.data?.on || tries >= 10) {
-        window.clearInterval(timer);
-        void queryClient.invalidateQueries({ queryKey: billingKeys.org(organizationId) });
-      }
-    }, 2500);
-    return () => window.clearInterval(timer);
-  }, [organizationId, queryClient, refetch, t]);
+    if (!subscribed) return;
+    void autopayAction(organizationId, 'refresh')
+      .then(() => queryClient.invalidateQueries({ queryKey: billingKeys.org(organizationId) }))
+      .catch(() => undefined);
+  }, [subscribed, organizationId, queryClient]);
 
   if (!paid.length) return null;
 
-  const run = async (action: AutopayAction, plan?: string) => {
+  const run = async (
+    action: AutopayAction,
+    options: { planKey?: string; sourceId?: string; verificationToken?: string } = {}
+  ) => {
     setBusy(action);
     try {
-      const out = await autopayAction(organizationId, action, { planKey: plan, locale });
-      if (out.url) {
-        window.location.assign(out.url);
-        return;
-      }
+      await autopayAction(organizationId, action, { ...options, locale });
       toast.success(t(`done.${action}`));
+      setCardFor(null);
       await queryClient.invalidateQueries({ queryKey: billingKeys.org(organizationId) });
+      await refetch();
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -112,6 +106,7 @@ export function AutopayCard({
       setConfirm(false);
     }
   };
+  const chosen = paid.find((p) => p.key === planKey);
 
   return (
     <Card>
@@ -168,10 +163,15 @@ export function AutopayCard({
               <p className='text-destructive text-sm'>{t('pastDue')}</p>
             )}
             <div className='flex flex-wrap gap-2'>
-              <Button variant='outline' disabled={busy !== null} onClick={() => void run('portal')}>
+              <Button variant='outline' disabled={busy !== null} onClick={() => setCardFor('card')}>
                 <Icons.creditCard aria-hidden /> {t('changeCard')}
               </Button>
-              <Button variant='outline' disabled={busy !== null} onClick={() => void run('portal')}>
+              <Button
+                variant='outline'
+                onClick={() =>
+                  document.getElementById('billing-charges')?.scrollIntoView({ behavior: 'smooth' })
+                }
+              >
                 <Icons.receipt aria-hidden /> {t('invoices')}
               </Button>
               {data.cancel_at_period_end ? (
@@ -206,7 +206,7 @@ export function AutopayCard({
                 <Button
                   variant='secondary'
                   disabled={busy !== null || planKey === (data.plan_key ?? summary.plan.key)}
-                  onClick={() => void run('switch', planKey)}
+                  onClick={() => void run('switch', { planKey })}
                 >
                   {t('switch')}
                 </Button>
@@ -243,17 +243,59 @@ export function AutopayCard({
                   ))}
                 </NativeSelect>
               </label>
-              <Button
-                disabled={busy !== null || !planKey}
-                onClick={() => void run('start', planKey)}
-              >
-                <Icons.lock aria-hidden /> {busy === 'start' ? t('opening') : t('start')}
+              <Button disabled={busy !== null || !planKey} onClick={() => setCardFor('start')}>
+                <Icons.lock aria-hidden /> {t('start')}
               </Button>
             </div>
-            <p className='text-muted-foreground text-xs'>{t('stripeNote')}</p>
+            <p className='text-muted-foreground text-xs'>{t('squareNote')}</p>
           </>
         )}
       </CardContent>
+
+      <Dialog
+        open={cardFor !== null}
+        onOpenChange={(open) => busy === null && !open && setCardFor(null)}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>
+              {cardFor === 'card' ? t('form.titleCard') : t('form.titleStart')}
+            </DialogTitle>
+            <DialogDescription>
+              {cardFor === 'start' && chosen
+                ? t('form.textStart', {
+                    plan: chosen.name,
+                    price: formatMoney(format.number, chosen.price ?? 0, chosen.currency ?? 'usd')
+                  })
+                : t('form.textCard')}
+            </DialogDescription>
+          </DialogHeader>
+          {cardFor && (
+            <SquareCardForm
+              config={square}
+              busy={busy !== null}
+              submitLabel={
+                cardFor === 'card'
+                  ? t('form.saveCard')
+                  : t('form.pay', {
+                      price: formatMoney(
+                        format.number,
+                        chosen?.price ?? 0,
+                        chosen?.currency ?? 'usd'
+                      )
+                    })
+              }
+              onToken={(sourceId, verificationToken) =>
+                run(cardFor, {
+                  sourceId,
+                  verificationToken,
+                  planKey: cardFor === 'start' ? planKey : undefined
+                })
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirm} onOpenChange={(open) => busy === null && setConfirm(open)}>
         <AlertDialogContent>

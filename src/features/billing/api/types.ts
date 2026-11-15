@@ -172,7 +172,7 @@ export interface ChargeDocument {
   staff: boolean;
 }
 
-/** Automatic monthly payment (Stripe keeps the card; LevelUp only sees its brand and last 4 digits). */
+/** Automatic monthly payment (Square keeps the card; LevelUp only sees its brand and last 4 digits). */
 export interface AutopayState {
   on: boolean;
   status?:
@@ -194,4 +194,4 @@ export interface AutopayState {
   updated_at?: string;
 }
 
-export type AutopayAction = 'start' | 'portal' | 'cancel' | 'resume' | 'switch';
+export type AutopayAction = 'start' | 'card' | 'cancel' | 'resume' | 'switch' | 'refresh';

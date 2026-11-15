@@ -925,7 +925,8 @@
     "emailNotConfigured": "Sending emails is not available yet. LevelUp is setting it up.",
     "mediaKindNotAllowed": "Videos are not turned on for your account yet. Ask LevelUp to enable them.",
     "demoNotPaid": "This demo is not paid yet.",
-    "demoUrlRequired": "Add the demo link before marking it ready."
+    "demoUrlRequired": "Add the demo link before marking it ready.",
+    "cardDeclined": "The card was declined or could not be verified. Try another card."
   },
   "workspaces": {
     "title": "Organizations",
@@ -1158,14 +1159,12 @@
       "titleOn": "Automatic payment is on",
       "intro": "Your plan is paid each month without you thinking about it. You stay in control: change the card, download invoices or stop it at any time.",
       "points": {
-        "safe": "Your card is kept by Stripe, never by LevelUp: we only see its brand and last 4 digits.",
-        "invoices": "An invoice and a receipt for every month, in your Billing page.",
+        "safe": "Your card is kept by Square, never by LevelUp: we only see its brand and last 4 digits.",
+        "invoices": "Each paid month appears with its receipt in your invoices below.",
         "cancel": "Stop whenever you want: your plan stays until the end of the paid month."
       },
       "planLabel": "Plan",
       "start": "Turn on automatic payment",
-      "opening": "Opening Stripe…",
-      "stripeNote": "You will enter your card on Stripe's secure page, then come back here.",
       "plan": "Plan",
       "perMonth": "{price} / month",
       "nextCharge": "Next charge",
@@ -1181,25 +1180,37 @@
       "resume": "Resume automatic payment",
       "switchLabel": "Change plan",
       "switch": "Switch plan",
-      "switchHint": "The new price applies from now; the difference is prorated on your next invoice.",
+      "switchHint": "The new plan starts with your next monthly charge.",
       "confirmTitle": "Stop the automatic payment?",
       "confirmText": "Your plan stays active until {date}, then it will not be renewed. You can resume before that date.",
       "keep": "Keep it",
       "confirmCancel": "Stop at the end of the month",
-      "backOn": "Automatic payment is being set up. It shows here in a few seconds.",
-      "backCancelled": "Nothing was changed.",
       "done": {
+        "start": "Automatic payment is on. Thank you!",
+        "card": "Your new card is saved.",
         "cancel": "The renewal is stopped. Your plan stays until the end of the paid month.",
         "resume": "Automatic payment resumed.",
-        "switch": "Plan changed.",
-        "start": "Opening Stripe…",
-        "portal": "Opening Stripe…"
+        "switch": "Plan changed from your next charge.",
+        "refresh": "Up to date."
       },
       "status": {
         "active": "Active",
         "ending": "Ends at the end of the month",
         "pastDue": "Payment failed",
         "pending": "Being set up"
+      },
+      "squareNote": "You type your card in Square's secure fields; the first month is charged right away.",
+      "form": {
+        "titleStart": "Turn on automatic payment",
+        "titleCard": "Change card",
+        "textStart": "{plan}, {price} per month. Your card is charged today, then each month.",
+        "textCard": "The new card is used from the next charge; the old one is removed.",
+        "pay": "Pay {price} and turn on",
+        "saveCard": "Save this card",
+        "saving": "Saving…",
+        "invalid": "Check the card details.",
+        "unavailable": "The card form could not load. Try again in a moment.",
+        "secure": "Secured by Square: LevelUp never sees your card number."
       }
     }
   },

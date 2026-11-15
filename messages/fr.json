@@ -925,7 +925,8 @@
     "emailNotConfigured": "L’envoi d’e-mails n’est pas encore disponible. LevelUp le met en place.",
     "mediaKindNotAllowed": "Les vidéos ne sont pas encore activées pour votre compte. Demandez à LevelUp de les activer.",
     "demoNotPaid": "Cette démo n’est pas encore payée.",
-    "demoUrlRequired": "Ajoutez le lien de la démo avant de la marquer prête."
+    "demoUrlRequired": "Ajoutez le lien de la démo avant de la marquer prête.",
+    "cardDeclined": "La carte a été refusée ou n’a pas pu être vérifiée. Essayez une autre carte."
   },
   "workspaces": {
     "title": "Organisations",
@@ -1158,14 +1159,12 @@
       "titleOn": "Le paiement automatique est actif",
       "intro": "Votre plan est payé chaque mois sans que vous ayez à y penser. Vous gardez la main : changez de carte, téléchargez vos factures ou arrêtez à tout moment.",
       "points": {
-        "safe": "Votre carte est gardée par Stripe, jamais par LevelUp : nous ne voyons que sa marque et ses 4 derniers chiffres.",
-        "invoices": "Une facture et un reçu chaque mois, dans votre page Facturation.",
+        "safe": "Votre carte est gardée par Square, jamais par LevelUp : nous ne voyons que sa marque et ses 4 derniers chiffres.",
+        "invoices": "Chaque mois payé apparaît avec son reçu dans vos factures ci-dessous.",
         "cancel": "Arrêtez quand vous voulez : votre plan reste actif jusqu’à la fin du mois payé."
       },
       "planLabel": "Plan",
       "start": "Activer le paiement automatique",
-      "opening": "Ouverture de Stripe…",
-      "stripeNote": "Vous saisirez votre carte sur la page sécurisée de Stripe, puis vous reviendrez ici.",
       "plan": "Plan",
       "perMonth": "{price} / mois",
       "nextCharge": "Prochain prélèvement",
@@ -1181,25 +1180,37 @@
       "resume": "Reprendre le paiement automatique",
       "switchLabel": "Changer de plan",
       "switch": "Changer de plan",
-      "switchHint": "Le nouveau prix s’applique dès maintenant ; la différence est calculée au prorata sur votre prochaine facture.",
+      "switchHint": "Le nouveau plan commence au prochain prélèvement mensuel.",
       "confirmTitle": "Arrêter le paiement automatique ?",
       "confirmText": "Votre plan reste actif jusqu’au {date}, puis il ne sera pas renouvelé. Vous pouvez reprendre avant cette date.",
       "keep": "Garder",
       "confirmCancel": "Arrêter à la fin du mois",
-      "backOn": "Le paiement automatique se met en place. Il s’affiche ici dans quelques secondes.",
-      "backCancelled": "Rien n’a été modifié.",
       "done": {
+        "start": "Le paiement automatique est activé. Merci !",
+        "card": "Votre nouvelle carte est enregistrée.",
         "cancel": "Le renouvellement est arrêté. Votre plan reste actif jusqu’à la fin du mois payé.",
         "resume": "Paiement automatique repris.",
-        "switch": "Plan changé.",
-        "start": "Ouverture de Stripe…",
-        "portal": "Ouverture de Stripe…"
+        "switch": "Plan changé à partir du prochain prélèvement.",
+        "refresh": "À jour."
       },
       "status": {
         "active": "Actif",
         "ending": "Se termine en fin de mois",
         "pastDue": "Paiement refusé",
         "pending": "En cours"
+      },
+      "squareNote": "Vous saisissez votre carte dans les champs sécurisés de Square ; le premier mois est prélevé tout de suite.",
+      "form": {
+        "titleStart": "Activer le paiement automatique",
+        "titleCard": "Changer de carte",
+        "textStart": "{plan}, {price} par mois. Votre carte est prélevée aujourd’hui, puis chaque mois.",
+        "textCard": "La nouvelle carte sert dès le prochain prélèvement ; l’ancienne est retirée.",
+        "pay": "Payer {price} et activer",
+        "saveCard": "Enregistrer cette carte",
+        "saving": "Enregistrement…",
+        "invalid": "Vérifiez les informations de la carte.",
+        "unavailable": "Le formulaire de carte n’a pas pu se charger. Réessayez dans un instant.",
+        "secure": "Sécurisé par Square : LevelUp ne voit jamais le numéro de votre carte."
       }
     }
   },

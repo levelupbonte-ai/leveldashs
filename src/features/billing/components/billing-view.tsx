@@ -5,6 +5,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { billingSummaryQueryOptions, billingUsageQueryOptions } from '../api/queries';
 import { AutopayCard } from './autopay-card';
+import type { SquareClientConfig } from './square-card-form';
 import { ChargesCard } from './charges-card';
 import { CurrentPlanCard } from './plan-card';
 import { PlanComparison } from './plan-comparison';
@@ -20,11 +21,11 @@ export function BillingView({
   organizationId,
   onlinePayments = [],
   staffPaymentProblems = [],
-  autopay = false
+  autopay = null
 }: {
   organizationId: string;
-  /** The automatic monthly payment is set up on the server (Stripe keys present). */
-  autopay?: boolean;
+  /** Square's public ids for the card fields when the automatic payment is set up (else null). */
+  autopay?: SquareClientConfig | null;
   /** Online payment switched on by the server (never the keys, only this flag). */
   onlinePayments?: OnlinePaymentMethod[];
   /** LevelUp staff only: why online payment is off (variable names). */
@@ -41,7 +42,7 @@ export function BillingView({
         <LimitMeters usage={summary.usage} />
       </div>
       {autopay && summary.money && summary.can_manage && (
-        <AutopayCard summary={summary} organizationId={organizationId} />
+        <AutopayCard summary={summary} organizationId={organizationId} square={autopay} />
       )}
       <UsagePanel usage={usage} />
       {summary.money && (

@@ -9,7 +9,7 @@ import {
 import { createPayPalProvider, type PayPalProvider } from './paypal';
 import { createSquareProvider } from './square';
 import { createStripeProvider } from './stripe';
-import { createStripeBilling, type StripeBilling } from './stripe-billing';
+import { createSquareBilling, type SquareBilling } from './square-billing';
 import type { PaymentProvider } from './types';
 
 /** Server env only (never NEXT_PUBLIC_). Null = online payments are off. */
@@ -68,13 +68,25 @@ export function paymentProvider(
 export type { OnlinePaymentsConfig, PaymentMethodChoice, PaymentProviderName } from './config';
 export { PaymentProviderError } from './types';
 
-/** Automatic monthly payment (Stripe Billing), or null when Stripe's keys are not set. */
-export function stripeBilling(): StripeBilling | null {
-  const config = onlinePaymentsConfig();
-  return config?.stripe ? createStripeBilling(config.stripe.secretKey) : null;
+/** Automatic monthly payment (Square Subscriptions), or null when it is not set up. */
+export function squareBilling(): SquareBilling | null {
+  const square = onlinePaymentsConfig()?.square;
+  return square?.applicationId ? createSquareBilling(square) : null;
 }
 
-/** True when clients can turn on the automatic monthly payment. */
-export function autopayAvailable(): boolean {
-  return stripeBilling() !== null;
+/** What the browser needs for Square's card fields (public ids only), or null when off. */
+export function autopayClientConfig(): AutopayClientConfig | null {
+  const square = onlinePaymentsConfig()?.square;
+  if (!square?.applicationId) return null;
+  return {
+    applicationId: square.applicationId,
+    locationId: square.locationId,
+    sandbox: square.environment === 'sandbox'
+  };
+}
+
+export interface AutopayClientConfig {
+  applicationId: string;
+  locationId: string;
+  sandbox: boolean;
 }

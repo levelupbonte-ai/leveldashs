@@ -73,7 +73,7 @@ export function ChargesCard({
   const day = (d: string) => format.dateTime(dayDate(d), { dateStyle: 'medium' });
 
   return (
-    <Card>
+    <Card id='billing-charges' className='scroll-mt-20'>
       <CardHeader className='gap-4 sm:flex sm:flex-row sm:items-start sm:justify-between'>
         <div className='space-y-1.5'>
           <CardTitle>{t('title')}</CardTitle>
