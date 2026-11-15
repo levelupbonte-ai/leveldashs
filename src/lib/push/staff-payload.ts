@@ -19,7 +19,7 @@ export interface StaffPushRow {
   p256dh: string;
   auth: string;
   locale: 'en' | 'fr';
-  kind: 'member' | 'message';
+  kind: 'member' | 'message' | 'call';
   website_id: string;
   website: string;
   name: string | null;
@@ -35,6 +35,10 @@ const TEXT = {
     message: (name: string | null) => ({
       title: 'New message',
       body: name ? `${name} sent you a message.` : 'A member sent you a message.'
+    }),
+    call: (name: string | null) => ({
+      title: 'Call booked',
+      body: name ? `${name} booked a call with you.` : 'A member booked a call with you.'
     })
   },
   fr: {
@@ -47,6 +51,12 @@ const TEXT = {
     message: (name: string | null) => ({
       title: 'Nouveau message',
       body: name ? `${name} vous a écrit.` : 'Un membre vous a écrit.'
+    }),
+    call: (name: string | null) => ({
+      title: 'Appel réservé',
+      body: name
+        ? `${name} a réservé un appel avec vous.`
+        : 'Un membre a réservé un appel avec vous.'
     })
   }
 } as const;
@@ -60,7 +70,9 @@ export function staffPushPayload(row: StaffPushRow) {
     url:
       row.kind === 'message'
         ? '/dashboard/site/client-portal?folder=unread'
-        : '/dashboard/site/client-portal?tab=customers',
+        : row.kind === 'call'
+          ? '/dashboard/site/client-portal?tab=calls'
+          : '/dashboard/site/client-portal?tab=customers',
     tag: `lu-${row.kind}-${row.website_id}`
   };
 }

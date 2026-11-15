@@ -3,6 +3,7 @@ import { queryOptions } from '@tanstack/react-query';
 import { siteKeys } from '@/features/site/api/queries';
 import {
   getPortalAssistant,
+  getPortalCalls,
   getPortalInbox,
   getPortalOverview,
   getPortalProfile,
@@ -22,6 +23,7 @@ export const portalKeys = {
   assistant: (websiteId: string) => [...portalKeys.all(websiteId), 'assistant'] as const,
   questionnaires: (websiteId: string) => [...portalKeys.all(websiteId), 'questionnaires'] as const,
   inbox: (websiteId: string) => [...portalKeys.all(websiteId), 'inbox'] as const,
+  calls: (websiteId: string) => [...portalKeys.all(websiteId), 'calls'] as const,
   summary: (websiteId: string, customerId: string, upto: string) =>
     [...portalKeys.all(websiteId), 'summary', customerId, upto] as const
 };
@@ -83,4 +85,13 @@ export const portalInboxQueryOptions = (db: SupabaseClient, websiteId: string) =
     queryFn: () => getPortalInbox(db, websiteId),
     staleTime: 15 * 1000,
     refetchInterval: 30 * 1000
+  });
+
+/** Calls with members: refreshed every minute so new bookings show up. */
+export const portalCallsQueryOptions = (db: SupabaseClient, websiteId: string) =>
+  queryOptions({
+    queryKey: portalKeys.calls(websiteId),
+    queryFn: () => getPortalCalls(db, websiteId),
+    staleTime: 20 * 1000,
+    refetchInterval: 60 * 1000
   });

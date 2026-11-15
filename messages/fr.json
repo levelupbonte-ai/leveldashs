@@ -3996,7 +3996,8 @@
       "published": "Publié",
       "plans": "Forfaits et offre",
       "assistant": "Assistant IA",
-      "questionnaires": "Questionnaires"
+      "questionnaires": "Questionnaires",
+      "calls": "Appels"
     },
     "cancel": "Annuler",
     "kinds": {
@@ -4398,6 +4399,66 @@
       "promptBody": "Soyez prévenu sur cet appareil dès qu’un membre vous écrit ou rejoint votre espace client, même dashboard fermé.",
       "later": "Plus tard",
       "enable": "Activer"
+    },
+    "calls": {
+      "stats": {
+        "open": "{count, plural, one {# créneau libre} other {# créneaux libres}}",
+        "booked": "{count, plural, one {# appel réservé} other {# appels réservés}}"
+      },
+      "privacy": "Le numéro du membre n’est visible que par l’équipe. Votre numéro n’est jamais affiché aux membres.",
+      "empty": "Aucun créneau pour l’instant. Ouvrez quelques horaires à gauche : les membres les réservent depuis leur espace.",
+      "past": "Appels passés",
+      "minutesShort": "{n} min",
+      "participants": "{count} / {capacity} inscrits",
+      "free": "Libre",
+      "cancelSlot": "Retirer le créneau",
+      "slotCanceled": "Créneau retiré",
+      "meetingLink": "Lien de la réunion :",
+      "memberNumber": "Numéro du membre :",
+      "openWhatsapp": "Ouvrir dans WhatsApp",
+      "videoLink": "Lien vidéo",
+      "saveLink": "Envoyer le lien",
+      "linkSaved": "Lien envoyé au membre",
+      "markDone": "Fait",
+      "markMissed": "Manqué",
+      "cancelCall": "Annuler l’appel",
+      "marked": "Appel mis à jour",
+      "platform": {
+        "phone": "Appel téléphonique",
+        "whatsapp": "WhatsApp",
+        "zoom": "Zoom",
+        "meet": "Google Meet"
+      },
+      "status": {
+        "booked": "Réservé",
+        "done": "Fait",
+        "missed": "Manqué",
+        "canceled": "Annulé"
+      },
+      "canceledBy": {
+        "member": "annulé par le membre",
+        "team": "annulé par l’équipe"
+      },
+      "add": {
+        "title": "Ouvrir des créneaux d’appel",
+        "description": "Plus : 1 appel par mois, Pro : 3, Premium : 5 avec la vidéo. Les réunions Premium sont des sessions Zoom en groupe.",
+        "kind": "Type",
+        "kindOne": "Appel individuel",
+        "kindMeeting": "Réunion de groupe Premium",
+        "date": "Jour",
+        "times": "Horaires",
+        "timesHint": "Séparez les horaires par des virgules, ex. 09:00, 10:30, 14:00 (votre fuseau horaire).",
+        "timesInvalid": "Indiquez au moins un horaire, ex. 09:00.",
+        "minutes": "Durée",
+        "minutesN": "{n} minutes",
+        "meetingTitle": "Titre de la réunion",
+        "capacity": "Places",
+        "link": "Lien vidéo (facultatif)",
+        "linkHint": "Lien Zoom ou Meet que les membres reçoivent une fois inscrits. Vous pouvez l’ajouter plus tard.",
+        "linkInvalid": "Le lien doit commencer par https://",
+        "submit": "Ouvrir les créneaux",
+        "added": "{count, plural, one {# créneau ouvert} other {# créneaux ouverts}}"
+      }
     }
   },
   "siteForms": {
