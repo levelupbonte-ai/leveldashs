@@ -37,6 +37,7 @@ import { archivePortalItem, portalDocumentUrl, setPortalCustomerStatus } from '.
 import type { InboxFolder, PortalCustomer, PortalItem, PortalOverview } from '../api/types';
 import { AssistantPanel } from './assistant-panel';
 import { InboxView } from './inbox-view';
+import { CallsPanel } from './calls-panel';
 import { InviteDialog } from './invite-dialog';
 import { QuestionnairesView } from './questionnaires-view';
 import { PublishSheet } from './publish-sheet';
@@ -46,6 +47,7 @@ import { TrialDialog } from './trial-dialog';
 
 const TABS = [
   'messages',
+  'calls',
   'customers',
   'questionnaires',
   'published',
@@ -134,6 +136,7 @@ export function ClientPortalView() {
             {t('tabs.messages')}
             {unread > 0 && <Badge className='ml-1.5'>{unread}</Badge>}
           </TabsTrigger>
+          <TabsTrigger value='calls'>{t('tabs.calls')}</TabsTrigger>
           <TabsTrigger value='customers'>{t('tabs.customers')}</TabsTrigger>
           <TabsTrigger value='questionnaires'>{t('tabs.questionnaires')}</TabsTrigger>
           <TabsTrigger value='published'>{t('tabs.published')}</TabsTrigger>
@@ -147,6 +150,9 @@ export function ClientPortalView() {
             onOpen={setThread}
             onPublish={(customerIds) => setPublishFor({ customerIds })}
           />
+        </TabsContent>
+        <TabsContent value='calls' className='mt-3'>
+          <CallsPanel />
         </TabsContent>
         <TabsContent value='customers' className='mt-3'>
           <CustomerList

@@ -6,6 +6,7 @@ import {
   PORTAL_DOCUMENT_MAX_BYTES,
   PORTAL_DOCUMENT_TYPES,
   type PortalAssistant,
+  type PortalCallSlot,
   type PortalInboxEntry,
   type PortalItemInput,
   type PortalMessage,
@@ -285,4 +286,54 @@ export async function nudgePortalEmails(websiteId: string): Promise<'sent' | 'sk
   } catch {
     return 'skipped';
   }
+}
+
+/** Slots and bookings of the calls with members (last 14 days and to come). */
+export function getPortalCalls(db: SupabaseClient, websiteId: string) {
+  return rpc<PortalCallSlot[]>(db.rpc('portal_admin_calls', { p_website_id: websiteId }));
+}
+
+/** Opens call slots (or a Premium meeting) at these times. */
+export function addPortalCallSlots(
+  db: SupabaseClient,
+  websiteId: string,
+  input: {
+    starts: string[];
+    minutes: number;
+    kind: 'one' | 'meeting';
+    title?: string;
+    capacity?: number;
+    link?: string;
+  }
+) {
+  return rpc<{ ok: true; added: number }>(
+    db.rpc('portal_admin_call_slots_add', {
+      p_website_id: websiteId,
+      p_starts: input.starts,
+      p_minutes: input.minutes,
+      p_kind: input.kind,
+      p_title: input.title ?? null,
+      p_capacity: input.capacity ?? null,
+      p_link: input.link ?? null
+    })
+  );
+}
+
+export function cancelPortalCallSlot(db: SupabaseClient, slotId: string) {
+  return rpc<{ ok: true }>(db.rpc('portal_admin_call_slot_cancel', { p_slot: slotId }));
+}
+
+/** Marks a call done / missed / canceled, or sets the video link the member sees. */
+export function updatePortalCall(
+  db: SupabaseClient,
+  callId: string,
+  input: { status?: 'booked' | 'done' | 'missed' | 'canceled'; link?: string }
+) {
+  return rpc<{ ok: true }>(
+    db.rpc('portal_admin_call_update', {
+      p_call: callId,
+      p_status: input.status ?? null,
+      p_link: input.link ?? null
+    })
+  );
 }

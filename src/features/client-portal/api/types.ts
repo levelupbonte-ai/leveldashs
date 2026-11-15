@@ -156,6 +156,34 @@ export interface PortalMessage {
   answered: boolean;
 }
 
+export interface PortalCallBooking {
+  id: string;
+  customer_id: string;
+  name: string | null;
+  email: string;
+  mode: 'voice' | 'video' | 'meeting';
+  platform: 'phone' | 'whatsapp' | 'zoom' | 'meet';
+  /** The member's own number, for the team only (never the team's number). */
+  phone: string | null;
+  topic: string | null;
+  status: 'booked' | 'done' | 'missed' | 'canceled';
+  link: string | null;
+  canceled_by: 'member' | 'team' | null;
+}
+
+/** A slot the team opened: one call, or a Premium group meeting. */
+export interface PortalCallSlot {
+  id: string;
+  starts_at: string;
+  minutes: number;
+  kind: 'one' | 'meeting';
+  title: string | null;
+  capacity: number;
+  link: string | null;
+  canceled_at: string | null;
+  bookings: PortalCallBooking[];
+}
+
 /** AI summary of a member's conversation, for the team only. */
 export interface PortalThreadSummary {
   need: string;

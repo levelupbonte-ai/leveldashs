@@ -3996,7 +3996,8 @@
       "published": "Published",
       "plans": "Plans & offer",
       "assistant": "AI assistant",
-      "questionnaires": "Questionnaires"
+      "questionnaires": "Questionnaires",
+      "calls": "Calls"
     },
     "cancel": "Cancel",
     "kinds": {
@@ -4398,6 +4399,66 @@
       "promptBody": "Be told on this device as soon as a member writes to you or joins your client space, even when the dashboard is closed.",
       "later": "Later",
       "enable": "Turn on"
+    },
+    "calls": {
+      "stats": {
+        "open": "{count, plural, one {# open slot} other {# open slots}}",
+        "booked": "{count, plural, one {# call booked} other {# calls booked}}"
+      },
+      "privacy": "The member's number is visible to the team only. Your number is never shown to members.",
+      "empty": "No slot yet. Open a few times on the left: members book them from their space.",
+      "past": "Past calls",
+      "minutesShort": "{n} min",
+      "participants": "{count} / {capacity} registered",
+      "free": "Free",
+      "cancelSlot": "Remove slot",
+      "slotCanceled": "Slot removed",
+      "meetingLink": "Meeting link:",
+      "memberNumber": "Member's number:",
+      "openWhatsapp": "Open in WhatsApp",
+      "videoLink": "Video link",
+      "saveLink": "Send link",
+      "linkSaved": "Link sent to the member",
+      "markDone": "Done",
+      "markMissed": "Missed",
+      "cancelCall": "Cancel call",
+      "marked": "Call updated",
+      "platform": {
+        "phone": "Phone call",
+        "whatsapp": "WhatsApp",
+        "zoom": "Zoom",
+        "meet": "Google Meet"
+      },
+      "status": {
+        "booked": "Booked",
+        "done": "Done",
+        "missed": "Missed",
+        "canceled": "Canceled"
+      },
+      "canceledBy": {
+        "member": "canceled by the member",
+        "team": "canceled by the team"
+      },
+      "add": {
+        "title": "Open call slots",
+        "description": "Plus: 1 call a month, Pro: 3, Premium: 5 with video. Premium meetings are group Zoom sessions.",
+        "kind": "Type",
+        "kindOne": "One-to-one call",
+        "kindMeeting": "Premium group meeting",
+        "date": "Day",
+        "times": "Times",
+        "timesHint": "Separate times with commas, e.g. 09:00, 10:30, 14:00 (your time zone).",
+        "timesInvalid": "Enter at least one time, e.g. 09:00.",
+        "minutes": "Duration",
+        "minutesN": "{n} minutes",
+        "meetingTitle": "Meeting title",
+        "capacity": "Seats",
+        "link": "Video link (optional)",
+        "linkHint": "Zoom or Meet link members get once registered. You can add it later.",
+        "linkInvalid": "The link must start with https://",
+        "submit": "Open slots",
+        "added": "{count, plural, one {# slot opened} other {# slots opened}}"
+      }
     }
   },
   "siteForms": {
