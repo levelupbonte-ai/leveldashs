@@ -211,6 +211,27 @@ function PublishForm({
       }}
       className='flex flex-col gap-4 px-4 pb-4'
     >
+      <div className='bg-muted/40 flex flex-wrap items-center gap-3 rounded-lg border p-3'>
+        <div className='min-w-0 flex-1'>
+          <p className='text-sm font-medium'>{t('template.title')}</p>
+          <p className='text-muted-foreground text-xs'>{t('template.hint')}</p>
+        </div>
+        <Button
+          type='button'
+          size='sm'
+          variant='outline'
+          onClick={() => {
+            form.setFieldValue('kind', 'update');
+            form.setFieldValue('audience', 'all');
+            form.setFieldValue('minLevel', '0');
+            form.setFieldValue('notify', true);
+            form.setFieldValue('title', t('template.itemTitle'));
+            form.setFieldValue('body', t('template.itemBody'));
+          }}
+        >
+          {t('template.use')}
+        </Button>
+      </div>
       <FieldGroup>
         <form.AppField
           name='kind'
