@@ -4,6 +4,7 @@ import type { OnlinePaymentMethod } from '../api/types';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { billingSummaryQueryOptions, billingUsageQueryOptions } from '../api/queries';
+import { AutopayCard } from './autopay-card';
 import { ChargesCard } from './charges-card';
 import { CurrentPlanCard } from './plan-card';
 import { PlanComparison } from './plan-comparison';
@@ -18,9 +19,12 @@ import { LimitMeters, UsagePanel } from './usage-cards';
 export function BillingView({
   organizationId,
   onlinePayments = [],
-  staffPaymentProblems = []
+  staffPaymentProblems = [],
+  autopay = false
 }: {
   organizationId: string;
+  /** The automatic monthly payment is set up on the server (Stripe keys present). */
+  autopay?: boolean;
   /** Online payment switched on by the server (never the keys, only this flag). */
   onlinePayments?: OnlinePaymentMethod[];
   /** LevelUp staff only: why online payment is off (variable names). */
@@ -36,6 +40,9 @@ export function BillingView({
         <CurrentPlanCard summary={summary} />
         <LimitMeters usage={summary.usage} />
       </div>
+      {autopay && summary.money && summary.can_manage && (
+        <AutopayCard summary={summary} organizationId={organizationId} />
+      )}
       <UsagePanel usage={usage} />
       {summary.money && (
         <ChargesCard

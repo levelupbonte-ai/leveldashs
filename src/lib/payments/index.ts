@@ -9,6 +9,7 @@ import {
 import { createPayPalProvider, type PayPalProvider } from './paypal';
 import { createSquareProvider } from './square';
 import { createStripeProvider } from './stripe';
+import { createStripeBilling, type StripeBilling } from './stripe-billing';
 import type { PaymentProvider } from './types';
 
 /** Server env only (never NEXT_PUBLIC_). Null = online payments are off. */
@@ -66,3 +67,14 @@ export function paymentProvider(
 
 export type { OnlinePaymentsConfig, PaymentMethodChoice, PaymentProviderName } from './config';
 export { PaymentProviderError } from './types';
+
+/** Automatic monthly payment (Stripe Billing), or null when Stripe's keys are not set. */
+export function stripeBilling(): StripeBilling | null {
+  const config = onlinePaymentsConfig();
+  return config?.stripe ? createStripeBilling(config.stripe.secretKey) : null;
+}
+
+/** True when clients can turn on the automatic monthly payment. */
+export function autopayAvailable(): boolean {
+  return stripeBilling() !== null;
+}
