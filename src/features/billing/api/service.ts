@@ -217,15 +217,15 @@ export async function getAutopay(
 }
 
 /**
- * Turns the automatic payment on, opens Stripe's card and invoices page, stops
- * or resumes the renewal, or moves to another plan. Returns the Stripe page to
- * open when there is one.
+ * Turns the automatic payment on (with the one-time token of Square's card
+ * fields), changes the card, stops or resumes the renewal, switches plan, or
+ * reads the subscription back from Square.
  */
 export async function autopayAction(
   organizationId: string,
   action: AutopayAction,
-  options: { planKey?: string; locale?: string } = {}
-): Promise<{ url?: string }> {
+  options: { planKey?: string; sourceId?: string; verificationToken?: string; locale?: string } = {}
+): Promise<{ ok: true }> {
   const res = await fetch('/api/billing/autopay', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -233,14 +233,20 @@ export async function autopayAction(
       organizationId,
       action,
       ...(options.planKey ? { planKey: options.planKey } : {}),
-      ...(options.locale === 'fr' || options.locale === 'en' ? { locale: options.locale } : {})
+      ...(options.sourceId ? { sourceId: options.sourceId } : {}),
+      ...(options.verificationToken ? { verificationToken: options.verificationToken } : {})
     })
   });
-  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
   if (!res.ok) {
     const code: ErrorCode =
-      res.status === 429 ? 'rateLimited' : res.status === 403 ? 'forbidden' : 'paymentUnavailable';
+      res.status === 429
+        ? 'rateLimited'
+        : res.status === 403
+          ? 'forbidden'
+          : res.status === 402
+            ? 'cardDeclined'
+            : 'paymentUnavailable';
     throw new AppError(code);
   }
-  return body;
+  return { ok: true };
 }

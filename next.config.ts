@@ -34,13 +34,13 @@ function contentSecurityPolicy(framable = false): { enforced: string; reportOnly
     "default-src 'self'",
     // Next.js inline bootstrap scripts need 'unsafe-inline' (no nonce pipeline);
     // React needs 'unsafe-eval' in development only.
-    `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"} https://accounts.google.com/gsi/client https://challenges.cloudflare.com https://va.vercel-scripts.com`,
-    "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+    `script-src 'self' 'unsafe-inline'${isProd ? '' : " 'unsafe-eval'"} https://accounts.google.com/gsi/client https://challenges.cloudflare.com https://va.vercel-scripts.com https://web.squarecdn.com https://sandbox.web.squarecdn.com`,
+    "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style https://*.squarecdn.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     `media-src 'self' blob: ${SUPABASE} https://media.levelup-ecosystem.com`,
-    `connect-src 'self' ${SUPABASE} ${SUPABASE.replace(/^https:/, 'wss:')} https://accounts.google.com/gsi/ https://challenges.cloudflare.com https://api.pwnedpasswords.com https://*.r2.cloudflarestorage.com`,
-    'frame-src https://accounts.google.com/gsi/ https://challenges.cloudflare.com',
+    `connect-src 'self' ${SUPABASE} ${SUPABASE.replace(/^https:/, 'wss:')} https://accounts.google.com/gsi/ https://challenges.cloudflare.com https://api.pwnedpasswords.com https://*.r2.cloudflarestorage.com https://*.squareup.com https://*.squareupsandbox.com https://*.squarecdn.com`,
+    'frame-src https://accounts.google.com/gsi/ https://challenges.cloudflare.com https://*.squarecdn.com https://*.squareup.com https://*.squareupsandbox.com',
     "worker-src 'self' blob:",
     "manifest-src 'self'",
     // upgrade-insecure-requests is ignored in report-only (it stays enforced above).

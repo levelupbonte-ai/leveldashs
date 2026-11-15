@@ -88,7 +88,8 @@ describe('provider selection', () => {
       locationId: 'L',
       webhookSignatureKey: 'k',
       environment: 'production' as const,
-      webhookUrl: null
+      webhookUrl: null,
+      applicationId: null
     };
     assert.equal(selectProvider({}, null, null), null);
     assert.equal(selectProvider({}, s, q), 'stripe');

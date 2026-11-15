@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { onlinePaymentsConfig } from '@/lib/payments';
+import { onlinePaymentsConfig, squareBilling } from '@/lib/payments';
+import { toSquareAutopayEvent } from '@/lib/payments/square-autopay-events';
 import {
   toSquareCreditEvent,
   toSquareDemoEvent,
@@ -50,6 +51,30 @@ export async function POST(request: NextRequest) {
   } catch {
     return errorResponse(400, 'invalid');
   }
+  // The automatic monthly payment: the subscription is read back from Square, its
+  // state and paid invoices recorded (each invoice once).
+  const autopay = toSquareAutopayEvent(event, { locationId: square.locationId });
+  if (autopay) {
+    const billing = squareBilling();
+    if (!billing) return received('ignored');
+    let state;
+    try {
+      state = await billing.readState(autopay.subscriptionId);
+    } catch {
+      return errorResponse(502, 'not_recorded');
+    }
+    if (!state) return received('ignored');
+    const { data, error } = await createAnonClient().rpc('billing_autopay_sync', {
+      p_key: config.billingKey,
+      p_state: state
+    });
+    if (error) {
+      console.error('billing autopay not recorded', error.code ?? '');
+      return errorResponse(500, 'not_recorded');
+    }
+    return received((data as { status?: string } | null)?.status ?? 'recorded');
+  }
+
   const payload = toSquarePaymentEvent(event, {
     locationId: square.locationId,
     livemode: square.environment === 'production'

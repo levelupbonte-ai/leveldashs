@@ -364,26 +364,32 @@ app, sandbox webhook on the preview deployment's URL), `LEVELUP_PAYPAL_ENV=sandb
 Vercel's **Preview** environment, and pay with a *Sandbox → Accounts* personal test
 account.
 
-## Automatic monthly payment (Stripe Billing)
+## Automatic monthly payment (Square Subscriptions)
 
-Owners and admins turn it on from **Billing → Automatic payment**: Stripe
-Checkout (mode `subscription`) keeps the card and charges the plan's price
-each month. LevelUp never sees the card: only its brand, last 4 digits and
-expiry (`private.billing_subscriptions`). From the same card they open
-Stripe's page to change the card or download invoices (Billing Portal, set up
-automatically on first use), stop the renewal at the end of the paid month,
-resume it, or switch plan (prorated).
+LevelUp takes its payments with **Square** (Stripe is only used by a client's own
+site, never for LevelUp). Owners and admins turn the automatic payment on from
+**Billing → Automatic payment**: they type the card in Square's secure fields
+(Web Payments SDK, loaded from Square), the browser sends a one-time token, and
+the server saves the card on the organization's Square customer and starts a
+monthly Square subscription that Square charges itself. LevelUp keeps the card's
+brand, last 4 digits and expiry only (`private.billing_subscriptions`). From the
+same card they change the card, stop the renewal at the end of the paid month,
+resume it, or switch plan (from the next monthly charge). Each paid month
+appears with its receipt in the invoices.
 
-- Route: `POST /api/billing/autopay` (`start`, `portal`, `cancel`, `resume`,
-  `switch`). The price always comes from `public.plans` via
-  `billing_autopay_prepare` (role checked), never from the browser.
-- Webhook: the same Stripe endpoint (`/api/billing/stripe/webhook`). The
-  subscription is read back from Stripe, never trusted from the payload, then
-  `billing_autopay_sync` stores it; each paid invoice becomes a paid charge
-  (receipt, plan, next due date through `billing_plan_paid`), once per invoice.
-- Off (the card is hidden) until `LEVELUP_STRIPE_SECRET_KEY` and
-  `LEVELUP_STRIPE_WEBHOOK_SECRET` are set (Vercel, Sensitive). One-off
-  invoices keep going through the card provider in `LEVELUP_PAYMENT_PROVIDER`.
-- Stripe webhook events to subscribe, in addition to the Checkout ones:
-  `customer.subscription.created`, `customer.subscription.updated`,
-  `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.
+- Route: `POST /api/billing/autopay` (`start`, `card`, `cancel`, `resume`,
+  `switch`, `refresh`). The price always comes from `public.plans` via
+  `billing_autopay_prepare` (role checked); each plan at each price gets one
+  Square plan variation (`private.billing_square_plans`).
+- Every change is read back from Square and stored by `billing_autopay_sync`;
+  each paid Square invoice becomes a paid charge once (receipt, plan and next
+  due date through `billing_plan_paid`). The organization is always the one
+  that owns the Square customer, never one named by a payload.
+- Square webhook (`/api/billing/square/webhook`), events to add to the existing
+  subscription: `subscription.created`, `subscription.updated`,
+  `invoice.payment_made`, `invoice.scheduled_charge_failed`. Without them the
+  page still reads the state back from Square each time it opens.
+- Off (the card is hidden) until `LEVELUP_SQUARE_APPLICATION_ID` is set: the
+  Square application id (`sq0idp-…`, public, shown to every buyer by Square;
+  never the access token). It uses the existing Square access token and
+  location.

@@ -58,6 +58,12 @@ export interface SquareConfig {
   environment: 'sandbox' | 'production';
   /** The notification URL Square signs; null = the URL the request came in on. */
   webhookUrl: string | null;
+  /**
+   * Public application id for Square's card fields in the browser (Web Payments
+   * SDK), from LEVELUP_SQUARE_APPLICATION_ID; null = no automatic monthly payment.
+   * Not a secret (Square shows it to every buyer), never the access token.
+   */
+  applicationId: string | null;
 }
 
 export interface OnlinePaymentsConfig {
@@ -139,7 +145,9 @@ export function readSquareConfig(env: Env): SquareConfig | null {
   if (!SQUARE_SIGNATURE_KEY.test(webhookSignatureKey)) return null;
   if (!environment) return null;
   if (webhookUrl === undefined) return null;
-  return { accessToken, locationId, webhookSignatureKey, environment, webhookUrl };
+  const appId = read(env, 'LEVELUP_SQUARE_APPLICATION_ID');
+  const applicationId = /^(sq0idp|sandbox-sq0idb)-[A-Za-z0-9_-]{10,80}$/.test(appId) ? appId : null;
+  return { accessToken, locationId, webhookSignatureKey, environment, webhookUrl, applicationId };
 }
 
 export function readPayPalConfig(env: Env): PayPalConfig | null {
