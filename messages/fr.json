@@ -4092,6 +4092,13 @@
         "clear": "Effacer",
         "search": "Chercher un nom, un e-mail, un pays…",
         "none": "Aucun membre ne correspond."
+      },
+      "template": {
+        "title": "Modèle : nouveautés et application",
+        "hint": "Un message prêt à relire pour tous les membres : les nouvelles fonctions et comment installer l’application. Ceux qui ont l’application reçoivent une notification, les autres un e-mail avec le message et les étapes.",
+        "use": "Utiliser le modèle",
+        "itemTitle": "Votre espace évolue : installez l’application",
+        "itemBody": "Votre espace membre s’est enrichi.\n\n• Appels : réservez un appel avec nous, au moment qui vous convient, directement depuis votre espace (rubrique Appels).\n• Actualités : les informations officielles utiles pour votre projet, mises à jour régulièrement.\n• Assistant et messages : posez vos questions à tout moment, nous vous répondons ici.\n\nPour ne rien manquer, installez l’application et activez les notifications :\n1. Ouvrez votre espace sur votre téléphone et connectez-vous.\n2. Touchez « Installer » (sur iPhone : Partager › Sur l’écran d’accueil).\n3. Ouvrez l’application et activez les notifications.\n\nÀ très vite dans votre espace."
       }
     },
     "invite": {
