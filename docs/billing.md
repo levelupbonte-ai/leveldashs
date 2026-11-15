@@ -363,3 +363,27 @@ Switching between card and PayPal on one charge closes the other attempt first
 app, sandbox webhook on the preview deployment's URL), `LEVELUP_PAYPAL_ENV=sandbox` in
 Vercel's **Preview** environment, and pay with a *Sandbox → Accounts* personal test
 account.
+
+## Automatic monthly payment (Stripe Billing)
+
+Owners and admins turn it on from **Billing → Automatic payment**: Stripe
+Checkout (mode `subscription`) keeps the card and charges the plan's price
+each month. LevelUp never sees the card: only its brand, last 4 digits and
+expiry (`private.billing_subscriptions`). From the same card they open
+Stripe's page to change the card or download invoices (Billing Portal, set up
+automatically on first use), stop the renewal at the end of the paid month,
+resume it, or switch plan (prorated).
+
+- Route: `POST /api/billing/autopay` (`start`, `portal`, `cancel`, `resume`,
+  `switch`). The price always comes from `public.plans` via
+  `billing_autopay_prepare` (role checked), never from the browser.
+- Webhook: the same Stripe endpoint (`/api/billing/stripe/webhook`). The
+  subscription is read back from Stripe, never trusted from the payload, then
+  `billing_autopay_sync` stores it; each paid invoice becomes a paid charge
+  (receipt, plan, next due date through `billing_plan_paid`), once per invoice.
+- Off (the card is hidden) until `LEVELUP_STRIPE_SECRET_KEY` and
+  `LEVELUP_STRIPE_WEBHOOK_SECRET` are set (Vercel, Sensitive). One-off
+  invoices keep going through the card provider in `LEVELUP_PAYMENT_PROVIDER`.
+- Stripe webhook events to subscribe, in addition to the Checkout ones:
+  `customer.subscription.created`, `customer.subscription.updated`,
+  `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_failed`.

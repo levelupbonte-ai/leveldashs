@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { onlinePaymentsConfig } from '@/lib/payments';
+import { onlinePaymentsConfig, stripeBilling } from '@/lib/payments';
+import { toAutopayEvent } from '@/lib/payments/stripe-autopay-events';
 import { toBillingPaymentEvent } from '@/lib/payments/stripe-events';
 import { verifyStripeSignature } from '@/lib/payments/stripe-signature';
 import { createAnonClient } from '@/lib/supabase/anon';
@@ -40,6 +41,31 @@ export async function POST(request: NextRequest) {
   } catch {
     return errorResponse(400, 'invalid');
   }
+  // The automatic monthly payment: the subscription is read back from Stripe and
+  // its state (and a paid invoice) recorded by the database.
+  const autopay = toAutopayEvent(event);
+  if (autopay) {
+    if (autopay.livemode !== stripe.livemode) return received('ignored');
+    const billing = stripeBilling();
+    if (!billing) return received('ignored');
+    let state;
+    try {
+      state = await billing.readState(autopay.subscriptionId);
+    } catch {
+      return errorResponse(502, 'not_recorded');
+    }
+    if (!state) return received('ignored');
+    const { data, error } = await createAnonClient().rpc('billing_autopay_sync', {
+      p_key: config.billingKey,
+      p_state: autopay.invoice ? { ...state, invoice: autopay.invoice } : state
+    });
+    if (error) {
+      console.error('billing autopay not recorded', error.code ?? '');
+      return errorResponse(500, 'not_recorded');
+    }
+    return received((data as { status?: string } | null)?.status ?? 'recorded');
+  }
+
   const payload = toBillingPaymentEvent(event);
   if (!payload) return received('ignored');
   // Test events never touch live charges, and the other way round.

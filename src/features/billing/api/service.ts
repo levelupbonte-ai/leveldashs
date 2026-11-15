@@ -2,6 +2,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { AppError, isMfaError, type ErrorCode } from '@/lib/errors';
 import { PlanLimitError, parsePlanLimit, planLimitFromDb } from '@/lib/plan-limit';
 import type {
+  AutopayAction,
+  AutopayState,
   BillingSummary,
   BillingUsage,
   ChargeDocumentKind,
@@ -202,4 +204,43 @@ export async function startOnlinePayment(
   throw new AppError(CHECKOUT_ERRORS[json.error ?? ''] ?? 'paymentUnavailable', {
     cause: { alternative }
   });
+}
+
+/** Owners and admins: the automatic monthly payment (card brand and last 4 digits only). */
+export async function getAutopay(
+  db: SupabaseClient,
+  organizationId: string
+): Promise<AutopayState> {
+  const { data, error } = await db.rpc('billing_autopay', { p_org: organizationId });
+  if (error) throw billingError(error, 'loadFailed');
+  return data as AutopayState;
+}
+
+/**
+ * Turns the automatic payment on, opens Stripe's card and invoices page, stops
+ * or resumes the renewal, or moves to another plan. Returns the Stripe page to
+ * open when there is one.
+ */
+export async function autopayAction(
+  organizationId: string,
+  action: AutopayAction,
+  options: { planKey?: string; locale?: string } = {}
+): Promise<{ url?: string }> {
+  const res = await fetch('/api/billing/autopay', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      organizationId,
+      action,
+      ...(options.planKey ? { planKey: options.planKey } : {}),
+      ...(options.locale === 'fr' || options.locale === 'en' ? { locale: options.locale } : {})
+    })
+  });
+  const body = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!res.ok) {
+    const code: ErrorCode =
+      res.status === 429 ? 'rateLimited' : res.status === 403 ? 'forbidden' : 'paymentUnavailable';
+    throw new AppError(code);
+  }
+  return body;
 }

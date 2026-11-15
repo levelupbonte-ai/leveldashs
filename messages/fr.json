@@ -1151,6 +1151,56 @@
       "upgrade": "Changez de forfait pour en faire plus.",
       "action": "Voir les forfaits",
       "emails_month": "Votre forfait permet {limit, plural, one {# e-mail} other {# e-mails}} par mois."
+    },
+    "autopay": {
+      "kicker": "Paiement automatique",
+      "titleOff": "Payez votre plan automatiquement",
+      "titleOn": "Le paiement automatique est actif",
+      "intro": "Votre plan est payé chaque mois sans que vous ayez à y penser. Vous gardez la main : changez de carte, téléchargez vos factures ou arrêtez à tout moment.",
+      "points": {
+        "safe": "Votre carte est gardée par Stripe, jamais par LevelUp : nous ne voyons que sa marque et ses 4 derniers chiffres.",
+        "invoices": "Une facture et un reçu chaque mois, dans votre page Facturation.",
+        "cancel": "Arrêtez quand vous voulez : votre plan reste actif jusqu’à la fin du mois payé."
+      },
+      "planLabel": "Plan",
+      "start": "Activer le paiement automatique",
+      "opening": "Ouverture de Stripe…",
+      "stripeNote": "Vous saisirez votre carte sur la page sécurisée de Stripe, puis vous reviendrez ici.",
+      "plan": "Plan",
+      "perMonth": "{price} / mois",
+      "nextCharge": "Prochain prélèvement",
+      "endsOn": "Se termine le",
+      "card": "Carte",
+      "cardGeneric": "Carte",
+      "cardUnknown": "Carte enregistrée chez Stripe",
+      "expires": "exp. {date}",
+      "pastDue": "Le dernier paiement n’est pas passé. Mettez à jour votre carte pour que votre plan continue.",
+      "changeCard": "Changer de carte",
+      "invoices": "Factures",
+      "cancel": "Arrêter le paiement automatique",
+      "resume": "Reprendre le paiement automatique",
+      "switchLabel": "Changer de plan",
+      "switch": "Changer de plan",
+      "switchHint": "Le nouveau prix s’applique dès maintenant ; la différence est calculée au prorata sur votre prochaine facture.",
+      "confirmTitle": "Arrêter le paiement automatique ?",
+      "confirmText": "Votre plan reste actif jusqu’au {date}, puis il ne sera pas renouvelé. Vous pouvez reprendre avant cette date.",
+      "keep": "Garder",
+      "confirmCancel": "Arrêter à la fin du mois",
+      "backOn": "Le paiement automatique se met en place. Il s’affiche ici dans quelques secondes.",
+      "backCancelled": "Rien n’a été modifié.",
+      "done": {
+        "cancel": "Le renouvellement est arrêté. Votre plan reste actif jusqu’à la fin du mois payé.",
+        "resume": "Paiement automatique repris.",
+        "switch": "Plan changé.",
+        "start": "Ouverture de Stripe…",
+        "portal": "Ouverture de Stripe…"
+      },
+      "status": {
+        "active": "Actif",
+        "ending": "Se termine en fin de mois",
+        "pastDue": "Paiement refusé",
+        "pending": "En cours"
+      }
     }
   },
   "info": {

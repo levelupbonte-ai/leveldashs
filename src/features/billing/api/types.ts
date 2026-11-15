@@ -171,3 +171,27 @@ export interface ChargeDocument {
   /** The reader is LevelUp staff (aal2). */
   staff: boolean;
 }
+
+/** Automatic monthly payment (Stripe keeps the card; LevelUp only sees its brand and last 4 digits). */
+export interface AutopayState {
+  on: boolean;
+  status?:
+    | 'incomplete'
+    | 'incomplete_expired'
+    | 'trialing'
+    | 'active'
+    | 'past_due'
+    | 'canceled'
+    | 'unpaid'
+    | 'paused';
+  plan_key?: string | null;
+  plan_name?: string | null;
+  amount?: number | null;
+  currency?: string | null;
+  cancel_at_period_end?: boolean;
+  current_period_end?: string | null;
+  card?: { brand: string; last4: string; exp_month: number; exp_year: number } | null;
+  updated_at?: string;
+}
+
+export type AutopayAction = 'start' | 'portal' | 'cancel' | 'resume' | 'switch';

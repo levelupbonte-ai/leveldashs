@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { queryOptions } from '@tanstack/react-query';
-import { getBillingSummary, getBillingUsage } from './service';
+import { getAutopay, getBillingSummary, getBillingUsage } from './service';
 
 export const billingKeys = {
   all: ['billing'] as const,
@@ -20,4 +20,11 @@ export const billingUsageQueryOptions = (db: SupabaseClient, organizationId: str
     queryKey: billingKeys.usage(organizationId),
     queryFn: () => getBillingUsage(db, organizationId),
     staleTime: 60 * 1000
+  });
+
+export const autopayQueryOptions = (db: SupabaseClient, organizationId: string) =>
+  queryOptions({
+    queryKey: [...billingKeys.org(organizationId), 'autopay'] as const,
+    queryFn: () => getAutopay(db, organizationId),
+    staleTime: 15 * 1000
   });
