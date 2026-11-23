@@ -231,6 +231,8 @@ functions from their own code:
   - set the plan prices (see `docs/offer.md`) and the issuer details;
   - assign plans to clients.
 - Re-run `supabase/tests/tenant_isolation.sql` and confirm 0 failed.
+- Free sites (`docs/free-sites.md`): pick and buy the free-sites domain, then the
+  setup steps at the end of that file switch "Publish" on in LevelStudio.
 - The tag on other sites: the owner said they pasted it on some sites but sees no
   data. No new website is registered, so that is the likely cause. Ask which
   domains, register each one with its exact origins, and give it its own `ws_` line.

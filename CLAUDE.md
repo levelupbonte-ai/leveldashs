@@ -18,6 +18,7 @@ This is the LevelUp Ecosystem client dashboard (Next.js 16 + shadcn/ui).
 - **[docs/human-demo.md](./docs/human-demo.md)** — Retired paid human demo (19 USD): how existing demos are tracked
 - **[docs/studio-credits.md](./docs/studio-credits.md)** — LevelStudio credits: welcome credits once, Square top-ups
 - **[docs/news.md](./docs/news.md)** — Official news for client portals (Black Pater): sources, daily refresh, AI cost, member access
+- **[docs/free-sites.md](./docs/free-sites.md)** — Free sites: publish from LevelStudio on a subdomain, connected to the dashboard (phase 1)
 - **[docs/database.md](./docs/database.md)** — Supabase schema, tenant model, RLS, migrations (`supabase/migrations`)
 
 ## Critical Conventions
