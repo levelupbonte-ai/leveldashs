@@ -26,7 +26,9 @@ merchant payments, export): the owner's plan "Sites gratuits LevelUp".
    - A site that asks for passwords or card numbers is refused (`blocked_content`).
 2. `studio_publish_site` (service role only) claims the address and, the first time:
    - uses the person's oldest owned organization, or creates one named after the site;
-   - checks the plan's `websites` limit (free plan: 1);
+   - checks the plan's `websites` limit (free plan: 1 site online). Only sites that are
+     online count (`private.sites_in_use`): a LevelStudio site taken offline frees its slot,
+     and putting it back online is checked again (`20261124170000_free_sites_one_live.sql`);
    - creates the website: status `active`, `site_type = 'levelstudio'`, the
      contact form feature, and the site's address as its only allowed origin.
 3. LevelStudio prepares the HTML:
