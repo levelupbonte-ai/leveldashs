@@ -30,7 +30,7 @@ merchant payments, export): the owner's plan "Sites gratuits LevelUp".
      online count (`private.sites_in_use`): a LevelStudio site taken offline frees its slot,
      and putting it back online is checked again (`20261124170000_free_sites_one_live.sql`);
    - creates the website: status `active`, `site_type = 'levelstudio'`, the
-     contact form feature, and the site's address as its only allowed origin.
+     contact form and newsletter features (`20261124180000_free_sites_newsletter.sql`), and the site's address as its only allowed origin.
 3. LevelStudio prepares the HTML:
    - assets and logo;
    - removes foreign scripts, frames, `<base>`, meta refresh, foreign stylesheets and `javascript:` links;
