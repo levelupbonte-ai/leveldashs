@@ -210,34 +210,14 @@ export function MediaLibrary() {
               {!allowedKinds.includes('video') && (
                 <p className='text-muted-foreground mt-1 text-xs'>{t('videosOff')}</p>
               )}
-              {stats.limit_bytes ? (
-                <div className='mt-2 w-56 max-w-full'>
-                  <div
-                    className='bg-muted h-1.5 overflow-hidden rounded-full'
-                    role='meter'
-                    aria-valuemin={0}
-                    aria-valuemax={stats.limit_bytes}
-                    aria-valuenow={stats.org_bytes ?? 0}
-                    aria-label={t('planStorage')}
-                  >
-                    <div
-                      className={
-                        (stats.org_bytes ?? 0) / stats.limit_bytes >= 0.9
-                          ? 'bg-destructive h-full rounded-full'
-                          : 'bg-primary h-full rounded-full'
-                      }
-                      style={{
-                        width: `${Math.min(100, Math.round(((stats.org_bytes ?? 0) / stats.limit_bytes) * 100))}%`
-                      }}
-                    />
-                  </div>
-                  <p className='text-muted-foreground mt-1 text-xs tabular-nums'>
-                    {t('planStorageOf', {
-                      used: fileSize(stats.org_bytes ?? 0),
-                      limit: fileSize(stats.limit_bytes)
-                    })}
-                  </p>
-                </div>
+              {/* Used space only: storage is never promised as a number (LevelUp sizes it to each client). */}
+              {stats.org_bytes ? (
+                <p className='text-muted-foreground mt-1 text-xs tabular-nums'>
+                  {t('planStorageUsed', { used: fileSize(stats.org_bytes) })}
+                </p>
+              ) : null}
+              {stats.limit_bytes && (stats.org_bytes ?? 0) / stats.limit_bytes >= 0.9 ? (
+                <p className='text-destructive mt-1 text-xs'>{t('planStorageNearlyFull')}</p>
               ) : null}
             </div>
           </div>

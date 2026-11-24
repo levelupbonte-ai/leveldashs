@@ -57,7 +57,7 @@ function fail(error: { message: string; code?: string; details?: string | null }
   if (error?.message === 'media_kind_not_allowed') {
     throw new AppError('mediaKindNotAllowed', { cause: error });
   }
-  // Plan storage limit (media_mb): "Your plan allows N MB … Upgrade".
+  // Plan limits (storage included): a message without a promised number, and a way to get more.
   const limit = planLimitFromDb(error);
   if (limit) throw new PlanLimitError(limit, { cause: error });
   if (isMfaError(error)) throw new AppError('mfaRequired', { cause: error });
