@@ -1024,7 +1024,7 @@
       "reached": "Limite atteinte",
       "none": "Votre forfait n’a pas de limites.",
       "emails_month": "E-mails ce mois-ci",
-      "storageIncluded": "Inclus, adapté à votre activité"
+      "storageIncluded": "Photos et documents inclus"
     },
     "usage": {
       "title": "Consommation du mois",
@@ -2383,8 +2383,8 @@
         "altSaved": "Texte alternatif enregistré",
         "save": "Enregistrer"
       },
-      "planStorage": "Espace utilisé sur votre forfait",
-      "planStorageOf": "{used} utilisés sur {limit} (tous vos sites)",
+      "planStorageUsed": "Espace utilisé : {used} (tous vos sites)",
+      "planStorageNearlyFull": "Votre espace de stockage est presque plein. Écrivez à LevelUp pour l’agrandir : nous l’adaptons à votre activité.",
       "videosOff": "Les vidéos ne sont pas activées pour votre compte : demandez à LevelUp de les activer."
     },
     "settings": {

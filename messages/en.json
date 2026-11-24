@@ -1024,7 +1024,7 @@
       "reached": "Limit reached",
       "none": "Your plan has no limits.",
       "emails_month": "Emails this month",
-      "storageIncluded": "Included, sized to your activity"
+      "storageIncluded": "Photos and documents included"
     },
     "usage": {
       "title": "Usage this month",
@@ -2383,8 +2383,8 @@
         "altSaved": "Alt text saved",
         "save": "Save"
       },
-      "planStorage": "Storage used on your plan",
-      "planStorageOf": "{used} of {limit} used (all your sites)",
+      "planStorageUsed": "Space used: {used} (all your sites)",
+      "planStorageNearlyFull": "Your storage is nearly full. Write to LevelUp to get more: we size it to your activity.",
       "videosOff": "Videos are not turned on for your account: ask LevelUp to enable them."
     },
     "settings": {
